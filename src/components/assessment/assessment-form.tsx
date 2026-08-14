@@ -26,7 +26,8 @@ interface AssessmentResult {
   findings: Finding[];
 }
 
-const MAX_POLLS = 120;
+const MAX_POLLS = 300;
+const POLL_INTERVAL_MS = 3000;
 
 export function AssessmentForm({ standards }: { standards: StandardOption[] }) {
   const [url, setUrl] = useState("");
@@ -75,7 +76,7 @@ export function AssessmentForm({ standards }: { standards: StandardOption[] }) {
       setLoading(false);
       return;
     }
-    setTimeout(() => poll(id, attempt + 1), 2000);
+    setTimeout(() => poll(id, attempt + 1), POLL_INTERVAL_MS);
   }
 
   return (
@@ -129,7 +130,8 @@ export function AssessmentForm({ standards }: { standards: StandardOption[] }) {
 
       {loading && !result && (
         <p aria-live="polite" className="mt-4 text-sm text-neutral-600">
-          Assessment in progress — this may take up to a minute.
+          Assessment in progress — crawling and scanning can take several minutes for larger
+          sites. Leave this tab open.
         </p>
       )}
 
