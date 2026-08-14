@@ -23,7 +23,7 @@ export async function getDb(): Promise<Surreal> {
     if (token) {
       await db.authenticate(token);
     } else if (username && password) {
-      await db.signin({ username, password });
+      await db.signin({ namespace, username, password });
     } else {
       throw new Error("SURREAL_TOKEN or SURREAL_USERNAME/SURREAL_PASSWORD must be set");
     }
