@@ -48,16 +48,22 @@ export const assessmentRepository = {
   async insertFindings(id: string, findings: Finding[]): Promise<void> {
     await query("UPDATE assessment SET findings = $findings WHERE id = type::record($id)", {
       id,
-      findings,
+      findings: JSON.stringify(findings),
     });
   },
 
   async findFindings(id: string): Promise<Finding[]> {
-    const rows = await query<{ findings: Finding[] }>(
+    const rows = await query<{ findings: string }>(
       "SELECT findings FROM assessment WHERE id = type::record($id) LIMIT 1",
       { id },
     );
-    return rows[0]?.findings ?? [];
+    const raw = rows[0]?.findings;
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw) as Finding[];
+    } catch {
+      return [];
+    }
   },
 
   async getAttempts(id: string): Promise<number> {
