@@ -7,6 +7,12 @@ import { logger } from "@/lib/observability/logger";
 
 const POLL_INTERVAL_MS = Number(process.env.WORKER_POLL_INTERVAL_MS ?? 5000);
 const BATCH_SIZE = Number(process.env.WORKER_BATCH_SIZE ?? 5);
+const STALE_RUNNING_MINUTES = Number(process.env.WORKER_STALE_RUNNING_MINUTES ?? 10);
+
+async function recoverStaleRunning() {
+  const cutoff = new Date(Date.now() - STALE_RUNNING_MINUTES * 60 * 1000).toISOString();
+  await assessmentRepository.recoverStaleRunning(cutoff);
+}
 
 async function processQueued() {
   const queued = await assessmentRepository.findQueued(BATCH_SIZE);
@@ -33,6 +39,7 @@ async function main() {
   logger.info({ interval: POLL_INTERVAL_MS }, "assessment worker started");
   for (;;) {
     try {
+      await recoverStaleRunning();
       await processQueued();
     } catch (error) {
       logger.error({ err: error }, "worker poll iteration failed");

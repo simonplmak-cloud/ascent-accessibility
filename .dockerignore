@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.vercel
+.env
+.env.*
+!.env.example
+coverage
+playwright-report
+test-results
+vdd
+constitution.md
+*.tsbuildinfo
+next-env.d.ts
+Dockerfile
+.dockerignore

@@ -80,4 +80,11 @@ export const assessmentRepository = {
       { limit },
     );
   },
+
+  async recoverStaleRunning(cutoffIso: string): Promise<void> {
+    await query(
+      "UPDATE assessment SET status = 'queued' WHERE status = 'running' AND updatedAt < type::datetime($cutoff)",
+      { cutoff: cutoffIso },
+    );
+  },
 };
