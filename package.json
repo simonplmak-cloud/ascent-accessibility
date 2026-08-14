@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.9.0",
+    "@sparticuz/chromium": "^149.0.0",
     "@upstash/qstash": "^2.7.0",
     "axe-core": "^4.10.2",
     "next": "^15.1.3",
