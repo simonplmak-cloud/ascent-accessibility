@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { handleCallback } from "@vercel/queue";
 import { z } from "zod";
 import { runAssessment } from "@/lib/assessment";
 import { crawl } from "@/lib/crawler";
@@ -10,17 +10,18 @@ import { createPageScanner } from "@/server/scanner-factory";
 
 const payloadSchema = z.object({ assessmentId: z.string().min(1) });
 
-export async function POST(req: Request) {
-  const body = await req.json().catch(() => null);
-  const parsed = payloadSchema.safeParse(body);
+const handler = handleCallback(async (message: unknown) => {
+  const parsed = payloadSchema.safeParse(message);
   if (!parsed.success) {
-    return NextResponse.json({ code: "VALIDATION_ERROR" }, { status: 400 });
+    logger.error({ message }, "invalid queue message payload");
+    return;
   }
   const { assessmentId } = parsed.data;
 
   const assessment = await assessmentRepository.findById(assessmentId);
   if (!assessment) {
-    return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
+    logger.warn({ assessmentId }, "assessment not found for queued job");
+    return;
   }
 
   const scanner = await createPageScanner();
@@ -37,12 +38,14 @@ export async function POST(req: Request) {
     const attempts = await assessmentRepository.getAttempts(assessmentId);
     if (attempts >= MAX_ATTEMPTS) {
       await assessmentRepository.fail(assessmentId);
-      return NextResponse.json({ ok: true, status: "failed" });
+      return;
     }
-    return NextResponse.json({ code: "SCAN_FAILED" }, { status: 500 });
+    throw error;
   } finally {
     await scanner.close();
   }
+});
 
-  return NextResponse.json({ ok: true });
+export async function POST(req: Request) {
+  return handler(req);
 }
