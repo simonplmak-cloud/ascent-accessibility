@@ -11,7 +11,7 @@ export async function getDb(): Promise<Surreal> {
       throw new Error("SURREAL_URL must be set");
     }
 
-    const namespace = process.env.SURREAL_NAMESPACE ?? "wcag_score";
+    const namespace = process.env.SURREAL_NAMESPACE ?? "wcag-score";
     const database = process.env.SURREAL_DATABASE ?? "main";
     const token = process.env.SURREAL_TOKEN;
     const username = process.env.SURREAL_USERNAME;
