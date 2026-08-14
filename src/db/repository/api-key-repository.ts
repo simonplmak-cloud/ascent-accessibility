@@ -1,44 +1,58 @@
-import { eq } from "drizzle-orm";
-import { getDb } from "../index";
-import { apiKey, auditLog } from "../schema";
+import { query } from "../index";
 import type { ApiKey, AuditLog, NewApiKey, NewAuditLog } from "../schema";
+
+type RawRecord = Record<string, unknown>;
+
+function mapApiKey(raw: RawRecord): ApiKey {
+  return {
+    id: String(raw.id),
+    name: String(raw.name),
+    keyHash: String(raw.keyHash),
+    keyPrefix: String(raw.keyPrefix),
+    rateLimit: Number(raw.rateLimit),
+    status: raw.status as ApiKey["status"],
+    expiresAt: raw.expiresAt ? new Date(String(raw.expiresAt)) : null,
+    createdAt: String(raw.createdAt),
+  };
+}
 
 export const apiKeyRepository = {
   async create(input: NewApiKey): Promise<ApiKey> {
-    const db = getDb();
-    const [row] = await db.insert(apiKey).values(input).returning();
-    return row!;
+    const rows = await query<RawRecord>("CREATE api_key CONTENT $data", {
+      data: input,
+    });
+    return mapApiKey(rows[0]!);
   },
 
   async findByHash(keyHash: string): Promise<ApiKey | undefined> {
-    const db = getDb();
-    const [row] = await db
-      .select()
-      .from(apiKey)
-      .where(eq(apiKey.keyHash, keyHash))
-      .limit(1);
-    return row;
+    const rows = await query<RawRecord>(
+      "SELECT * FROM api_key WHERE keyHash = $hash LIMIT 1",
+      { hash: keyHash },
+    );
+    return rows[0] ? mapApiKey(rows[0]) : undefined;
   },
 
   async findById(id: string): Promise<ApiKey | undefined> {
-    const db = getDb();
-    const [row] = await db.select().from(apiKey).where(eq(apiKey.id, id)).limit(1);
-    return row;
+    const rows = await query<RawRecord>(
+      "SELECT * FROM api_key WHERE id = $id LIMIT 1",
+      { id },
+    );
+    return rows[0] ? mapApiKey(rows[0]) : undefined;
   },
 
   async list(): Promise<ApiKey[]> {
-    const db = getDb();
-    return db.select().from(apiKey);
+    const rows = await query<RawRecord>("SELECT * FROM api_key");
+    return rows.map(mapApiKey);
   },
 
   async revoke(id: string): Promise<void> {
-    const db = getDb();
-    await db.update(apiKey).set({ status: "revoked" }).where(eq(apiKey.id, id));
+    await query("UPDATE api_key SET status = 'revoked' WHERE id = $id", { id });
   },
 
   async log(input: NewAuditLog): Promise<AuditLog> {
-    const db = getDb();
-    const [row] = await db.insert(auditLog).values(input).returning();
-    return row!;
+    const rows = await query<AuditLog>("CREATE audit_log CONTENT $data", {
+      data: input,
+    });
+    return rows[0]!;
   },
 };

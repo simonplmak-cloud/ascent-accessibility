@@ -1,14 +1,5 @@
-import { eq, sql } from "drizzle-orm";
-import { getDb } from "../index";
-import { assessment, finding, job } from "../schema";
-import type {
-  Assessment,
-  Finding,
-  Job,
-  NewAssessment,
-  NewFinding,
-  NewJob,
-} from "../schema";
+import { query } from "../index";
+import type { Assessment, Finding, NewAssessment } from "../schema";
 
 export interface CompleteAssessmentInput {
   score: number;
@@ -19,89 +10,67 @@ export interface CompleteAssessmentInput {
 
 export const assessmentRepository = {
   async create(input: NewAssessment): Promise<Assessment> {
-    const db = getDb();
-    const [row] = await db.insert(assessment).values(input).returning();
-    return row!;
+    const rows = await query<Assessment>("CREATE assessment CONTENT $data", {
+      data: input,
+    });
+    return rows[0]!;
   },
 
   async findById(id: string): Promise<Assessment | undefined> {
-    const db = getDb();
-    const [row] = await db
-      .select()
-      .from(assessment)
-      .where(eq(assessment.id, id))
-      .limit(1);
-    return row;
+    const rows = await query<Assessment>(
+      "SELECT * FROM assessment WHERE id = $id LIMIT 1",
+      { id },
+    );
+    return rows[0];
   },
 
   async setStatus(id: string, status: Assessment["status"]): Promise<void> {
-    const db = getDb();
-    await db.update(assessment).set({ status }).where(eq(assessment.id, id));
+    await query(
+      "UPDATE assessment SET status = $status, updatedAt = time::now() WHERE id = $id",
+      { id, status },
+    );
   },
 
   async complete(id: string, input: CompleteAssessmentInput): Promise<void> {
-    const db = getDb();
-    await db
-      .update(assessment)
-      .set({
-        status: "completed",
-        score: input.score,
-        passBand: input.passBand,
-        pagesScanned: input.pagesScanned,
-        partial: input.partial,
-      })
-      .where(eq(assessment.id, id));
+    await query(
+      "UPDATE assessment SET status = 'completed', score = $score, passBand = $passBand, pagesScanned = $pagesScanned, partial = $partial, updatedAt = time::now() WHERE id = $id",
+      { id, ...input },
+    );
   },
 
   async fail(id: string): Promise<void> {
-    const db = getDb();
-    await db.update(assessment).set({ status: "failed" }).where(eq(assessment.id, id));
+    await query(
+      "UPDATE assessment SET status = 'failed', updatedAt = time::now() WHERE id = $id",
+      { id },
+    );
   },
 
-  async insertFindings(items: NewFinding[]): Promise<void> {
-    if (items.length === 0) return;
-    const db = getDb();
-    await db.insert(finding).values(items);
+  async insertFindings(id: string, findings: Finding[]): Promise<void> {
+    await query("UPDATE assessment SET findings = $findings WHERE id = $id", {
+      id,
+      findings,
+    });
   },
 
-  async findFindings(assessmentId: string): Promise<Finding[]> {
-    const db = getDb();
-    return db.select().from(finding).where(eq(finding.assessmentId, assessmentId));
+  async findFindings(id: string): Promise<Finding[]> {
+    const rows = await query<{ findings: Finding[] }>(
+      "SELECT findings FROM assessment WHERE id = $id LIMIT 1",
+      { id },
+    );
+    return rows[0]?.findings ?? [];
   },
 
-  async createJob(input: NewJob): Promise<Job> {
-    const db = getDb();
-    const [row] = await db.insert(job).values(input).returning();
-    return row!;
+  async getAttempts(id: string): Promise<number> {
+    const rows = await query<{ attempts: number }>(
+      "SELECT attempts FROM assessment WHERE id = $id LIMIT 1",
+      { id },
+    );
+    return rows[0]?.attempts ?? 0;
   },
 
-  async getJob(assessmentId: string): Promise<Job | undefined> {
-    const db = getDb();
-    const [row] = await db
-      .select()
-      .from(job)
-      .where(eq(job.assessmentId, assessmentId))
-      .limit(1);
-    return row;
-  },
-
-  async setJobStatus(
-    assessmentId: string,
-    status: Job["status"],
-    lastError?: string,
-  ): Promise<void> {
-    const db = getDb();
-    await db
-      .update(job)
-      .set({ status, lastError: lastError ?? null })
-      .where(eq(job.assessmentId, assessmentId));
-  },
-
-  async incrementJobAttempts(assessmentId: string): Promise<void> {
-    const db = getDb();
-    await db
-      .update(job)
-      .set({ attempts: sql`${job.attempts} + 1` })
-      .where(eq(job.assessmentId, assessmentId));
+  async incrementAttempts(id: string): Promise<void> {
+    await query("UPDATE assessment SET attempts = attempts + 1 WHERE id = $id", {
+      id,
+    });
   },
 };

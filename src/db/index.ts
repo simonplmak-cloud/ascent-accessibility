@@ -1,21 +1,33 @@
-import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import * as schema from "./schema";
-
-export type Database = PostgresJsDatabase<typeof schema>;
+import { Surreal } from "surrealdb";
 
 declare global {
-  var __db: Database | undefined;
+  var __surreal: Surreal | undefined;
 }
 
-export function getDb(): Database {
-  if (!globalThis.__db) {
-    const url = process.env.DATABASE_URL;
-    if (!url) {
-      throw new Error("DATABASE_URL is not set");
+export async function getDb(): Promise<Surreal> {
+  if (!globalThis.__surreal) {
+    const url = process.env.SURREAL_URL ?? process.env.SURREAL_ENDPOINT;
+    const token = process.env.SURREAL_TOKEN;
+    if (!url || !token) {
+      throw new Error("SURREAL_URL and SURREAL_TOKEN must be set");
     }
-    const client = postgres(url, { max: 1 });
-    globalThis.__db = drizzle(client, { schema });
+    const db = new Surreal();
+    await db.connect(url, {
+      namespace: process.env.SURREAL_NAMESPACE ?? "valuation",
+      database: process.env.SURREAL_DATABASE ?? "main",
+      authentication: token,
+      versionCheck: false,
+    });
+    globalThis.__surreal = db;
   }
-  return globalThis.__db;
+  return globalThis.__surreal;
+}
+
+export async function query<T>(
+  statement: string,
+  bindings?: Record<string, unknown>,
+): Promise<T[]> {
+  const db = await getDb();
+  const results = await db.query(statement, bindings).json().collect();
+  return ((results as unknown[])[0] as T[] | undefined) ?? [];
 }

@@ -13,8 +13,7 @@ export interface AssessmentRecord {
   pageCap: number;
 }
 
-export interface NewFindingRow {
-  assessmentId: string;
+export interface FindingInput {
   ruleId: string;
   impact: Impact;
   description: string;
@@ -36,7 +35,7 @@ export interface AssessmentRepositoryPort {
     },
   ): Promise<void>;
   fail(id: string): Promise<void>;
-  insertFindings(items: NewFindingRow[]): Promise<void>;
+  insertFindings(id: string, findings: FindingInput[]): Promise<void>;
 }
 
 export interface AssessmentDeps {
@@ -76,13 +75,12 @@ export async function runAssessment(
       maxPages: assessment.pageCap,
     });
 
-    const findings: NewFindingRow[] = [];
+    const findings: FindingInput[] = [];
     for (const pageUrl of crawlResult.urls) {
       try {
         const scan = await deps.scan(pageUrl, standard.axeTags);
         for (const violation of scan.violations) {
           findings.push({
-            assessmentId,
             ruleId: violation.id,
             impact: violation.impact,
             description: violation.description,
@@ -102,7 +100,7 @@ export async function runAssessment(
     }
 
     const score = computeScore(findings);
-    await deps.repository.insertFindings(findings);
+    await deps.repository.insertFindings(assessmentId, findings);
     await deps.repository.complete(assessmentId, {
       score: score.score,
       passBand: score.passBand,

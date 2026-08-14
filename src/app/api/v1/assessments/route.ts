@@ -46,8 +46,6 @@ export async function POST(req: Request) {
     pageCap: pageCap ?? 100,
   });
 
-  await assessmentRepository.createJob({ assessmentId: assessment.id });
-
   const queue = getJobQueue();
   await queue.enqueue({ assessmentId: assessment.id });
 

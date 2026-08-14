@@ -33,9 +33,9 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     logger.error({ err: error, assessmentId }, "assessment job attempt failed");
-    await assessmentRepository.incrementJobAttempts(assessmentId);
-    const job = await assessmentRepository.getJob(assessmentId);
-    if ((job?.attempts ?? 0) >= MAX_ATTEMPTS) {
+    await assessmentRepository.incrementAttempts(assessmentId);
+    const attempts = await assessmentRepository.getAttempts(assessmentId);
+    if (attempts >= MAX_ATTEMPTS) {
       await assessmentRepository.fail(assessmentId);
       return NextResponse.json({ ok: true, status: "failed" });
     }

@@ -4,14 +4,14 @@ import {
   type AssessmentDeps,
   type AssessmentRecord,
   type AssessmentRepositoryPort,
-  type NewFindingRow,
+  type FindingInput,
 } from "@/lib/assessment";
 import { getStandard } from "@/lib/standards/catalog";
 import type { Impact } from "@/lib/scoring";
 
 interface RepoState {
   status: string;
-  findings: NewFindingRow[];
+  findings: FindingInput[];
   completed: { score: number; passBand: string; pagesScanned: number; partial: boolean } | null;
 }
 
@@ -31,7 +31,7 @@ function makeRepo(assessment: AssessmentRecord) {
     async fail() {
       state.status = "failed";
     },
-    async insertFindings(items) {
+    async insertFindings(_id, items) {
       state.findings = items;
     },
   };
