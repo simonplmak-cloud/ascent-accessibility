@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+build
+coverage
+playwright-report
+test-results
+.env
+.env*.local
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+
+# Design docs (spec-driven chain — kept local, not part of the code repo)
+vdd/
+constitution.md
