@@ -9,6 +9,8 @@ export interface CrawlResult {
   urls: string[];
   pagesScanned: number;
   partial: boolean;
+  sitemapUsed: boolean;
+  sitemapUrlCount: number;
 }
 
 export interface CrawlerDeps {
@@ -98,6 +100,45 @@ export function isAllowedByRobots(url: URL, disallow: string[]): boolean {
   return true;
 }
 
+const LOC_PATTERN = /<loc>([^<]+)<\/loc>/gi;
+
+export function parseSitemapLocs(xml: string): string[] {
+  const locs: string[] = [];
+  LOC_PATTERN.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = LOC_PATTERN.exec(xml)) !== null) {
+    const loc = match[1]!.trim();
+    if (loc) locs.push(loc);
+  }
+  return locs;
+}
+
+export async function fetchSitemapUrls(
+  origin: URL,
+  deps: CrawlerDeps,
+): Promise<string[]> {
+  const urls = new Set<string>();
+
+  async function collect(sitemapUrl: string, depth: number) {
+    if (depth > 3) return;
+    let xml: string;
+    try {
+      xml = await deps.fetchHtml(sitemapUrl);
+    } catch {
+      return;
+    }
+    const locs = parseSitemapLocs(xml);
+    if (/<sitemapindex/i.test(xml)) {
+      for (const loc of locs) await collect(loc, depth + 1);
+    } else {
+      for (const loc of locs) urls.add(loc);
+    }
+  }
+
+  await collect(`${origin.origin}/sitemap.xml`, 0);
+  return [...urls];
+}
+
 function discoverChildren(
   html: string,
   baseUrl: string,
@@ -162,7 +203,25 @@ export async function crawl(
 
   const urls: string[] = [];
   const visited = new Set<string>();
+
+  const sitemapUrls = await fetchSitemapUrls(origin, deps);
+  const sitemapUsed = sitemapUrls.length > 0;
+  const sitemapUrlCount = sitemapUrls.length;
+
   const queue: { url: URL; depth: number }[] = [{ url: new URL(seed.href), depth: 0 }];
+  if (sitemapUsed) {
+    for (const href of sitemapUrls) {
+      let url: URL;
+      try {
+        url = new URL(href);
+      } catch {
+        continue;
+      }
+      if (!isSameOrigin(url, origin)) continue;
+      if (visited.has(url.href)) continue;
+      queue.push({ url, depth: 0 });
+    }
+  }
   let capped = false;
 
   while (queue.length > 0) {
@@ -207,5 +266,5 @@ export async function crawl(
 
   if (queue.length > 0) capped = true;
 
-  return { urls, pagesScanned: urls.length, partial: capped };
+  return { urls, pagesScanned: urls.length, partial: capped, sitemapUsed, sitemapUrlCount };
 }

@@ -1,12 +1,12 @@
 export default function ContactPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="text-3xl font-bold">Contact us</h1>
-      <p className="mt-4 text-neutral-600">
+      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Contact us</h1>
+      <p className="mt-4 font-mono text-terminal-muted">
         Want help improving your accessibility, or a deeper audit of your site? Get in
         touch.
       </p>
-      <address className="mt-6 not-italic text-neutral-800">
+      <address className="mt-6 not-italic font-mono text-terminal-fg">
         <p>
           Email:{" "}
           <a href="mailto:hello@ascent.partners" className="underline underline-offset-4">

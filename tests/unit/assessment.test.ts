@@ -34,6 +34,7 @@ function makeRepo(assessment: AssessmentRecord) {
     async insertFindings(_id, items) {
       state.findings = items;
     },
+    async appendLog() {},
   };
   return { repo, state };
 }
@@ -60,7 +61,13 @@ const scanOk = async (url: string) => ({
   passesCount: 3,
 });
 
-const emptyCrawl = async () => ({ urls: [], pagesScanned: 0, partial: false });
+const emptyCrawl = async () => ({
+  urls: [],
+  pagesScanned: 0,
+  partial: false,
+  sitemapUsed: false,
+  sitemapUrlCount: 0,
+});
 
 const createScanner = async () => ({ scan: scanOk, close: async () => {} });
 
@@ -69,7 +76,7 @@ describe("runAssessment", () => {
     const { repo, state } = makeRepo(assessment);
     const deps: AssessmentDeps = {
       repository: repo,
-      crawlSite: async () => ({ urls: ["https://example.com/"], pagesScanned: 1, partial: false }),
+      crawlSite: async () => ({ urls: ["https://example.com/"], pagesScanned: 1, partial: false, sitemapUsed: false, sitemapUrlCount: 0 }),
       createScanner,
       resolveStandard: getStandard,
     };
@@ -116,7 +123,7 @@ describe("runAssessment", () => {
     const { repo, state } = makeRepo(assessment);
     const deps: AssessmentDeps = {
       repository: repo,
-      crawlSite: async () => ({ urls: ["https://example.com/"], pagesScanned: 1, partial: true }),
+      crawlSite: async () => ({ urls: ["https://example.com/"], pagesScanned: 1, partial: true, sitemapUsed: false, sitemapUrlCount: 0 }),
       createScanner,
       resolveStandard: getStandard,
     };

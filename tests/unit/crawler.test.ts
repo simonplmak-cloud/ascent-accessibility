@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   crawl,
   extractLinks,
+  fetchSitemapUrls,
   isAllowedByRobots,
   isSameOrigin,
   parseRobotsDisallow,
+  parseSitemapLocs,
   type CrawlerDeps,
 } from "@/lib/crawler";
 
@@ -171,5 +173,55 @@ describe("crawl", () => {
     };
     const result = await crawl(new URL("https://example.com/"), {}, deps(pages));
     expect(result.urls).toEqual(["https://example.com/", "https://example.com/ok"]);
+  });
+});
+
+describe("sitemap", () => {
+  it("parses <loc> entries", () => {
+    const xml =
+      '<urlset><url><loc>https://example.com/a</loc></url><url><loc>https://example.com/b</loc></url></urlset>';
+    expect(parseSitemapLocs(xml)).toEqual([
+      "https://example.com/a",
+      "https://example.com/b",
+    ]);
+  });
+
+  it("fetchSitemapUrls resolves a sitemap index recursively", async () => {
+    const pages = {
+      "https://example.com/sitemap.xml":
+        '<sitemapindex><sitemap><loc>https://example.com/sitemap-pages.xml</loc></sitemap></sitemapindex>',
+      "https://example.com/sitemap-pages.xml":
+        '<urlset><url><loc>https://example.com/about</loc></url><url><loc>https://example.com/contact</loc></url></urlset>',
+    };
+    const d = { fetchHtml: fetcher(pages), fetchRobots: noRobots, delay: noDelay };
+    const urls = await fetchSitemapUrls(new URL("https://example.com/"), d);
+    expect(urls.sort()).toEqual([
+      "https://example.com/about",
+      "https://example.com/contact",
+    ]);
+  });
+
+  it("crawl seeds from the sitemap and flags sitemapUsed", async () => {
+    const pages = {
+      "https://example.com/sitemap.xml":
+        '<urlset><url><loc>https://example.com/deep/page</loc></url></urlset>',
+      "https://example.com/": "<html></html>",
+      "https://example.com/deep/page": "<html></html>",
+    };
+    const result = await crawl(new URL("https://example.com/"), {}, deps(pages));
+    expect(result.sitemapUsed).toBe(true);
+    expect(result.sitemapUrlCount).toBe(1);
+    expect(result.urls).toContain("https://example.com/deep/page");
+  });
+
+  it("falls back to link crawl when no sitemap exists", async () => {
+    const pages = {
+      "https://example.com/": '<a href="/about">About</a>',
+      "https://example.com/about": "<html></html>",
+    };
+    const result = await crawl(new URL("https://example.com/"), {}, deps(pages));
+    expect(result.sitemapUsed).toBe(false);
+    expect(result.sitemapUrlCount).toBe(0);
+    expect(result.urls).toEqual(["https://example.com/", "https://example.com/about"]);
   });
 });

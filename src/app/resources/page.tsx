@@ -1,8 +1,8 @@
 export default function ResourcesPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="text-3xl font-bold">Resources</h1>
-      <ul className="mt-6 list-disc space-y-3 pl-6 text-neutral-700">
+      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Resources</h1>
+      <ul className="mt-6 list-disc space-y-3 pl-6 font-mono text-terminal-fg">
         <li>
           <a
             href="https://www.w3.org/TR/WCAG22/"
@@ -34,12 +34,16 @@ export default function ResourcesPage() {
           </a>
         </li>
       </ul>
-      <p className="mt-6 text-neutral-600">
+      <p className="mt-6 font-mono text-terminal-muted">
         Start with a self-assessment using our{" "}
-        <a href="/assess" className="underline underline-offset-4">
+        <a href="/assess" className="underline underline-offset-4 hover:text-terminal-fg">
           accessibility tool
         </a>
-        , then use these references to guide your remediation.
+        , or learn more in our{" "}
+        <a href="/learn" className="underline underline-offset-4 hover:text-terminal-fg">
+          education section
+        </a>
+        .
       </p>
     </div>
   );

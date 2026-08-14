@@ -15,6 +15,7 @@ export async function GET(
     assessment.status === "completed"
       ? await assessmentRepository.findFindings(id)
       : [];
+  const log = await assessmentRepository.readLog(id);
 
   return NextResponse.json({
     id: assessment.id,
@@ -25,6 +26,7 @@ export async function GET(
     score: assessment.score,
     passBand: assessment.passBand,
     pagesScanned: assessment.pagesScanned,
+    log,
     findings: findings.map((f) => ({
       ruleId: f.ruleId,
       impact: f.impact,

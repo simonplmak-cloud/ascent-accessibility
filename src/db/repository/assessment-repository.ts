@@ -1,11 +1,27 @@
 import { query } from "../index";
-import type { Assessment, Finding, NewAssessment } from "../schema";
+import type { Assessment, Finding, LogEntry, NewAssessment } from "../schema";
 
 export interface CompleteAssessmentInput {
   score: number;
   passBand: "pass" | "partial" | "fail";
   pagesScanned: number;
   partial: boolean;
+}
+
+export const MAX_LOG_ENTRIES = 500;
+
+async function readLogRaw(id: string): Promise<LogEntry[]> {
+  const rows = await query<{ log: string }>(
+    "SELECT log FROM assessment WHERE id = type::record($id) LIMIT 1",
+    { id },
+  );
+  const raw = rows[0]?.log;
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as LogEntry[];
+  } catch {
+    return [];
+  }
 }
 
 export const assessmentRepository = {
@@ -92,5 +108,18 @@ export const assessmentRepository = {
       "UPDATE assessment SET status = 'queued' WHERE status = 'running' AND updatedAt < type::datetime($cutoff)",
       { cutoff: cutoffIso },
     );
+  },
+
+  async readLog(id: string): Promise<LogEntry[]> {
+    return readLogRaw(id);
+  },
+
+  async appendLog(id: string, entries: LogEntry[]): Promise<void> {
+    if (entries.length === 0) return;
+    const merged = [...(await readLogRaw(id)), ...entries].slice(-MAX_LOG_ENTRIES);
+    await query("UPDATE assessment SET log = $log WHERE id = type::record($id)", {
+      id,
+      log: JSON.stringify(merged),
+    });
   },
 };

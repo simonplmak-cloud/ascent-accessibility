@@ -2,14 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #0b0f14;
+  color: #e6edf3;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .skip-link {
   position: absolute;
   left: -9999px;
   top: 0;
   z-index: 50;
   padding: 0.5rem 1rem;
-  background: #1e293b;
-  color: #fff;
+  background: #e6edf3;
+  color: #0b0f14;
   font-size: 0.875rem;
   border-radius: 0 0 0.25rem 0;
 }
@@ -17,4 +27,9 @@
 .skip-link:focus {
   left: 0;
   top: 0;
+}
+
+:focus-visible {
+  outline: 2px solid #ffa657;
+  outline-offset: 2px;
 }

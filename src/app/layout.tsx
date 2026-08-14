@@ -17,7 +17,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white text-neutral-900 antialiased">
+      <body className="min-h-screen bg-terminal-bg text-terminal-fg antialiased">
         <a href="#main" className="skip-link">
           Skip to main content
         </a>

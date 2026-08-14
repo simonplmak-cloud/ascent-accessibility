@@ -13,6 +13,14 @@ export interface Finding {
   recommendation: string;
 }
 
+export type LogLevel = "info" | "warn" | "error";
+
+export interface LogEntry {
+  timestamp: string;
+  level: LogLevel;
+  message: string;
+}
+
 export interface Assessment {
   id: string;
   url: string;
@@ -27,6 +35,7 @@ export interface Assessment {
   attempts: number;
   lastError: string | null;
   findings: Finding[];
+  log: LogEntry[];
   createdAt: string;
   updatedAt: string;
 }
@@ -86,6 +95,7 @@ DEFINE FIELD pagesScanned ON assessment TYPE int DEFAULT 0;
 DEFINE FIELD attempts ON assessment TYPE int DEFAULT 0;
 DEFINE FIELD lastError ON assessment TYPE option<string>;
 DEFINE FIELD findings ON assessment TYPE option<string> DEFAULT "";
+DEFINE FIELD log ON assessment TYPE option<string> DEFAULT "";
 DEFINE FIELD createdAt ON assessment TYPE datetime DEFAULT time::now();
 DEFINE FIELD updatedAt ON assessment TYPE datetime DEFAULT time::now();
 DEFINE INDEX assessment_status_created_idx ON assessment FIELDS status, createdAt;`,

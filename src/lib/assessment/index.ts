@@ -1,8 +1,9 @@
 import { getRecommendation } from "@/lib/recommendations";
 import { computeScore, type Impact } from "@/lib/scoring";
-import { type CrawlOptions } from "@/lib/crawler";
+import { type CrawlOptions, type CrawlResult } from "@/lib/crawler";
 import { ScanFailedError, type ScanResult } from "@/lib/scanner";
 import type { Standard } from "@/lib/standards/catalog";
+import type { LogEntry, LogLevel } from "@/db/schema";
 
 export interface AssessmentRecord {
   id: string;
@@ -36,6 +37,7 @@ export interface AssessmentRepositoryPort {
   ): Promise<void>;
   fail(id: string): Promise<void>;
   insertFindings(id: string, findings: FindingInput[]): Promise<void>;
+  appendLog(id: string, entries: LogEntry[]): Promise<void>;
 }
 
 export interface PageScanner {
@@ -45,10 +47,7 @@ export interface PageScanner {
 
 export interface AssessmentDeps {
   repository: AssessmentRepositoryPort;
-  crawlSite: (
-    seed: URL,
-    options: CrawlOptions,
-  ) => Promise<{ urls: string[]; pagesScanned: number; partial: boolean }>;
+  crawlSite: (seed: URL, options: CrawlOptions) => Promise<CrawlResult>;
   createScanner: () => Promise<PageScanner>;
   resolveStandard: (id: string) => Standard | undefined;
   concurrency?: number;
@@ -74,21 +73,39 @@ export async function runAssessment(
 
   await deps.repository.setStatus(assessmentId, "running");
 
+  const log = (level: LogLevel, message: string): Promise<void> =>
+    deps.repository.appendLog(assessmentId, [
+      { timestamp: new Date().toISOString(), level, message },
+    ]);
+
   try {
     const seed = new URL(assessment.url);
+    await log("info", `assessment started for ${assessment.url}`);
     const crawlResult = await deps.crawlSite(seed, {
       maxDepth: assessment.depth,
       maxPages: assessment.pageCap,
     });
 
     if (crawlResult.urls.length === 0) {
+      await log("error", "no pages could be crawled");
       await deps.repository.fail(assessmentId);
       return;
     }
 
-    const findings = await scanPages(crawlResult.urls, standard.axeTags, deps);
+    await log(
+      "info",
+      crawlResult.sitemapUsed
+        ? `sitemap fetched: ${crawlResult.sitemapUrlCount} urls`
+        : "no sitemap found — link crawl",
+    );
+    await log("info", `crawl complete: ${crawlResult.urls.length} pages`);
+
+    const findings = await scanPages(crawlResult.urls, standard.axeTags, deps, assessmentId);
+    await log("info", `scan complete: ${findings.length} findings`);
 
     const score = computeScore(findings);
+    await log("info", `score: ${score.score}/100 (${score.passBand})`);
+
     await deps.repository.insertFindings(assessmentId, findings);
     await deps.repository.complete(assessmentId, {
       score: score.score,
@@ -107,10 +124,23 @@ async function scanPages(
   urls: string[],
   tags: string[],
   deps: AssessmentDeps,
+  assessmentId: string,
 ): Promise<FindingInput[]> {
   const findings: FindingInput[] = [];
+  const logs: LogEntry[] = [];
   const concurrency = Math.max(1, deps.concurrency ?? 4);
   const queue = [...urls];
+
+  let flushChain: Promise<void> = Promise.resolve();
+  function flushLogs(): Promise<void> {
+    flushChain = flushChain.then(async () => {
+      if (logs.length === 0) return;
+      const batch = logs.splice(0);
+      await deps.repository.appendLog(assessmentId, batch);
+    });
+    return flushChain;
+  }
+  const flushTimer = setInterval(() => void flushLogs(), 3000);
 
   const workers = Array.from(
     { length: Math.min(concurrency, queue.length) },
@@ -120,6 +150,11 @@ async function scanPages(
         for (let pageUrl = queue.shift(); pageUrl !== undefined; pageUrl = queue.shift()) {
           try {
             const scan = await scanner.scan(pageUrl, tags);
+            logs.push({
+              timestamp: new Date().toISOString(),
+              level: "info",
+              message: `scanned ${pageUrl}: ${scan.violations.length} violations`,
+            });
             for (const violation of scan.violations) {
               findings.push({
                 ruleId: violation.id,
@@ -132,6 +167,11 @@ async function scanPages(
             }
           } catch (error) {
             if (!(error instanceof ScanFailedError)) throw error;
+            logs.push({
+              timestamp: new Date().toISOString(),
+              level: "warn",
+              message: `scan failed: ${pageUrl}`,
+            });
           }
         }
       } finally {
@@ -141,5 +181,7 @@ async function scanPages(
   );
 
   await Promise.all(workers);
+  clearInterval(flushTimer);
+  await flushLogs();
   return findings;
 }
