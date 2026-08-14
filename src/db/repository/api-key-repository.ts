@@ -34,7 +34,7 @@ export const apiKeyRepository = {
 
   async findById(id: string): Promise<ApiKey | undefined> {
     const rows = await query<RawRecord>(
-      "SELECT * FROM api_key WHERE id = $id LIMIT 1",
+      "SELECT * FROM api_key WHERE id = type::record($id) LIMIT 1",
       { id },
     );
     return rows[0] ? mapApiKey(rows[0]) : undefined;
@@ -46,7 +46,7 @@ export const apiKeyRepository = {
   },
 
   async revoke(id: string): Promise<void> {
-    await query("UPDATE api_key SET status = 'revoked' WHERE id = $id", { id });
+    await query("UPDATE api_key SET status = 'revoked' WHERE id = type::record($id)", { id });
   },
 
   async log(input: NewAuditLog): Promise<AuditLog> {
