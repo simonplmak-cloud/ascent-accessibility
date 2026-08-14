@@ -126,7 +126,12 @@ export async function exportReport(
 const defaultPdfRenderer: PdfRenderer = {
   async render(html) {
     const { chromium } = await import("playwright");
-    const browser = await chromium.launch();
+    const token = process.env.BROWSERLESS_TOKEN;
+    const browser = token
+      ? await chromium.connectOverCDP(
+          `${process.env.BROWSERLESS_URL ?? "wss://chrome.browserless.io"}?token=${token}`,
+        )
+      : await chromium.launch();
     try {
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: "networkidle" });
