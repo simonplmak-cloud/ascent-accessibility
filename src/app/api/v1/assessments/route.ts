@@ -3,7 +3,7 @@ import { assessRequestSchema } from "@/server/validation";
 import { validateTargetUrl } from "@/server/ssrf";
 import { IP_RATE_LIMIT, RATE_WINDOW_MS } from "@/server/rate-limit";
 import { getClientIp } from "@/server/ip";
-import { apiKeyService, getJobQueue, rateLimiter } from "@/server/bootstrap";
+import { apiKeyService, rateLimiter } from "@/server/bootstrap";
 import { assessmentRepository } from "@/db/repository";
 import { getStandard } from "@/lib/standards/catalog";
 import { withCorrelationId } from "@/lib/observability/logger";
@@ -46,10 +46,7 @@ export async function POST(req: Request) {
     pageCap: pageCap ?? 100,
   });
 
-  const queue = getJobQueue();
-  await queue.enqueue({ assessmentId: assessment.id });
-
-  withCorrelationId(assessment.id).info({ ip }, "assessment enqueued");
+  withCorrelationId(assessment.id).info({ ip }, "assessment queued");
 
   return NextResponse.json(
     { id: assessment.id, status: "queued", url: ssrf.url.href, standard },

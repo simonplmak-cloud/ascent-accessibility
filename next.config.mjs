@@ -1,12 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: [
-    "playwright",
-    "playwright-core",
-    "axe-core",
-    "surrealdb",
-    "@sparticuz/chromium",
-  ],
+  serverExternalPackages: ["playwright", "playwright-core", "axe-core", "surrealdb"],
 };
 
 export default nextConfig;

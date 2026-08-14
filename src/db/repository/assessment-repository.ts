@@ -73,4 +73,11 @@ export const assessmentRepository = {
       id,
     });
   },
+
+  async findQueued(limit = 5): Promise<Assessment[]> {
+    return query<Assessment>(
+      "SELECT * FROM assessment WHERE status = 'queued' ORDER BY createdAt ASC LIMIT $limit",
+      { limit },
+    );
+  },
 };
