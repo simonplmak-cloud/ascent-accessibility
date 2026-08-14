@@ -5,6 +5,7 @@ build
 coverage
 playwright-report
 test-results
+dist
 .env
 .env*.local
 .DS_Store

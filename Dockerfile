@@ -9,6 +9,8 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
+RUN pnpm run worker:build
+
 ENV NODE_ENV=production
 
-CMD ["pnpm", "worker"]
+CMD ["node", "dist/worker.js"]
