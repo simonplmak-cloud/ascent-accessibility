@@ -1,0 +1,16 @@
+app = "wcag-score-worker"
+primary_region = "sin"
+
+[build]
+
+[env]
+  SURREAL_NAMESPACE = "wcag-score"
+  SURREAL_DATABASE = "main"
+  BROWSERLESS_URL = "wss://chrome.browserless.io"
+  WORKER_POLL_INTERVAL_MS = "5000"
+  WORKER_BATCH_SIZE = "5"
+
+[machine]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
