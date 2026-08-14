@@ -62,13 +62,15 @@ const scanOk = async (url: string) => ({
 
 const emptyCrawl = async () => ({ urls: [], pagesScanned: 0, partial: false });
 
+const createScanner = async () => ({ scan: scanOk, close: async () => {} });
+
 describe("runAssessment", () => {
   it("crawls, scans, scores, and persists findings (AC-2/3/5/9)", async () => {
     const { repo, state } = makeRepo(assessment);
     const deps: AssessmentDeps = {
       repository: repo,
       crawlSite: async () => ({ urls: ["https://example.com/"], pagesScanned: 1, partial: false }),
-      scan: scanOk,
+      createScanner,
       resolveStandard: getStandard,
     };
 
@@ -91,7 +93,7 @@ describe("runAssessment", () => {
     const deps: AssessmentDeps = {
       repository: repo,
       crawlSite: emptyCrawl,
-      scan: scanOk,
+      createScanner,
       resolveStandard: getStandard,
     };
     await runAssessment("a1", deps);
@@ -103,7 +105,7 @@ describe("runAssessment", () => {
     const deps: AssessmentDeps = {
       repository: repo,
       crawlSite: emptyCrawl,
-      scan: scanOk,
+      createScanner,
       resolveStandard: getStandard,
     };
     await runAssessment("a1", deps);
@@ -115,7 +117,7 @@ describe("runAssessment", () => {
     const deps: AssessmentDeps = {
       repository: repo,
       crawlSite: async () => ({ urls: ["https://example.com/"], pagesScanned: 1, partial: true }),
-      scan: scanOk,
+      createScanner,
       resolveStandard: getStandard,
     };
     await runAssessment("a1", deps);
@@ -129,7 +131,7 @@ describe("runAssessment", () => {
       crawlSite: async () => {
         throw new Error("should not crawl");
       },
-      scan: scanOk,
+      createScanner,
       resolveStandard: getStandard,
     };
     await runAssessment("a1", deps);

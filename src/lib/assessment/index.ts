@@ -38,14 +38,20 @@ export interface AssessmentRepositoryPort {
   insertFindings(id: string, findings: FindingInput[]): Promise<void>;
 }
 
+export interface PageScanner {
+  scan: (url: string, tags: string[]) => Promise<ScanResult>;
+  close: () => Promise<void>;
+}
+
 export interface AssessmentDeps {
   repository: AssessmentRepositoryPort;
   crawlSite: (
     seed: URL,
     options: CrawlOptions,
   ) => Promise<{ urls: string[]; pagesScanned: number; partial: boolean }>;
-  scan: (url: string, tags: string[]) => Promise<ScanResult>;
+  createScanner: () => Promise<PageScanner>;
   resolveStandard: (id: string) => Standard | undefined;
+  concurrency?: number;
 }
 
 export async function runAssessment(
@@ -75,29 +81,12 @@ export async function runAssessment(
       maxPages: assessment.pageCap,
     });
 
-    const findings: FindingInput[] = [];
-    for (const pageUrl of crawlResult.urls) {
-      try {
-        const scan = await deps.scan(pageUrl, standard.axeTags);
-        for (const violation of scan.violations) {
-          findings.push({
-            ruleId: violation.id,
-            impact: violation.impact,
-            description: violation.description,
-            pageUrl,
-            elementCount: violation.nodeCount,
-            recommendation: getRecommendation(violation.id, violation.impact),
-          });
-        }
-      } catch (error) {
-        if (!(error instanceof ScanFailedError)) throw error;
-      }
-    }
-
     if (crawlResult.urls.length === 0) {
       await deps.repository.fail(assessmentId);
       return;
     }
+
+    const findings = await scanPages(crawlResult.urls, standard.axeTags, deps);
 
     const score = computeScore(findings);
     await deps.repository.insertFindings(assessmentId, findings);
@@ -112,4 +101,45 @@ export async function runAssessment(
     // failure is handled by the worker route, not here).
     throw error;
   }
+}
+
+async function scanPages(
+  urls: string[],
+  tags: string[],
+  deps: AssessmentDeps,
+): Promise<FindingInput[]> {
+  const findings: FindingInput[] = [];
+  const concurrency = Math.max(1, deps.concurrency ?? 4);
+  const queue = [...urls];
+
+  const workers = Array.from(
+    { length: Math.min(concurrency, queue.length) },
+    async () => {
+      const scanner = await deps.createScanner();
+      try {
+        for (let pageUrl = queue.shift(); pageUrl !== undefined; pageUrl = queue.shift()) {
+          try {
+            const scan = await scanner.scan(pageUrl, tags);
+            for (const violation of scan.violations) {
+              findings.push({
+                ruleId: violation.id,
+                impact: violation.impact,
+                description: violation.description,
+                pageUrl,
+                elementCount: violation.nodeCount,
+                recommendation: getRecommendation(violation.id, violation.impact),
+              });
+            }
+          } catch (error) {
+            if (!(error instanceof ScanFailedError)) throw error;
+          }
+        }
+      } finally {
+        await scanner.close();
+      }
+    },
+  );
+
+  await Promise.all(workers);
+  return findings;
 }
