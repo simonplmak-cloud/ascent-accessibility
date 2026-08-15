@@ -126,6 +126,7 @@ export function consolidateFindings(
   for (const finding of groups.values()) {
     const tools = new Set(finding.sources.map((source) => source.tool));
     finding.confidence = tools.size >= 2 ? "confirmed" : "single-source";
+    finding.elementCount = finding.instances.length;
   }
 
   return [...groups.values()].sort(

@@ -1,4 +1,5 @@
 import type { IbmReport } from "accessibility-checker";
+import { getSc } from "@/lib/standards/wcag-sc";
 import type { ToolFinding } from "./consolidate";
 
 export interface IbmCounts {
@@ -19,6 +20,37 @@ const EMPTY: IbmScanOutput = {
   findings: [],
 };
 
+let ruleScCache: Map<string, string[]> | null = null;
+
+interface IbmRuleMeta {
+  id: string;
+  rulesets?: Array<{ num: string | string[] }>;
+}
+
+async function loadRuleScMap(): Promise<Map<string, string[]>> {
+  if (ruleScCache) return ruleScCache;
+  const map = new Map<string, string[]>();
+  try {
+    const { getRules } = await import("accessibility-checker");
+    const rules = (await getRules()) as IbmRuleMeta[];
+    for (const rule of rules) {
+      const scs = new Set<string>();
+      for (const rs of rule.rulesets ?? []) {
+        for (const num of Array.isArray(rs.num) ? rs.num : [rs.num]) {
+          if (typeof num === "string" && /^\d+\.\d+\.\d+$/.test(num) && getSc(num)) {
+            scs.add(num);
+          }
+        }
+      }
+      if (scs.size > 0) map.set(rule.id, [...scs]);
+    }
+  } catch {
+    /* engine unavailable — leave unmapped */
+  }
+  ruleScCache = map;
+  return map;
+}
+
 function impactForLevel(level: string): ToolFinding["impact"] {
   if (level === "violation") return "serious";
   if (level === "potentialviolation") return "moderate";
@@ -28,6 +60,7 @@ function impactForLevel(level: string): ToolFinding["impact"] {
 export async function runIbmScan(page: unknown, url: string): Promise<IbmScanOutput> {
   try {
     const { getCompliance } = await import("accessibility-checker");
+    const scMap = await loadRuleScMap();
     const result = await getCompliance(page, url);
     const report: IbmReport | undefined = result.report;
     if (!report) return EMPTY;
@@ -35,6 +68,8 @@ export async function runIbmScan(page: unknown, url: string): Promise<IbmScanOut
     const findings: ToolFinding[] = [];
     for (const r of report.results) {
       if (!["violation", "potentialviolation", "recommendation"].includes(r.level)) continue;
+      const wcagSc = scMap.get(r.ruleId) ?? [];
+      const firstSc = wcagSc[0];
       findings.push({
         tool: "ibm",
         ruleId: r.ruleId,
@@ -42,8 +77,8 @@ export async function runIbmScan(page: unknown, url: string): Promise<IbmScanOut
         message: r.message,
         help: r.message,
         helpUrl: "",
-        wcagSc: [],
-        wcagLevel: null,
+        wcagSc,
+        wcagLevel: firstSc ? (getSc(firstSc)?.level ?? null) : null,
         pageUrl: url,
         nodes: [
           {

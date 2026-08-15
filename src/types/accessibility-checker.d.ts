@@ -25,4 +25,7 @@ declare module "accessibility-checker" {
     page: unknown,
     label: string,
   ): Promise<{ report?: IbmReport }>;
+  export function getRules(): Promise<
+    Array<{ id: string; rulesets?: Array<{ num: string | string[] }> }>
+  >;
 }
