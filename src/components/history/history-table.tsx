@@ -1,0 +1,174 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import {
+  filterByStatus,
+  sortHistory,
+  type HistoryItem,
+  type HistorySortKey,
+  type HistoryStatusFilter,
+  type SortDirection,
+} from "@/lib/history";
+
+const STATUS_LABELS: Record<HistoryItem["status"], string> = {
+  queued: "QUEUED",
+  running: "RUNNING",
+  completed: "COMPLETED",
+  failed: "FAILED",
+};
+
+function statusClass(status: HistoryItem["status"]): string {
+  switch (status) {
+    case "completed":
+      return "text-terminal-pass";
+    case "failed":
+      return "text-terminal-fail";
+    case "running":
+      return "text-terminal-serious";
+    default:
+      return "text-terminal-muted";
+  }
+}
+
+function formatDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+interface HistoryTableProps {
+  items: HistoryItem[];
+  busyIds: Set<string>;
+  onReRun: (item: HistoryItem) => void;
+  onDelete: (item: HistoryItem) => void;
+}
+
+export function HistoryTable({ items, busyIds, onReRun, onDelete }: HistoryTableProps) {
+  const [status, setStatus] = useState<HistoryStatusFilter>("all");
+  const [sortKey, setSortKey] = useState<HistorySortKey>("createdAt");
+  const [sortDir, setSortDir] = useState<SortDirection>("desc");
+
+  const visible = useMemo(
+    () => sortHistory(filterByStatus(items, status), sortKey, sortDir),
+    [items, status, sortKey, sortDir],
+  );
+
+  function toggleSort(key: HistorySortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  }
+
+  function indicator(key: HistorySortKey): string {
+    if (key !== sortKey) return "↑↓";
+    return sortDir === "desc" ? "↓" : "↑";
+  }
+
+  return (
+    <section aria-labelledby="history-heading">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="history-heading" className="font-mono text-lg font-semibold text-terminal-fg">
+          Assessment history
+        </h2>
+        <label className="flex items-center gap-2 font-mono text-sm text-terminal-muted">
+          Filter
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as HistoryStatusFilter)}
+            className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-mono text-sm text-terminal-fg"
+          >
+            <option value="all">All statuses</option>
+            <option value="queued">Queued</option>
+            <option value="running">Running</option>
+            <option value="completed">Completed</option>
+            <option value="failed">Failed</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="mt-4 overflow-x-auto rounded border border-terminal-border">
+        <table className="w-full border-collapse font-mono text-sm">
+          <thead>
+            <tr className="border-b border-terminal-border text-left text-terminal-muted">
+              <th scope="col" className="px-3 py-2 font-medium">
+                <button type="button" onClick={() => toggleSort("score")} className="hover:text-terminal-fg">
+                  Score <span aria-hidden="true">{indicator("score")}</span>
+                </button>
+              </th>
+              <th scope="col" className="px-3 py-2 font-medium">URL</th>
+              <th scope="col" className="px-3 py-2 font-medium">Standard</th>
+              <th scope="col" className="px-3 py-2 font-medium">Status</th>
+              <th scope="col" className="px-3 py-2 font-medium">
+                <button type="button" onClick={() => toggleSort("createdAt")} className="hover:text-terminal-fg">
+                  Date <span aria-hidden="true">{indicator("createdAt")}</span>
+                </button>
+              </th>
+              <th scope="col" className="px-3 py-2 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visible.map((item) => {
+              const busy = busyIds.has(item.id);
+              return (
+                <tr key={item.id} className="border-b border-terminal-border last:border-b-0">
+                  <td className="px-3 py-2 text-terminal-fg">{item.score ?? "—"}</td>
+                  <td className="max-w-[260px] truncate px-3 py-2 text-terminal-fg" title={item.url}>
+                    {item.url}
+                  </td>
+                  <td className="px-3 py-2 text-terminal-muted">{item.standard}</td>
+                  <td className="px-3 py-2">
+                    <span className={statusClass(item.status)}>{STATUS_LABELS[item.status]}</span>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-2 text-terminal-muted">{formatDate(item.createdAt)}</td>
+                  <td className="whitespace-nowrap px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/assess/${item.id}`}
+                        className="text-terminal-fg underline-offset-4 hover:underline"
+                      >
+                        Open
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => onReRun(item)}
+                        disabled={busy}
+                        className="text-terminal-fg underline-offset-4 hover:underline disabled:opacity-50"
+                      >
+                        Re-run
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDelete(item)}
+                        disabled={busy}
+                        className="text-terminal-critical underline-offset-4 hover:underline disabled:opacity-50"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {visible.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-3 py-6 text-center text-terminal-muted">
+                  No assessments match this filter.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}

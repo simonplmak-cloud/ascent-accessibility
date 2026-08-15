@@ -43,10 +43,13 @@ pnpm dev
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | `/api/v1/assessments` | Create an assessment (enqueues an async crawl) |
+| GET | `/api/v1/assessments` | List assessments (newest first) |
 | GET | `/api/v1/assessments/:id` | Poll status / fetch report |
+| DELETE | `/api/v1/assessments/:id` | Delete an assessment |
 | GET | `/api/v1/assessments/:id/export?format=pdf\|csv` | Export report |
 | POST | `/api/v1/api-keys` | Issue an API key (raw key returned once) |
 | GET | `/api/v1/api-keys` | List keys (prefix only) |
+| DELETE | `/api/v1/api-keys/:id` | Revoke an API key |
 
 Programmatic access uses `Authorization: Bearer <api-key>`.
 

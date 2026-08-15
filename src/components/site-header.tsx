@@ -1,22 +1,42 @@
+"use client";
+
 import Link from "next/link";
+import Image from "next/image";
+import { useState } from "react";
 
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/learn", label: "Learn" },
+  { href: "/history", label: "History" },
+  { href: "/api-keys", label: "API access" },
   { href: "/contact", label: "Contact" },
   { href: "/donate", label: "Donate" },
 ];
 
 export function SiteHeader() {
+  const [open, setOpen] = useState(false);
+
   return (
     <header className="border-b border-terminal-border">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-        <Link href="/" className="font-mono text-lg font-semibold text-terminal-fg">
-          Ascent Partners
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+        <Link
+          href="/"
+          aria-label="Ascent Partners Foundation home"
+          className="flex shrink-0 items-center"
+        >
+          <Image
+            src="/images/apf-logo.png"
+            alt="Ascent Partners Foundation"
+            width={222}
+            height={87}
+            priority
+            className="h-10 w-auto"
+          />
         </Link>
-        <nav aria-label="Primary" className="flex items-center gap-6">
-          <ul className="m-0 flex list-none gap-6 p-0">
+
+        <nav aria-label="Primary" className="hidden items-center gap-5 md:flex">
+          <ul className="m-0 flex list-none items-center gap-5 p-0">
             {navItems.map((item) => (
               <li key={item.href}>
                 <Link
@@ -35,7 +55,66 @@ export function SiteHeader() {
             Start assessment
           </Link>
         </nav>
+
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          aria-label={open ? "Close menu" : "Open menu"}
+          className="rounded border border-terminal-border p-2 text-terminal-fg md:hidden"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            {open ? (
+              <>
+                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="18" y1="6" x2="6" y2="18" />
+              </>
+            ) : (
+              <>
+                <line x1="4" y1="8" x2="20" y2="8" />
+                <line x1="4" y1="16" x2="20" y2="16" />
+              </>
+            )}
+          </svg>
+        </button>
       </div>
+
+      {open && (
+        <nav id="mobile-nav" aria-label="Mobile" className="border-t border-terminal-border md:hidden">
+          <ul className="m-0 flex list-none flex-col p-0">
+            {navItems.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="block px-4 py-3 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+            <li className="p-4">
+              <Link
+                href="/assess"
+                onClick={() => setOpen(false)}
+                className="block rounded bg-terminal-fg px-4 py-2 text-center font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
+              >
+                Start assessment
+              </Link>
+            </li>
+          </ul>
+        </nav>
+      )}
     </header>
   );
 }

@@ -1,11 +1,42 @@
 import { query } from "../index";
-import type { Assessment, Finding, LogEntry, NewAssessment } from "../schema";
+import type { Assessment, Finding, LogEntry, NewAssessment, PassBand } from "../schema";
 
 export interface CompleteAssessmentInput {
   score: number;
   passBand: "pass" | "partial" | "fail";
   pagesScanned: number;
   partial: boolean;
+}
+
+export interface AssessmentSummary {
+  id: string;
+  url: string;
+  standard: string;
+  status: Assessment["status"];
+  score: number | null;
+  passBand: PassBand | null;
+  pagesScanned: number;
+  partial: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const SUMMARY_PROJECTION =
+  "id, url, standard, status, score, passBand, pagesScanned, partial, createdAt, updatedAt";
+
+function mapSummary(raw: Record<string, unknown>): AssessmentSummary {
+  return {
+    id: String(raw.id),
+    url: String(raw.url),
+    standard: String(raw.standard),
+    status: raw.status as Assessment["status"],
+    score: raw.score == null ? null : Number(raw.score),
+    passBand: (raw.passBand as PassBand | null) ?? null,
+    pagesScanned: Number(raw.pagesScanned ?? 0),
+    partial: Boolean(raw.partial),
+    createdAt: String(raw.createdAt),
+    updatedAt: String(raw.updatedAt),
+  };
 }
 
 export const MAX_LOG_ENTRIES = 500;
@@ -94,6 +125,30 @@ export const assessmentRepository = {
     await query("UPDATE assessment SET attempts = attempts + 1 WHERE id = type::record($id)", {
       id,
     });
+  },
+
+  async list(limit = 500): Promise<AssessmentSummary[]> {
+    const rows = await query<Record<string, unknown>>(
+      `SELECT ${SUMMARY_PROJECTION} FROM assessment ORDER BY createdAt DESC LIMIT $limit`,
+      { limit },
+    );
+    return rows.map(mapSummary);
+  },
+
+  async listByUrl(url: string): Promise<AssessmentSummary[]> {
+    const rows = await query<Record<string, unknown>>(
+      `SELECT ${SUMMARY_PROJECTION} FROM assessment WHERE url = $url AND status = 'completed' ORDER BY createdAt ASC`,
+      { url },
+    );
+    return rows.map(mapSummary);
+  },
+
+  async delete(id: string): Promise<boolean> {
+    const rows = await query<Record<string, unknown>>(
+      "DELETE assessment WHERE id = type::record($id) RETURN BEFORE",
+      { id },
+    );
+    return rows.length > 0;
   },
 
   async findQueued(limit = 5): Promise<Assessment[]> {

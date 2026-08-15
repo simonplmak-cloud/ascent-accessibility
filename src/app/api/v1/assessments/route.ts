@@ -3,7 +3,7 @@ import { assessRequestSchema } from "@/server/validation";
 import { validateTargetUrl } from "@/server/ssrf";
 import { IP_RATE_LIMIT, RATE_WINDOW_MS } from "@/server/rate-limit";
 import { getClientIp } from "@/server/ip";
-import { apiKeyService, rateLimiter } from "@/server/bootstrap";
+import { rateLimiter } from "@/server/bootstrap";
 import { assessmentRepository } from "@/db/repository";
 import { getStandard } from "@/lib/standards/catalog";
 import { withCorrelationId } from "@/lib/observability/logger";
@@ -54,10 +54,7 @@ export async function POST(req: Request) {
   );
 }
 
-export async function GET(req: Request) {
-  const auth = await apiKeyService.authenticate(req.headers.get("authorization")?.replace(/^Bearer\s+/i, ""));
-  if (!auth.ok) {
-    return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
-  }
-  return NextResponse.json({ ok: true });
+export async function GET() {
+  const assessments = await assessmentRepository.list();
+  return NextResponse.json({ assessments });
 }

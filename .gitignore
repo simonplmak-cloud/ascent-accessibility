@@ -12,6 +12,9 @@ dist
 *.tsbuildinfo
 next-env.d.ts
 
+# Playwright MCP session artifacts
+.playwright-mcp/
+
 # Design docs (spec-driven chain — kept local, not part of the code repo)
 vdd/
 constitution.md

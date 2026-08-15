@@ -37,3 +37,15 @@ export async function GET(
     })),
   });
 }
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const deleted = await assessmentRepository.delete(id);
+  if (!deleted) {
+    return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true });
+}
