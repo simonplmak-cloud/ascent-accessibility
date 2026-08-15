@@ -22,9 +22,12 @@ async function launchBrowser(): Promise<Browser> {
 export async function createPageScanner(): Promise<PageScanner> {
   const browser = await launchBrowser();
   const page = await browser.newPage();
+  // Inject axe-core before navigation (addInitScript runs via CDP and is not
+  // blocked by the target page's Content-Security-Policy).
+  await page.addInitScript({ path: axePath });
   return {
     scan: (url: string, tags: string[]) =>
-      scanPage(url, tags, page as unknown as ScannerPage, axePath),
+      scanPage(url, tags, page as unknown as ScannerPage),
     close: async () => browser.close(),
   };
 }

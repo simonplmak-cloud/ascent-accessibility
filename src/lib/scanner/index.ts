@@ -34,7 +34,7 @@ export interface RawAxeResult {
 
 export interface ScannerPage {
   goto(url: string, options?: { timeout?: number }): Promise<{ status(): number } | null>;
-  addScriptTag(options: { path: string }): Promise<void>;
+  addInitScript(options: { path: string } | { content: string }): Promise<void>;
   evaluate(pageFn: (arg: string[]) => unknown, arg: string[]): Promise<unknown>;
 }
 
@@ -70,7 +70,6 @@ export async function scanPage(
   url: string,
   tags: string[],
   page: ScannerPage,
-  axePath: string,
 ): Promise<ScanResult> {
   let response: { status(): number } | null;
   try {
@@ -83,8 +82,6 @@ export async function scanPage(
   if (status !== undefined && (status < 200 || status >= 400)) {
     throw new ScanFailedError(`Could not load ${url}: HTTP ${status}`);
   }
-
-  await page.addScriptTag({ path: axePath });
 
   const raw = (await page.evaluate((runTags) => {
     const axe = (globalThis as { axe?: AxeRunner }).axe;

@@ -6,8 +6,6 @@ import {
   type ScannerPage,
 } from "@/lib/scanner";
 
-const AXE_PATH = "/fake/axe.min.js";
-
 function makePage(
   raw: unknown,
   opts?: { status?: number; gotoError?: Error },
@@ -19,7 +17,7 @@ function makePage(
         ? { status: () => opts.status! }
         : { status: () => 200 };
     }),
-    addScriptTag: vi.fn(async () => {}),
+    addInitScript: vi.fn(async () => {}),
     evaluate: vi.fn(async () => raw),
   };
 }
@@ -68,12 +66,7 @@ describe("mapViolations", () => {
 describe("scanPage", () => {
   it("returns mapped violations and pass count", async () => {
     const page = makePage(rawResult);
-    const result = await scanPage(
-      "https://example.com/",
-      ["wcag2a", "wcag2aa"],
-      page,
-      AXE_PATH,
-    );
+    const result = await scanPage("https://example.com/", ["wcag2a", "wcag2aa"], page);
     expect(result.url).toBe("https://example.com/");
     expect(result.violations).toHaveLength(2);
     expect(result.passesCount).toBe(2);
@@ -81,7 +74,6 @@ describe("scanPage", () => {
       "https://example.com/",
       expect.objectContaining({ timeout: 45000 }),
     );
-    expect(page.addScriptTag).toHaveBeenCalledWith({ path: AXE_PATH });
   });
 
   it("throws ScanFailedError when navigation fails (AC-E2)", async () => {
@@ -89,14 +81,14 @@ describe("scanPage", () => {
       gotoError: new Error("net::ERR_NAME_NOT_RESOLVED"),
     });
     await expect(
-      scanPage("https://example.com/", ["wcag2aa"], page, AXE_PATH),
+      scanPage("https://example.com/", ["wcag2aa"], page),
     ).rejects.toThrow(ScanFailedError);
   });
 
   it("throws ScanFailedError on HTTP 4xx/5xx (AC-E2)", async () => {
     const page = makePage(rawResult, { status: 404 });
     await expect(
-      scanPage("https://example.com/", ["wcag2aa"], page, AXE_PATH),
+      scanPage("https://example.com/", ["wcag2aa"], page),
     ).rejects.toThrow(/HTTP 404/);
   });
 });
