@@ -1,7 +1,7 @@
 import { computeConformance, computeScore, type ConformanceResult } from "@/lib/scoring";
 import { type CrawlOptions, type CrawlResult } from "@/lib/crawler";
 import { ScanFailedError, type ScanResult } from "@/lib/scanner";
-import { captureEvidence, type CapturedEvidence } from "@/lib/evidence/screenshot";
+import type { CapturedEvidence } from "@/lib/evidence/screenshot";
 import {
   axeViolationsToFindings,
   consolidateFindings,
