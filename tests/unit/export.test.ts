@@ -37,7 +37,7 @@ describe("buildCsv (AC-11)", () => {
     const csv = buildCsv(report);
     const lines = csv.trim().split("\n");
     expect(lines[0]).toBe(
-      "ruleId,impact,pageUrl,elementCount,description,recommendation",
+      "ruleId,impact,wcagSc,scTitle,sources,confidence,pageUrl,elementCount,description,recommendation",
     );
     expect(lines).toHaveLength(3);
     expect(lines[1]).toContain("color-contrast");

@@ -1,9 +1,17 @@
-import { getRecommendation } from "@/lib/recommendations";
-import { computeScore, type Impact } from "@/lib/scoring";
+import { computeConformance, computeScore, type ConformanceResult } from "@/lib/scoring";
 import { type CrawlOptions, type CrawlResult } from "@/lib/crawler";
 import { ScanFailedError, type ScanResult } from "@/lib/scanner";
+import { captureEvidence, type CapturedEvidence } from "@/lib/evidence/screenshot";
+import {
+  axeViolationsToFindings,
+  consolidateFindings,
+  type ToolFinding,
+} from "@/lib/comparison/consolidate";
+import type { IbmScanOutput } from "@/lib/comparison/ibm";
+import { computeLighthouseScore } from "@/lib/standards/lighthouse-audits";
+import { scsForTags } from "@/lib/standards/wcag-sc";
 import type { Standard } from "@/lib/standards/catalog";
-import type { LogEntry, LogLevel } from "@/db/schema";
+import type { Finding, LogEntry, LogLevel, NewEvidence } from "@/db/schema";
 
 export interface AssessmentRecord {
   id: string;
@@ -14,13 +22,18 @@ export interface AssessmentRecord {
   pageCap: number;
 }
 
-export interface FindingInput {
-  ruleId: string;
-  impact: Impact;
-  description: string;
-  pageUrl: string;
-  elementCount: number;
-  recommendation: string;
+export interface IbmCounts {
+  violation: number;
+  potentialViolation: number;
+  recommendation: number;
+  pass: number;
+  manual: number;
+}
+
+export interface ComparisonData {
+  lighthouse: { score: number; failedAudits: Array<{ id: string; weight: number }> };
+  ibm: IbmCounts;
+  conformance: ConformanceResult;
 }
 
 export interface AssessmentRepositoryPort {
@@ -36,12 +49,19 @@ export interface AssessmentRepositoryPort {
     },
   ): Promise<void>;
   fail(id: string): Promise<void>;
-  insertFindings(id: string, findings: FindingInput[]): Promise<void>;
+  insertFindings(id: string, findings: Finding[]): Promise<void>;
+  insertComparison(id: string, comparison: ComparisonData): Promise<void>;
   appendLog(id: string, entries: LogEntry[]): Promise<void>;
+}
+
+export interface EvidenceStorePort {
+  put(input: NewEvidence): Promise<{ id: string }>;
 }
 
 export interface PageScanner {
   scan: (url: string, tags: string[]) => Promise<ScanResult>;
+  captureEvidence: (result: ScanResult) => Promise<CapturedEvidence>;
+  scanIbm: (url: string) => Promise<IbmScanOutput>;
   close: () => Promise<void>;
 }
 
@@ -50,7 +70,15 @@ export interface AssessmentDeps {
   crawlSite: (seed: URL, options: CrawlOptions) => Promise<CrawlResult>;
   createScanner: () => Promise<PageScanner>;
   resolveStandard: (id: string) => Standard | undefined;
+  evidenceStore: EvidenceStorePort;
   concurrency?: number;
+}
+
+interface ConsolidateOutput {
+  findings: Finding[];
+  lighthouse: ComparisonData["lighthouse"];
+  ibm: IbmCounts;
+  testedScs: Set<string>;
 }
 
 export async function runAssessment(
@@ -100,13 +128,30 @@ export async function runAssessment(
     );
     await log("info", `crawl complete: ${crawlResult.urls.length} pages`);
 
-    const findings = await scanPages(crawlResult.urls, standard.axeTags, deps, assessmentId);
-    await log("info", `scan complete: ${findings.length} findings`);
+    const output = await scanAndConsolidate(
+      crawlResult.urls,
+      standard,
+      deps,
+      assessmentId,
+    );
+    await log("info", `scan complete: ${output.findings.length} consolidated findings`);
 
-    const score = computeScore(findings);
+    const score = computeScore(output.findings);
+    const conformance = computeConformance(
+      output.findings,
+      output.testedScs,
+      standard.level ?? "AA",
+    );
     await log("info", `score: ${score.score}/100 (${score.passBand})`);
 
-    await deps.repository.insertFindings(assessmentId, findings);
+    const comparison: ComparisonData = {
+      lighthouse: output.lighthouse,
+      ibm: output.ibm,
+      conformance,
+    };
+
+    await deps.repository.insertFindings(assessmentId, output.findings);
+    await deps.repository.insertComparison(assessmentId, comparison);
     await deps.repository.complete(assessmentId, {
       score: score.score,
       passBand: score.passBand,
@@ -120,13 +165,18 @@ export async function runAssessment(
   }
 }
 
-async function scanPages(
+async function scanAndConsolidate(
   urls: string[],
-  tags: string[],
+  standard: Standard,
   deps: AssessmentDeps,
   assessmentId: string,
-): Promise<FindingInput[]> {
-  const findings: FindingInput[] = [];
+): Promise<ConsolidateOutput> {
+  const axeFindings: ToolFinding[] = [];
+  const ibmFindings: ToolFinding[] = [];
+  const ibmCounts = { violation: 0, potentialViolation: 0, recommendation: 0, pass: 0, manual: 0 };
+  const testedScs = new Set<string>();
+  const lighthouseScores: number[] = [];
+  const lighthouseFailed = new Map<string, number>();
   const logs: LogEntry[] = [];
   const concurrency = Math.max(1, deps.concurrency ?? 4);
   const queue = [...urls];
@@ -149,21 +199,50 @@ async function scanPages(
       try {
         for (let pageUrl = queue.shift(); pageUrl !== undefined; pageUrl = queue.shift()) {
           try {
-            const scan = await scanner.scan(pageUrl, tags);
+            const scan = await scanner.scan(pageUrl, standard.axeTags);
             logs.push({
               timestamp: new Date().toISOString(),
               level: "info",
               message: `scanned ${pageUrl}: ${scan.violations.length} violations`,
             });
+
             for (const violation of scan.violations) {
-              findings.push({
-                ruleId: violation.id,
-                impact: violation.impact,
-                description: violation.description,
-                pageUrl,
-                elementCount: violation.nodeCount,
-                recommendation: getRecommendation(violation.id, violation.impact),
-              });
+              for (const sc of scsForTags(violation.tags)) testedScs.add(sc);
+            }
+            for (const pass of scan.passes) {
+              for (const sc of scsForTags(pass.tags)) testedScs.add(sc);
+            }
+            for (const incomplete of scan.incomplete) {
+              for (const sc of scsForTags(incomplete.tags)) testedScs.add(sc);
+            }
+
+            const pageFindings = axeViolationsToFindings(pageUrl, scan.violations);
+            await captureAndAttachEvidence(
+              pageUrl,
+              scan,
+              pageFindings,
+              scanner,
+              deps.evidenceStore,
+              assessmentId,
+            );
+            axeFindings.push(...pageFindings);
+
+            const lighthouse = computeLighthouseScore(scan.violations.map((v) => v.id));
+            lighthouseScores.push(lighthouse.score);
+            for (const audit of lighthouse.failedAudits) {
+              lighthouseFailed.set(audit.id, audit.weight);
+            }
+
+            try {
+              const ibm = await scanner.scanIbm(pageUrl);
+              ibmFindings.push(...ibm.findings);
+              ibmCounts.violation += ibm.counts.violation;
+              ibmCounts.potentialViolation += ibm.counts.potentialViolation;
+              ibmCounts.recommendation += ibm.counts.recommendation;
+              ibmCounts.pass += ibm.counts.pass;
+              ibmCounts.manual += ibm.counts.manual;
+            } catch {
+              /* IBM unavailable — continue with axe only */
             }
           } catch (error) {
             if (!(error instanceof ScanFailedError)) throw error;
@@ -183,5 +262,70 @@ async function scanPages(
   await Promise.all(workers);
   clearInterval(flushTimer);
   await flushLogs();
-  return findings;
+
+  const findings = consolidateFindings(axeFindings, ibmFindings);
+  const lighthouseScore =
+    lighthouseScores.length === 0
+      ? 100
+      : Math.round(lighthouseScores.reduce((a, b) => a + b, 0) / lighthouseScores.length);
+
+  return {
+    findings,
+    lighthouse: { score: lighthouseScore, failedAudits: [...lighthouseFailed.entries()].map(([id, weight]) => ({ id, weight })) },
+    ibm: ibmCounts,
+    testedScs,
+  };
+}
+
+async function captureAndAttachEvidence(
+  pageUrl: string,
+  scan: ScanResult,
+  pageFindings: ToolFinding[],
+  scanner: PageScanner,
+  evidenceStore: EvidenceStorePort,
+  assessmentId: string,
+): Promise<void> {
+  if (scan.violations.length === 0) return;
+
+  let captured: CapturedEvidence;
+  try {
+    captured = await scanner.captureEvidence(scan);
+  } catch {
+    return;
+  }
+
+  const elementIds = new Map<string, string>();
+  try {
+    await evidenceStore.put({
+      assessmentId,
+      pageUrl,
+      kind: "page",
+      image: captured.fullPage.toString("base64"),
+      mime: captured.fullPageMime,
+    });
+  } catch {
+    /* evidence store unavailable — continue without page screenshot */
+  }
+
+  for (const el of captured.elements) {
+    try {
+      const ev = await evidenceStore.put({
+        assessmentId,
+        pageUrl,
+        kind: "element",
+        image: el.buffer.toString("base64"),
+        mime: el.mime,
+      });
+      elementIds.set(`${el.ruleId}:${el.instanceIndex}`, ev.id);
+    } catch {
+      /* skip individual evidence on failure */
+    }
+  }
+
+  for (const finding of pageFindings) {
+    for (let i = 0; i < finding.nodes.length; i++) {
+      const id = elementIds.get(`${finding.ruleId}:${i}`);
+      if (id) finding.nodes[i]!.evidenceId = id;
+    }
+  }
 }

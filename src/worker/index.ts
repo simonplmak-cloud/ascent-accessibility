@@ -1,7 +1,7 @@
 import { runAssessment } from "@/lib/assessment";
 import { crawl } from "@/lib/crawler";
 import { getStandard } from "@/lib/standards/catalog";
-import { assessmentRepository } from "@/db/repository";
+import { assessmentRepository, evidenceRepository } from "@/db/repository";
 import { createPageScanner } from "@/server/scanner-factory";
 import { logger } from "@/lib/observability/logger";
 
@@ -24,6 +24,12 @@ async function processQueued() {
         crawlSite: (seed, options) => crawl(seed, options),
         createScanner: () => createPageScanner(),
         resolveStandard: getStandard,
+        evidenceStore: {
+          put: async (input) => {
+            const evidence = await evidenceRepository.create(input);
+            return { id: evidence.id };
+          },
+        },
         concurrency: SCAN_CONCURRENCY,
       });
       logger.info({ assessmentId: assessment.id }, "assessment completed");

@@ -99,6 +99,27 @@ export const assessmentRepository = {
     });
   },
 
+  async insertComparison(id: string, comparison: unknown): Promise<void> {
+    await query(
+      "UPDATE assessment SET comparison = $comparison WHERE id = type::record($id)",
+      { id, comparison: JSON.stringify(comparison) },
+    );
+  },
+
+  async findComparison<T>(id: string): Promise<T | null> {
+    const rows = await query<{ comparison: string }>(
+      "SELECT comparison FROM assessment WHERE id = type::record($id) LIMIT 1",
+      { id },
+    );
+    const raw = rows[0]?.comparison;
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return null;
+    }
+  },
+
   async findFindings(id: string): Promise<Finding[]> {
     const rows = await query<{ findings: string }>(
       "SELECT findings FROM assessment WHERE id = type::record($id) LIMIT 1",

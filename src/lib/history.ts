@@ -34,17 +34,26 @@ export function sortHistory(
   key: HistorySortKey,
   direction: SortDirection,
 ): HistoryItem[] {
-  return [...items].sort((a, b) => {
-    const cmp = compare(a, b, key);
-    return direction === "desc" ? -cmp : cmp;
-  });
+  return [...items].sort((a, b) => compare(a, b, key, direction));
 }
 
-function compare(a: HistoryItem, b: HistoryItem, key: HistorySortKey): number {
+function compare(
+  a: HistoryItem,
+  b: HistoryItem,
+  key: HistorySortKey,
+  direction: SortDirection,
+): number {
   if (key === "score") {
-    return (a.score ?? -1) - (b.score ?? -1);
+    const sa = a.score;
+    const sb = b.score;
+    if (sa == null && sb == null) return 0;
+    if (sa == null) return 1; // null scores always sort last
+    if (sb == null) return -1;
+    const diff = sa - sb;
+    return direction === "desc" ? -diff : diff;
   }
-  return Date.parse(a.createdAt) - Date.parse(b.createdAt);
+  const diff = Date.parse(a.createdAt) - Date.parse(b.createdAt);
+  return direction === "desc" ? -diff : diff;
 }
 
 export function groupByUrl(items: HistoryItem[]): UrlGroup[] {

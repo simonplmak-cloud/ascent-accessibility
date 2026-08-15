@@ -19,6 +19,8 @@ function makePage(
     }),
     addInitScript: vi.fn(async () => {}),
     evaluate: vi.fn(async () => raw),
+    screenshot: vi.fn(async () => Buffer.alloc(0)),
+    screenshotElement: vi.fn(async () => Buffer.alloc(0)),
   };
 }
 
@@ -28,48 +30,59 @@ const rawResult = {
       id: "color-contrast",
       impact: "serious",
       description: "Elements must meet minimum color contrast ratio thresholds",
-      nodes: [{}, {}, {}],
+      help: "Color contrast",
+      helpUrl: "https://dequeuniversity.com/rules/axe/4.10/color-contrast",
+      tags: ["wcag2aa", "wcag143"],
+      nodes: [
+        { html: "<a>", target: ["a"], failureSummary: "Fix contrast" },
+        { html: "<b>", target: ["b"], failureSummary: "Fix contrast" },
+        { html: "<c>", target: ["c"], failureSummary: "Fix contrast" },
+      ],
     },
     {
       id: "image-alt",
       impact: null,
       description: "Ensures <img> elements have alternate text",
-      nodes: [{}],
+      nodes: [{ html: "<img>", target: ["img"], failureSummary: "" }],
     },
   ],
-  passes: [{ id: "region" }, { id: "landmark" }],
+  passes: [{ id: "region", tags: ["wcag2aa"] }],
+  incomplete: [],
 };
 
 describe("mapViolations", () => {
-  it("maps impact, description, and node count", () => {
-    expect(mapViolations(rawResult)).toEqual([
-      {
-        id: "color-contrast",
-        impact: "serious",
-        description: "Elements must meet minimum color contrast ratio thresholds",
-        nodeCount: 3,
-      },
-      {
-        id: "image-alt",
-        impact: "minor",
-        description: "Ensures <img> elements have alternate text",
-        nodeCount: 1,
-      },
-    ]);
+  it("maps impact, description, node count, tags, help, and nodes", () => {
+    const mapped = mapViolations(rawResult);
+    expect(mapped).toHaveLength(2);
+    expect(mapped[0]).toMatchObject({
+      id: "color-contrast",
+      impact: "serious",
+      nodeCount: 3,
+      tags: ["wcag2aa", "wcag143"],
+      help: "Color contrast",
+    });
+    expect(mapped[0]?.nodes[0]).toMatchObject({ html: "<a>", target: ["a"] });
   });
 
   it("normalizes a null impact to minor", () => {
-    expect(mapViolations({ violations: [{ id: "x", impact: null, description: "", nodes: [] }], passes: [] })[0]?.impact).toBe("minor");
+    expect(
+      mapViolations({
+        violations: [{ id: "x", impact: null, description: "", nodes: [] }],
+        passes: [],
+        incomplete: [],
+      })[0]?.impact,
+    ).toBe("minor");
   });
 });
 
 describe("scanPage", () => {
-  it("returns mapped violations and pass count", async () => {
+  it("returns mapped violations, passes, and incomplete", async () => {
     const page = makePage(rawResult);
     const result = await scanPage("https://example.com/", ["wcag2a", "wcag2aa"], page);
     expect(result.url).toBe("https://example.com/");
     expect(result.violations).toHaveLength(2);
-    expect(result.passesCount).toBe(2);
+    expect(result.passes).toHaveLength(1);
+    expect(result.incomplete).toHaveLength(0);
     expect(page.goto).toHaveBeenCalledWith(
       "https://example.com/",
       expect.objectContaining({ timeout: 45000 }),

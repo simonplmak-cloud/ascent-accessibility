@@ -7,6 +7,10 @@ export interface ReportFinding {
   pageUrl: string;
   elementCount: number;
   recommendation: string;
+  wcagSc?: string[];
+  scTitle?: string;
+  confidence?: string;
+  sources?: string[];
 }
 
 export interface ReportData {
@@ -30,6 +34,10 @@ export interface PdfRenderer {
 const CSV_HEADER = [
   "ruleId",
   "impact",
+  "wcagSc",
+  "scTitle",
+  "sources",
+  "confidence",
   "pageUrl",
   "elementCount",
   "description",
@@ -45,6 +53,10 @@ export function buildCsv(report: ReportData): string {
   const rows = report.findings.map((finding) => [
     finding.ruleId,
     finding.impact,
+    (finding.wcagSc ?? []).join(" "),
+    finding.scTitle ?? "",
+    (finding.sources ?? []).join(" "),
+    finding.confidence ?? "",
     finding.pageUrl,
     String(finding.elementCount),
     finding.description,
@@ -68,6 +80,9 @@ export function buildReportHtml(report: ReportData): string {
       (f) => `<tr>
         <td>${escapeHtml(f.ruleId)}</td>
         <td>${escapeHtml(f.impact)}</td>
+        <td>${escapeHtml((f.wcagSc ?? []).join(" "))}</td>
+        <td>${escapeHtml(f.scTitle ?? "")}</td>
+        <td>${escapeHtml((f.sources ?? []).join(", "))}</td>
         <td>${f.elementCount}</td>
         <td>${escapeHtml(f.pageUrl)}</td>
         <td>${escapeHtml(f.description)}</td>
@@ -99,7 +114,7 @@ export function buildReportHtml(report: ReportData): string {
   <p><strong>Result:</strong> ${escapeHtml(report.passBand)}</p>
   <table>
     <thead>
-      <tr><th>Rule</th><th>Impact</th><th>Elements</th><th>Page</th><th>Description</th><th>Recommendation</th></tr>
+      <tr><th>Rule</th><th>Impact</th><th>SC</th><th>SC title</th><th>Sources</th><th>Elements</th><th>Page</th><th>Description</th><th>Recommendation</th></tr>
     </thead>
     <tbody>${findingRows}</tbody>
   </table>

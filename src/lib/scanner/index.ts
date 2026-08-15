@@ -1,16 +1,32 @@
 import type { Impact } from "@/lib/scoring";
 
+export interface AxeNode {
+  html: string;
+  target: string[];
+  failureSummary: string;
+}
+
 export interface AxeViolation {
   id: string;
   impact: Impact;
   description: string;
+  help: string;
+  helpUrl: string;
+  tags: string[];
+  nodes: AxeNode[];
   nodeCount: number;
+}
+
+export interface AxeRuleSummary {
+  id: string;
+  tags: string[];
 }
 
 export interface ScanResult {
   url: string;
   violations: AxeViolation[];
-  passesCount: number;
+  passes: AxeRuleSummary[];
+  incomplete: AxeRuleSummary[];
 }
 
 export class ScanFailedError extends Error {
@@ -20,22 +36,45 @@ export class ScanFailedError extends Error {
   }
 }
 
+export interface RawNode {
+  html?: string;
+  target?: string[];
+  failureSummary?: string;
+}
+
 export interface RawViolation {
   id: string;
   impact: string | null;
   description: string;
-  nodes: unknown[];
+  help?: string;
+  helpUrl?: string;
+  tags?: string[];
+  nodes: RawNode[];
+}
+
+export interface RawRule {
+  id: string;
+  tags?: string[];
 }
 
 export interface RawAxeResult {
   violations: RawViolation[];
-  passes: Array<{ id: string }>;
+  passes?: RawRule[];
+  incomplete?: RawRule[];
+}
+
+export interface ScreenshotOptions {
+  fullPage?: boolean;
+  type?: "png" | "jpeg";
+  quality?: number;
 }
 
 export interface ScannerPage {
   goto(url: string, options?: { timeout?: number }): Promise<{ status(): number } | null>;
   addInitScript(options: { path: string } | { content: string }): Promise<void>;
   evaluate(pageFn: (arg: string[]) => unknown, arg: string[]): Promise<unknown>;
+  screenshot(options?: ScreenshotOptions): Promise<Buffer>;
+  screenshotElement(selector: string): Promise<Buffer>;
 }
 
 export function normalizeImpact(impact: string | null): Impact {
@@ -50,12 +89,28 @@ export function normalizeImpact(impact: string | null): Impact {
   }
 }
 
+function mapNode(node: RawNode): AxeNode {
+  return {
+    html: node.html ?? "",
+    target: node.target ?? [],
+    failureSummary: node.failureSummary ?? "",
+  };
+}
+
+function mapRuleSummary(rule: RawRule): AxeRuleSummary {
+  return { id: rule.id, tags: rule.tags ?? [] };
+}
+
 export function mapViolations(raw: RawAxeResult): AxeViolation[] {
   return raw.violations.map((violation) => ({
     id: violation.id,
     impact: normalizeImpact(violation.impact),
     description: violation.description,
-    nodeCount: violation.nodes.length,
+    help: violation.help ?? "",
+    helpUrl: violation.helpUrl ?? "",
+    tags: violation.tags ?? [],
+    nodes: (violation.nodes ?? []).map(mapNode),
+    nodeCount: violation.nodes?.length ?? 0,
   }));
 }
 
@@ -89,5 +144,10 @@ export async function scanPage(
     return axe.run(document, { runOnly: { type: "tag", values: runTags } });
   }, tags)) as RawAxeResult;
 
-  return { url, violations: mapViolations(raw), passesCount: raw.passes.length };
+  return {
+    url,
+    violations: mapViolations(raw),
+    passes: (raw.passes ?? []).map(mapRuleSummary),
+    incomplete: (raw.incomplete ?? []).map(mapRuleSummary),
+  };
 }

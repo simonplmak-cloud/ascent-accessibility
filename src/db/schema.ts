@@ -3,6 +3,21 @@ import type { Impact } from "@/lib/scoring";
 export type AssessmentStatus = "queued" | "running" | "completed" | "failed";
 export type PassBand = "pass" | "partial" | "fail";
 export type ApiKeyStatus = "active" | "revoked";
+export type FindingConfidence = "confirmed" | "single-source";
+
+export interface FindingSource {
+  tool: "axe" | "lighthouse" | "ibm";
+  ruleId: string;
+  impact: string;
+  message: string;
+}
+
+export interface FindingInstance {
+  target: string;
+  html: string;
+  failureSummary: string;
+  evidenceId: string | null;
+}
 
 export interface Finding {
   ruleId: string;
@@ -11,6 +26,14 @@ export interface Finding {
   pageUrl: string;
   elementCount: number;
   recommendation: string;
+  help: string;
+  helpUrl: string;
+  wcagSc: string[];
+  wcagLevel: "A" | "AA" | "AAA" | null;
+  scTitle: string;
+  confidence: FindingConfidence;
+  sources: FindingSource[];
+  instances: FindingInstance[];
 }
 
 export type LogLevel = "info" | "warn" | "error";
@@ -81,6 +104,24 @@ export interface NewAuditLog {
   ip: string;
 }
 
+export interface Evidence {
+  id: string;
+  assessmentId: string;
+  pageUrl: string;
+  kind: "page" | "element";
+  image: string;
+  mime: string;
+  createdAt: string;
+}
+
+export interface NewEvidence {
+  assessmentId: string;
+  pageUrl: string;
+  kind: "page" | "element";
+  image: string;
+  mime: string;
+}
+
 export const SCHEMA_STATEMENTS: string[] = [
   `DEFINE TABLE assessment SCHEMAFULL;
 DEFINE FIELD url ON assessment TYPE string;
@@ -96,6 +137,7 @@ DEFINE FIELD attempts ON assessment TYPE int DEFAULT 0;
 DEFINE FIELD lastError ON assessment TYPE option<string>;
 DEFINE FIELD findings ON assessment TYPE option<string> DEFAULT "";
 DEFINE FIELD log ON assessment TYPE option<string> DEFAULT "";
+DEFINE FIELD comparison ON assessment TYPE option<string> DEFAULT "";
 DEFINE FIELD createdAt ON assessment TYPE datetime DEFAULT time::now();
 DEFINE FIELD updatedAt ON assessment TYPE datetime DEFAULT time::now();
 DEFINE INDEX assessment_status_created_idx ON assessment FIELDS status, createdAt;`,
@@ -117,4 +159,13 @@ DEFINE FIELD resourceId ON audit_log TYPE option<string>;
 DEFINE FIELD ip ON audit_log TYPE string;
 DEFINE FIELD createdAt ON audit_log TYPE datetime DEFAULT time::now();
 DEFINE INDEX audit_log_api_key_idx ON audit_log FIELDS apiKeyId, createdAt;`,
+
+  `DEFINE TABLE evidence SCHEMAFULL;
+DEFINE FIELD assessmentId ON evidence TYPE record<assessment>;
+DEFINE FIELD pageUrl ON evidence TYPE string;
+DEFINE FIELD kind ON evidence TYPE string;
+DEFINE FIELD image ON evidence TYPE string;
+DEFINE FIELD mime ON evidence TYPE string;
+DEFINE FIELD createdAt ON evidence TYPE datetime DEFAULT time::now();
+DEFINE INDEX evidence_assessment_idx ON evidence FIELDS assessmentId;`,
 ];

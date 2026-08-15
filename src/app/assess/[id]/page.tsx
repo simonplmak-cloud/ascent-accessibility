@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { assessmentRepository } from "@/db/repository";
 import { Report } from "@/components/assessment/report";
-import type { AssessmentResult } from "@/components/assessment/types";
+import type { AssessmentResult, ComparisonData } from "@/components/assessment/types";
 
 export default async function ShareableReportPage({
   params,
@@ -60,23 +60,20 @@ export default async function ShareableReportPage({
 
   const findings = await assessmentRepository.findFindings(assessmentId);
   const log = await assessmentRepository.readLog(assessmentId);
+  const comparison = await assessmentRepository.findComparison<ComparisonData>(assessmentId);
 
   const result: AssessmentResult = {
     id: assessment.id,
     status: assessment.status,
     partial: assessment.partial,
+    url: assessment.url,
+    standard: assessment.standard,
     score: assessment.score,
     passBand: assessment.passBand,
     pagesScanned: assessment.pagesScanned,
     log,
-    findings: findings.map((f) => ({
-      ruleId: f.ruleId,
-      impact: f.impact,
-      description: f.description,
-      pageUrl: f.pageUrl,
-      elementCount: f.elementCount,
-      recommendation: f.recommendation,
-    })),
+    findings: findings as AssessmentResult["findings"],
+    comparison: comparison ?? undefined,
   };
 
   return (

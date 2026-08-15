@@ -16,6 +16,7 @@ export async function GET(
       ? await assessmentRepository.findFindings(id)
       : [];
   const log = await assessmentRepository.readLog(id);
+  const comparison = await assessmentRepository.findComparison(id);
 
   return NextResponse.json({
     id: assessment.id,
@@ -27,14 +28,8 @@ export async function GET(
     passBand: assessment.passBand,
     pagesScanned: assessment.pagesScanned,
     log,
-    findings: findings.map((f) => ({
-      ruleId: f.ruleId,
-      impact: f.impact,
-      description: f.description,
-      pageUrl: f.pageUrl,
-      elementCount: f.elementCount,
-      recommendation: f.recommendation,
-    })),
+    comparison,
+    findings,
   });
 }
 
