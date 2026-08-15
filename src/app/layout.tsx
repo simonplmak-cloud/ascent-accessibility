@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   },
   description:
     "Assess your website against WCAG standards and get a score, findings, and remediation guidance.",
+  icons: { icon: "/favicon.png" },
 };
 
 export default function RootLayout({
