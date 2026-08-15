@@ -25,8 +25,8 @@ export function SiteFooter() {
           ))}
         </nav>
         <p className="mt-4">
-          © {new Date().getFullYear()} Ascent Partners. Committed to an accessible web for
-          everyone.
+          © {new Date().getFullYear()} Ascent Partners Foundation Limited. Connecting
+          sustainability and action.
         </p>
       </div>
     </footer>
