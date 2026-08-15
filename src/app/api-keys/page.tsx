@@ -173,6 +173,7 @@ export default function ApiKeysPage() {
                           type="button"
                           onClick={() => revoke(key.id)}
                           disabled={busyIds.has(key.id)}
+                          aria-label={`Revoke API key ${key.name}`}
                           className="text-terminal-critical underline-offset-4 hover:underline disabled:opacity-50"
                         >
                           Revoke

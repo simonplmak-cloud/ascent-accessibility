@@ -134,6 +134,7 @@ export function HistoryTable({ items, busyIds, onReRun, onDelete }: HistoryTable
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/assess/${item.id}`}
+                        aria-label={`Open report for ${item.url}`}
                         className="text-terminal-fg underline-offset-4 hover:underline"
                       >
                         Open
@@ -142,6 +143,7 @@ export function HistoryTable({ items, busyIds, onReRun, onDelete }: HistoryTable
                         type="button"
                         onClick={() => onReRun(item)}
                         disabled={busy}
+                        aria-label={`Re-run assessment for ${item.url}`}
                         className="text-terminal-fg underline-offset-4 hover:underline disabled:opacity-50"
                       >
                         Re-run
@@ -150,6 +152,7 @@ export function HistoryTable({ items, busyIds, onReRun, onDelete }: HistoryTable
                         type="button"
                         onClick={() => onDelete(item)}
                         disabled={busy}
+                        aria-label={`Delete assessment for ${item.url}`}
                         className="text-terminal-critical underline-offset-4 hover:underline disabled:opacity-50"
                       >
                         Delete

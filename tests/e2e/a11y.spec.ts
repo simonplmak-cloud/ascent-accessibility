@@ -9,6 +9,7 @@ const pages = [
   { path: "/learn/wcag", name: "wcag" },
   { path: "/learn/severity", name: "severity" },
   { path: "/learn/remediation", name: "remediation" },
+  { path: "/learn/screen-readers", name: "screen-readers" },
 ];
 
 for (const target of pages) {

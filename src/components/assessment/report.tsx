@@ -48,9 +48,9 @@ export function Report({ result }: { result: AssessmentResult }) {
       </div>
 
       <div className="mt-8">
-        <h3 className="font-mono text-base font-semibold text-terminal-fg">
+        <h2 className="font-mono text-base font-semibold text-terminal-fg">
           Findings ({result.findings.length})
-        </h3>
+        </h2>
         {result.findings.length === 0 ? (
           <p className="mt-2 font-mono text-sm text-terminal-pass">
             No automated violations detected.

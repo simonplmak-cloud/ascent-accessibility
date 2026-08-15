@@ -16,6 +16,11 @@ const topics = [
     title: "Remediation examples",
     description: "Before/after fixes for common accessibility failures.",
   },
+  {
+    href: "/learn/screen-readers",
+    title: "Reading with a screen reader",
+    description: "How this site works with NVDA, JAWS, VoiceOver, Narrator, and TalkBack.",
+  },
 ];
 
 export default function LearnPage() {
