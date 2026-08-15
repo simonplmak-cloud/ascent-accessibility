@@ -9,7 +9,8 @@ export default async function ShareableReportPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const assessment = await assessmentRepository.findById(decodeURIComponent(id));
+  const assessmentId = decodeURIComponent(id);
+  const assessment = await assessmentRepository.findById(assessmentId);
   if (!assessment) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
@@ -57,8 +58,8 @@ export default async function ShareableReportPage({
     );
   }
 
-  const findings = await assessmentRepository.findFindings(id);
-  const log = await assessmentRepository.readLog(id);
+  const findings = await assessmentRepository.findFindings(assessmentId);
+  const log = await assessmentRepository.readLog(assessmentId);
 
   const result: AssessmentResult = {
     id: assessment.id,
