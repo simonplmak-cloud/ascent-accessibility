@@ -9,8 +9,9 @@ export default function AboutPage() {
 
       <p className="mt-6 font-mono leading-7 text-terminal-fg">
         Ascent Partners Foundation is a Hong Kong registered charity, established in 2017, that
-        works to connect sustainability with action. We foster cross-sector collaboration to
-        address environmental and social challenges across the Asia-Pacific.
+        connects leaders with the ideas and tools to turn sustainability into action. We bring
+        together decision-makers across business, government, and civil society to address
+        environmental and social challenges across the Asia-Pacific.
       </p>
       <p className="mt-4 font-mono text-sm text-terminal-muted">
         A Hong Kong Registered Charity (IRD Section 88).
@@ -36,11 +37,13 @@ export default function AboutPage() {
 
       <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Our tools</h2>
       <p className="mt-4 font-mono leading-7 text-terminal-muted">
-        As part of this work we build free, practical tools — and this accessibility assessment
-        is one of them. Submit a website and it checks the pages against recognised standards
-        such as WCAG 2.2 AA, returning a plain-language score with findings and gentle guidance.
-        It is a friendly starting point, never a verdict, and not a substitute for a certified
-        audit.
+        Connecting leaders is not just about conversation — it is about giving them practical ways
+        to act. That is why we built this accessibility assessment. An inclusive website is part
+        of the “social” in ESG, and every leader should be able to see, in a moment, whether their
+        site welcomes everyone. Submit a website and it checks the pages against recognised
+        standards such as WCAG 2.2 AA, returning a plain-language score with findings and gentle
+        guidance. It is a friendly starting point, never a verdict, and not a substitute for a
+        certified audit.
       </p>
 
       <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Our people</h2>
