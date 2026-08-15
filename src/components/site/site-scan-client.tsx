@@ -59,7 +59,7 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
       </h1>
       <p className="mt-2 font-mono leading-7 text-terminal-muted">
         Scan every page of your site — the full sitemap and link crawl. This requires a paid
-        subscription, billed in Hong Kong dollars.
+        subscription, billed in USD.
       </p>
 
       {!isSignedIn ? (
@@ -91,7 +91,7 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
             onClick={subscribe}
             className="mt-4 rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
           >
-            Subscribe — HK$280/month
+            Subscribe — US$28/month
           </button>
           {error && (
             <p role="alert" className="mt-3 font-mono text-sm text-terminal-critical">

@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 
-const PRESETS = [5, 10, 25, 50];
+const PRESETS = [50, 100, 250, 500];
 
 export default function DonatePage() {
-  const [amount, setAmount] = useState(10);
+  const [amount, setAmount] = useState(100);
+  const [recurring, setRecurring] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -17,7 +18,7 @@ export default function DonatePage() {
       const res = await fetch("/api/donate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({ amount, recurring }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) {
@@ -36,10 +37,35 @@ export default function DonatePage() {
     <div className="mx-auto max-w-xl px-4 py-16">
       <h1 className="font-mono text-3xl font-bold text-terminal-fg">Support the tool</h1>
       <p className="mt-4 font-mono text-terminal-muted">
-        Your donation keeps the assessment tool free and available to everyone.
+        Your donation keeps the assessment tool free and available to everyone. Give once, or
+        set up a monthly donation.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+        <fieldset>
+          <legend className="font-mono text-sm text-terminal-fg">Frequency</legend>
+          <div className="mt-2 flex gap-2">
+            <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+              <input
+                type="radio"
+                name="frequency"
+                checked={!recurring}
+                onChange={() => setRecurring(false)}
+              />
+              One-time
+            </label>
+            <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+              <input
+                type="radio"
+                name="frequency"
+                checked={recurring}
+                onChange={() => setRecurring(true)}
+              />
+              Monthly
+            </label>
+          </div>
+        </fieldset>
+
         <fieldset>
           <legend className="font-mono text-sm text-terminal-fg">Amount (USD)</legend>
           <div className="mt-2 flex gap-2">
@@ -63,7 +89,7 @@ export default function DonatePage() {
 
         <div>
           <label htmlFor="amount" className="block font-mono text-sm text-terminal-fg">
-            Custom amount
+            Custom amount (USD)
           </label>
           <input
             id="amount"
@@ -81,7 +107,7 @@ export default function DonatePage() {
           disabled={submitting}
           className="rounded bg-terminal-fg px-6 py-2 font-mono text-terminal-bg hover:bg-terminal-serious disabled:opacity-50"
         >
-          {submitting ? "Redirecting…" : "Donate"}
+          {submitting ? "Redirecting…" : recurring ? "Donate monthly" : "Donate"}
         </button>
       </form>
 

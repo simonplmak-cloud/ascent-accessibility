@@ -1,11 +1,6 @@
 import Stripe from "stripe";
 import { subscriptionRepository } from "@/db/repository";
-
-function createStripe(): Stripe | null {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) return null;
-  return new Stripe(key);
-}
+import { getStripe } from "@/server/stripe";
 
 export interface CheckoutResult {
   url?: string;
@@ -16,10 +11,10 @@ export async function createSubscriptionCheckout(
   userId: string,
   customerEmail: string,
 ): Promise<CheckoutResult> {
-  const stripe = createStripe();
+  const stripe = getStripe();
   if (!stripe) return { error: "STRIPE_SECRET_KEY is not configured" };
 
-  const priceHkd = Number(process.env.STRIPE_SITE_PRICE_HKD ?? 280);
+  const priceUsd = Number(process.env.STRIPE_SITE_PRICE_USD ?? 28);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   const session = await stripe.checkout.sessions.create({
@@ -27,8 +22,8 @@ export async function createSubscriptionCheckout(
     line_items: [
       {
         price_data: {
-          currency: "hkd",
-          unit_amount: Math.round(priceHkd * 100),
+          currency: "usd",
+          unit_amount: Math.round(priceUsd * 100),
           recurring: { interval: "month" },
           product_data: { name: "Ascent Accessibility — Whole-site scans" },
         },
@@ -47,7 +42,7 @@ export async function createSubscriptionCheckout(
 }
 
 export async function handleStripeWebhook(rawBody: string, signature: string | null): Promise<Response> {
-  const stripe = createStripe();
+  const stripe = getStripe();
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!stripe || !secret) {
     return Response.json({ error: "Webhook not configured" }, { status: 503 });

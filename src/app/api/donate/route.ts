@@ -4,6 +4,7 @@ import { createCheckoutSession } from "@/server/stripe";
 
 const donateSchema = z.object({
   amount: z.number().min(1).max(10000),
+  recurring: z.boolean().optional().default(false),
 });
 
 export async function POST(req: Request) {
@@ -17,7 +18,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { url } = await createCheckoutSession(parsed.data.amount);
+    const { url } = await createCheckoutSession(
+      parsed.data.amount,
+      undefined,
+      parsed.data.recurring,
+    );
     return NextResponse.json({ url });
   } catch {
     return NextResponse.json(
