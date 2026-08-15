@@ -84,6 +84,7 @@ export default async function ShareableReportPage({
           className="underline-offset-4 hover:underline"
           target="_blank"
           rel="noreferrer"
+          aria-label={`${assessment.url} (opens in a new window)`}
         >
           {assessment.url}
         </a>

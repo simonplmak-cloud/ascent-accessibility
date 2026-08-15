@@ -21,7 +21,7 @@ export default function ContactPage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            www.ascent.partners
+            www.ascent.partners<span className="sr-only"> (opens in a new window)</span>
           </a>
         </p>
       </address>

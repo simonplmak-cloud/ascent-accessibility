@@ -12,7 +12,7 @@ export default function ResourcesPage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            WCAG 2.2 Specification (W3C)
+            WCAG 2.2 Specification (W3C)<span className="sr-only"> (opens in a new window)</span>
           </a>
         </li>
         <li>
@@ -22,7 +22,7 @@ export default function ResourcesPage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            How to Meet WCAG 2.2 (Quick Reference)
+            How to Meet WCAG 2.2 (Quick Reference)<span className="sr-only"> (opens in a new window)</span>
           </a>
         </li>
         <li>
@@ -32,7 +32,7 @@ export default function ResourcesPage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Section 508 Standards
+            Section 508 Standards<span className="sr-only"> (opens in a new window)</span>
           </a>
         </li>
       </ul>

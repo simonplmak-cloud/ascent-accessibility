@@ -100,7 +100,11 @@ export function HistoryTable({ items, busyIds, onReRun, onDelete }: HistoryTable
         <table className="w-full border-collapse font-mono text-sm">
           <thead>
             <tr className="border-b border-terminal-border text-left text-terminal-muted">
-              <th scope="col" className="px-3 py-2 font-medium">
+              <th
+                scope="col"
+                aria-sort={sortKey === "score" ? (sortDir === "desc" ? "descending" : "ascending") : "none"}
+                className="px-3 py-2 font-medium"
+              >
                 <button type="button" onClick={() => toggleSort("score")} className="hover:text-terminal-fg">
                   Score <span aria-hidden="true">{indicator("score")}</span>
                 </button>
@@ -108,7 +112,11 @@ export function HistoryTable({ items, busyIds, onReRun, onDelete }: HistoryTable
               <th scope="col" className="px-3 py-2 font-medium">URL</th>
               <th scope="col" className="px-3 py-2 font-medium">Standard</th>
               <th scope="col" className="px-3 py-2 font-medium">Status</th>
-              <th scope="col" className="px-3 py-2 font-medium">
+              <th
+                scope="col"
+                aria-sort={sortKey === "createdAt" ? (sortDir === "desc" ? "descending" : "ascending") : "none"}
+                className="px-3 py-2 font-medium"
+              >
                 <button type="button" onClick={() => toggleSort("createdAt")} className="hover:text-terminal-fg">
                   Date <span aria-hidden="true">{indicator("createdAt")}</span>
                 </button>

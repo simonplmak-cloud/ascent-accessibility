@@ -35,6 +35,7 @@ export function FindingEvidence({
             className="font-mono text-xs text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
           >
             WCAG {sc} · {scInfo.title} (Level {scInfo.level})
+            <span className="sr-only"> (opens in a new window)</span>
           </a>
         )}
         {!sc && (
