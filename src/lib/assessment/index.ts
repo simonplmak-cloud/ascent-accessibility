@@ -114,19 +114,17 @@ export async function runAssessment(
       maxPages: assessment.pageCap,
     });
 
+    for (const message of crawlResult.log ?? []) {
+      await log("info", message);
+    }
+
     if (crawlResult.urls.length === 0) {
       await log("error", "no pages could be crawled");
       await deps.repository.fail(assessmentId);
       return;
     }
 
-    await log(
-      "info",
-      crawlResult.sitemapUsed
-        ? `sitemap fetched: ${crawlResult.sitemapUrlCount} urls`
-        : "no sitemap found — link crawl",
-    );
-    await log("info", `crawl complete: ${crawlResult.urls.length} pages`);
+    await log("info", `crawl complete: ${crawlResult.urls.length} page(s) to scan`);
 
     const output = await scanAndConsolidate(
       crawlResult.urls,
@@ -134,13 +132,22 @@ export async function runAssessment(
       deps,
       assessmentId,
     );
-    await log("info", `scan complete: ${output.findings.length} consolidated findings`);
+
+    await log("info", "consolidating findings from axe-core, Lighthouse, and IBM Equal Access");
+    await log(
+      "info",
+      `scan complete: ${output.findings.length} consolidated finding(s) across ${crawlResult.urls.length} page(s)`,
+    );
 
     const score = computeScore(output.findings);
     const conformance = computeConformance(
       output.findings,
       output.testedScs,
       standard.level ?? "AA",
+    );
+    await log(
+      "info",
+      `WCAG conformance: ${conformance.passed} pass / ${conformance.failed} fail / ${conformance.notTested} not tested`,
     );
     await log("info", `score: ${score.score}/100 (${score.passBand})`);
 
@@ -150,6 +157,7 @@ export async function runAssessment(
       conformance,
     };
 
+    await log("info", `storing findings and evidence (${output.findings.length} findings)`);
     await deps.repository.insertFindings(assessmentId, output.findings);
     await deps.repository.insertComparison(assessmentId, comparison);
     await deps.repository.complete(assessmentId, {
@@ -158,6 +166,7 @@ export async function runAssessment(
       pagesScanned: crawlResult.pagesScanned,
       partial: crawlResult.partial,
     });
+    await log("info", "assessment complete");
   } catch (error) {
     // Transient error: re-throw so the worker can retry (retry-exhaustion
     // failure is handled by the worker route, not here).
@@ -199,11 +208,16 @@ async function scanAndConsolidate(
       try {
         for (let pageUrl = queue.shift(); pageUrl !== undefined; pageUrl = queue.shift()) {
           try {
+            logs.push({
+              timestamp: new Date().toISOString(),
+              level: "info",
+              message: `scanning ${pageUrl} with axe-core`,
+            });
             const scan = await scanner.scan(pageUrl, standard.axeTags);
             logs.push({
               timestamp: new Date().toISOString(),
               level: "info",
-              message: `scanned ${pageUrl}: ${scan.violations.length} violations`,
+              message: `axe-core: ${scan.violations.length} violation(s) on ${pageUrl}`,
             });
 
             for (const violation of scan.violations) {
@@ -225,6 +239,13 @@ async function scanAndConsolidate(
               deps.evidenceStore,
               assessmentId,
             );
+            if (scan.violations.length > 0) {
+              logs.push({
+                timestamp: new Date().toISOString(),
+                level: "info",
+                message: `captured screenshot evidence for ${pageUrl}`,
+              });
+            }
             axeFindings.push(...pageFindings);
 
             const lighthouse = computeLighthouseScore(scan.violations.map((v) => v.id));
@@ -234,6 +255,11 @@ async function scanAndConsolidate(
             }
 
             try {
+              logs.push({
+                timestamp: new Date().toISOString(),
+                level: "info",
+                message: `running IBM Equal Access on ${pageUrl}`,
+              });
               const ibm = await scanner.scanIbm(pageUrl);
               await attachIbmEvidence(ibm.findings, deps.evidenceStore, assessmentId, pageUrl);
               ibmFindings.push(...ibm.findings);
@@ -242,6 +268,11 @@ async function scanAndConsolidate(
               ibmCounts.recommendation += ibm.counts.recommendation;
               ibmCounts.pass += ibm.counts.pass;
               ibmCounts.manual += ibm.counts.manual;
+              logs.push({
+                timestamp: new Date().toISOString(),
+                level: "info",
+                message: `IBM Equal Access: ${ibm.counts.violation} violation(s), ${ibm.counts.pass} pass(es) on ${pageUrl}`,
+              });
             } catch {
               /* IBM unavailable — continue with axe only */
             }

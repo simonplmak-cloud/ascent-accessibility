@@ -11,6 +11,7 @@ export interface CrawlResult {
   partial: boolean;
   sitemapUsed: boolean;
   sitemapUrlCount: number;
+  log?: string[];
 }
 
 export interface CrawlerDeps {
@@ -192,11 +193,16 @@ export async function crawl(
   const userAgent = options.userAgent ?? "APF-AccessibilityScanner/1.0";
 
   const origin = new URL(seed.origin);
+  const log: string[] = [];
+  log.push(`checking robots.txt for ${origin.origin}`);
   const disallow = await (async () => {
     try {
       const content = await deps.fetchRobots(origin.origin);
-      return content ? parseRobotsDisallow(content, userAgent) : [];
+      const rules = content ? parseRobotsDisallow(content, userAgent) : [];
+      log.push(rules.length > 0 ? `robots.txt parsed: ${rules.length} disallow rule(s)` : "no robots.txt (or no disallow rules)");
+      return rules;
     } catch {
+      log.push("robots.txt unavailable — proceeding without it");
       return [];
     }
   })();
@@ -207,6 +213,7 @@ export async function crawl(
   const sitemapUrls = await fetchSitemapUrls(origin, deps);
   const sitemapUsed = sitemapUrls.length > 0;
   const sitemapUrlCount = sitemapUrls.length;
+  log.push(sitemapUsed ? `sitemap.xml found: ${sitemapUrlCount} url(s)` : "no sitemap.xml found — using link crawl");
 
   const queue: { url: URL; depth: number }[] = [{ url: new URL(seed.href), depth: 0 }];
   if (sitemapUsed) {
@@ -230,22 +237,29 @@ export async function crawl(
     if (visited.has(key)) continue;
     visited.add(key);
 
-    if (!isAllowedByRobots(url, disallow)) continue;
+    if (!isAllowedByRobots(url, disallow)) {
+      log.push(`robots.txt blocks ${url.pathname || "/"} — skipping`);
+      continue;
+    }
 
     await deps.delay(delayMs);
     let html: string;
     try {
+      log.push(`crawling ${url.href}`);
       html = await deps.fetchHtml(url.href);
     } catch {
+      log.push(`crawl failed (unreachable): ${url.href}`);
       continue;
     }
 
     urls.push(url.href);
 
     const children = discoverChildren(html, url.href, origin, visited);
+    log.push(`${url.pathname || "/"} → ${children.length} link(s)`);
 
     if (urls.length >= maxPages) {
       if (children.length > 0 || queue.length > 0) capped = true;
+      log.push(`crawl cap reached: ${urls.length} page(s) (max ${maxPages})`);
       break;
     }
 
@@ -266,5 +280,5 @@ export async function crawl(
 
   if (queue.length > 0) capped = true;
 
-  return { urls, pagesScanned: urls.length, partial: capped, sitemapUsed, sitemapUrlCount };
+  return { urls, pagesScanned: urls.length, partial: capped, sitemapUsed, sitemapUrlCount, log };
 }

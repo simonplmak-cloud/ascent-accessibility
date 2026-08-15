@@ -151,6 +151,15 @@ export function AssessmentForm({ standards }: { standards: StandardOption[] }) {
         </p>
       )}
 
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {result?.status === "completed" && (
+          <p>
+            Assessment complete. Score: {result.score ?? "n/a"} out of 100.{" "}
+            {result.findings?.length ?? 0} findings.
+          </p>
+        )}
+      </div>
+
       {result?.status === "completed" && <Report result={result} />}
     </div>
   );
