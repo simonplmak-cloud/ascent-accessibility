@@ -9,7 +9,7 @@ export default async function ShareableReportPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const assessment = await assessmentRepository.findById(id);
+  const assessment = await assessmentRepository.findById(decodeURIComponent(id));
   if (!assessment) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
