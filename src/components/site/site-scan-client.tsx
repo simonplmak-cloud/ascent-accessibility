@@ -44,6 +44,18 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
     else setError("Could not start checkout. Please try again.");
   }
 
+  async function manageSubscription() {
+    setError(null);
+    const res = await fetch("/api/portal", { method: "POST" });
+    if (!res.ok) {
+      setError("Could not open the billing portal. Please try again.");
+      return;
+    }
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+    else setError("Could not open the billing portal. Please try again.");
+  }
+
   if (!isLoaded || checking) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
@@ -101,6 +113,23 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
         </div>
       ) : (
         <div className="mt-8">
+          <div className="mb-4 flex items-center justify-between rounded border border-terminal-pass bg-terminal-surface p-4">
+            <p className="font-mono text-sm text-terminal-fg">
+              Subscription active — whole-website scans unlocked.
+            </p>
+            <button
+              type="button"
+              onClick={manageSubscription}
+              className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
+            >
+              Manage subscription
+            </button>
+          </div>
+          {error && (
+            <p role="alert" className="mb-4 font-mono text-sm text-terminal-critical">
+              {error}
+            </p>
+          )}
           <AssessmentForm standards={standards} fixedScope="site" />
         </div>
       )}
