@@ -65,4 +65,16 @@ describe("consolidateFindings", () => {
     expect(spacing?.confidence).toBe("single-source");
     expect(spacing?.wcagSc).toEqual(["1.4.12"]);
   });
+
+  it("dedupes duplicate sources from the same tool and rule", () => {
+    const ibm = [
+      ibmFinding("IBMa_Color_Contrast", "1.4.3"),
+      ibmFinding("IBMa_Color_Contrast", "1.4.3"),
+    ];
+    const result = consolidateFindings([], ibm);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]!.sources).toHaveLength(1);
+    expect(result[0]!.sources[0]).toMatchObject({ tool: "ibm", ruleId: "IBMa_Color_Contrast" });
+  });
 });

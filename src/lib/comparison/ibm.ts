@@ -31,20 +31,13 @@ export interface IbmPage {
 interface IbmRuleMeta {
   id: string;
   rulesets?: Array<{ num: string | string[] }>;
-  help?: Record<string, Record<string, string>>;
 }
 
-interface RuleMeta {
-  sc: Map<string, string[]>;
-  help: Map<string, string>;
-}
+let scCache: Map<string, string[]> | null = null;
 
-let ruleMetaCache: RuleMeta | null = null;
-
-async function loadRuleMeta(): Promise<RuleMeta> {
-  if (ruleMetaCache) return ruleMetaCache;
+async function loadRuleScMap(): Promise<Map<string, string[]>> {
+  if (scCache) return scCache;
   const sc = new Map<string, string[]>();
-  const help = new Map<string, string>();
   try {
     const { getRules } = await import("accessibility-checker");
     const rules = (await getRules()) as IbmRuleMeta[];
@@ -58,19 +51,12 @@ async function loadRuleMeta(): Promise<RuleMeta> {
         }
       }
       if (scs.size > 0) sc.set(rule.id, [...scs]);
-
-      const localeHelp = rule.help?.["en-US"] ?? rule.help?.en;
-      if (localeHelp) {
-        for (const [reasonId, text] of Object.entries(localeHelp)) {
-          help.set(`${rule.id}:${reasonId}`, text);
-        }
-      }
     }
   } catch {
     /* engine unavailable — leave unmapped */
   }
-  ruleMetaCache = { sc, help };
-  return ruleMetaCache;
+  scCache = sc;
+  return sc;
 }
 
 function impactForLevel(level: string): ToolFinding["impact"] {
@@ -82,7 +68,7 @@ function impactForLevel(level: string): ToolFinding["impact"] {
 export async function runIbmScan(page: IbmPage, url: string): Promise<IbmScanOutput> {
   try {
     const { getCompliance } = await import("accessibility-checker");
-    const meta = await loadRuleMeta();
+    const scMap = await loadRuleScMap();
     const result = await getCompliance(page, url);
     const report: IbmReport | undefined = result.report;
     if (!report) return EMPTY;
@@ -92,9 +78,8 @@ export async function runIbmScan(page: IbmPage, url: string): Promise<IbmScanOut
     for (const r of report.results) {
       if (!["violation", "potentialviolation", "recommendation"].includes(r.level)) continue;
 
-      const wcagSc = meta.sc.get(r.ruleId) ?? [];
+      const wcagSc = scMap.get(r.ruleId) ?? [];
       const firstSc = wcagSc[0];
-      const help = meta.help.get(`${r.ruleId}:${r.reasonId}`) ?? "";
 
       let screenshot: Buffer | undefined;
       if (r.level !== "recommendation" && screenshotCount < ELEMENT_LIMIT && r.path?.dom) {
@@ -114,7 +99,7 @@ export async function runIbmScan(page: IbmPage, url: string): Promise<IbmScanOut
         ruleId: r.ruleId,
         impact: impactForLevel(r.level),
         message: r.message,
-        help,
+        help: r.message,
         helpUrl: "",
         wcagSc,
         wcagLevel: firstSc ? (getSc(firstSc)?.level ?? null) : null,
