@@ -18,7 +18,9 @@ function conformance(failedRows: Array<{ num: string; title: string }>): Conform
     total: 50,
     passed: 50 - failedRows.length,
     failed: failedRows.length,
-    notTested: 0,
+    notApplicable: 0,
+    needsReview: 0,
+    coverage: 100,
     levelAttained: "AA",
     rows: failedRows.map((r) => ({ ...r, level: "AA", result: "fail" as const })),
   };

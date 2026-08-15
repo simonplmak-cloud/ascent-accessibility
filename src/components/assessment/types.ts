@@ -39,14 +39,16 @@ export interface ConformanceRow {
   num: string;
   title: string;
   level: string;
-  result: "pass" | "fail" | "not-tested";
+  result: "pass" | "fail" | "not-applicable" | "needs-review";
 }
 
 export interface Conformance {
   total: number;
   passed: number;
   failed: number;
-  notTested: number;
+  notApplicable: number;
+  needsReview: number;
+  coverage: number;
   levelAttained: string;
   rows: ConformanceRow[];
 }

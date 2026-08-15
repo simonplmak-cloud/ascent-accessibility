@@ -10,6 +10,11 @@ import {
 import type { IbmScanOutput } from "@/lib/comparison/ibm";
 import { computeLighthouseScore } from "@/lib/standards/lighthouse-audits";
 import { scsForTags } from "@/lib/standards/wcag-sc";
+import {
+  EMPTY_FEATURES,
+  mergeFeatures,
+  type PageFeatures,
+} from "@/lib/standards/sc-applicability";
 import type { Standard } from "@/lib/standards/catalog";
 import type { Finding, LogEntry, LogLevel, NewEvidence } from "@/db/schema";
 
@@ -78,7 +83,8 @@ interface ConsolidateOutput {
   findings: Finding[];
   lighthouse: ComparisonData["lighthouse"];
   ibm: IbmCounts;
-  testedScs: Set<string>;
+  passedScs: Set<string>;
+  features: PageFeatures;
 }
 
 export async function runAssessment(
@@ -142,12 +148,13 @@ export async function runAssessment(
     const score = computeScore(output.findings);
     const conformance = computeConformance(
       output.findings,
-      output.testedScs,
+      output.passedScs,
+      output.features,
       standard.level ?? "AA",
     );
     await log(
       "info",
-      `WCAG conformance: ${conformance.passed} pass / ${conformance.failed} fail / ${conformance.notTested} not tested`,
+      `WCAG conformance: ${conformance.passed} pass / ${conformance.failed} fail / ${conformance.notApplicable} not applicable / ${conformance.needsReview} needs review (${conformance.coverage}% machine-tested)`,
     );
     await log("info", `score: ${score.score}/100 (${score.passBand})`);
 
@@ -183,7 +190,8 @@ async function scanAndConsolidate(
   const axeFindings: ToolFinding[] = [];
   const ibmFindings: ToolFinding[] = [];
   const ibmCounts = { violation: 0, potentialViolation: 0, recommendation: 0, pass: 0, manual: 0 };
-  const testedScs = new Set<string>();
+  const passedScs = new Set<string>();
+  let features: PageFeatures = EMPTY_FEATURES;
   const lighthouseScores: number[] = [];
   const lighthouseFailed = new Map<string, number>();
   const logs: LogEntry[] = [];
@@ -220,15 +228,10 @@ async function scanAndConsolidate(
               message: `axe-core: ${scan.violations.length} violation(s) on ${pageUrl}`,
             });
 
-            for (const violation of scan.violations) {
-              for (const sc of scsForTags(violation.tags)) testedScs.add(sc);
-            }
             for (const pass of scan.passes) {
-              for (const sc of scsForTags(pass.tags)) testedScs.add(sc);
+              for (const sc of scsForTags(pass.tags)) passedScs.add(sc);
             }
-            for (const incomplete of scan.incomplete) {
-              for (const sc of scsForTags(incomplete.tags)) testedScs.add(sc);
-            }
+            features = mergeFeatures(features, scan.features);
 
             const pageFindings = axeViolationsToFindings(pageUrl, scan.violations);
             await captureAndAttachEvidence(
@@ -305,7 +308,8 @@ async function scanAndConsolidate(
     findings,
     lighthouse: { score: lighthouseScore, failedAudits: [...lighthouseFailed.entries()].map(([id, weight]) => ({ id, weight })) },
     ibm: ibmCounts,
-    testedScs,
+    passedScs,
+    features,
   };
 }
 

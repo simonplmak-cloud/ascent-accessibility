@@ -13,13 +13,16 @@ function resultClass(result: string): string {
       return "text-terminal-pass";
     case "fail":
       return "text-terminal-fail";
+    case "needs-review":
+      return "text-terminal-serious";
     default:
       return "text-terminal-muted";
   }
 }
 
 function resultLabel(result: string): string {
-  if (result === "not-tested") return "not tested";
+  if (result === "not-applicable") return "not applicable";
+  if (result === "needs-review") return "needs review";
   return result.toUpperCase();
 }
 
@@ -40,8 +43,9 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
         WCAG conformance
       </h2>
       <p className="mt-1 font-mono text-sm text-terminal-muted">
-        {conformance.passed} pass · {conformance.failed} fail · {conformance.notTested} not
-        tested · level attained: <span className="text-terminal-fg">{conformance.levelAttained}</span>
+        {conformance.passed} pass · {conformance.failed} fail · {conformance.notApplicable} not
+        applicable · {conformance.needsReview} needs review · {conformance.coverage}% machine-tested ·
+        level attained: <span className="text-terminal-fg">{conformance.levelAttained}</span>
       </p>
 
       {[...grouped.entries()].map(([principle, rows]) => (

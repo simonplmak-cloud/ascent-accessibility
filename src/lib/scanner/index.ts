@@ -1,4 +1,5 @@
 import type { Impact } from "@/lib/scoring";
+import type { PageFeatures } from "@/lib/standards/sc-applicability";
 
 export interface AxeNode {
   html: string;
@@ -27,6 +28,7 @@ export interface ScanResult {
   violations: AxeViolation[];
   passes: AxeRuleSummary[];
   incomplete: AxeRuleSummary[];
+  features: PageFeatures;
 }
 
 export class ScanFailedError extends Error {
@@ -138,16 +140,49 @@ export async function scanPage(
     throw new ScanFailedError(`Could not load ${url}: HTTP ${status}`);
   }
 
-  const raw = (await page.evaluate((runTags) => {
+  const result = (await page.evaluate(async (runTags) => {
     const axe = (globalThis as { axe?: AxeRunner }).axe;
     if (!axe) throw new Error("axe-core failed to load");
-    return axe.run(document, { runOnly: { type: "tag", values: runTags } });
-  }, tags)) as RawAxeResult;
+    const raw = await axe.run(document, { runOnly: { type: "tag", values: runTags } });
+
+    const has = (sel: string): boolean => !!document.querySelector(sel);
+    const features = {
+      hasContent: (document.body?.textContent ?? "").trim().length > 0,
+      hasVideo: has("video"),
+      hasAudio: has("audio"),
+      hasVideoCaptions: has("video track[kind='captions'], video track[kind='subtitles']"),
+      hasAudioDescription: has("video track[kind='descriptions']"),
+      hasForms: has("form, input, select, textarea"),
+      hasTables: has("table"),
+      hasIframes: has("iframe"),
+      hasMetaRefresh: has("meta[http-equiv='refresh' i]"),
+      hasMarquee: has("marquee, blink"),
+      hasAccesskey: has("[accesskey]"),
+      hasPositiveTabindex: Array.from(document.querySelectorAll("[tabindex]")).some(
+        (el) => parseInt(el.getAttribute("tabindex") || "0", 10) > 0,
+      ),
+      hasDragHandlers: has("[draggable='true'], [ondrop], [ondragstart], [ondragover]"),
+      hasTouchHandlers: has("[ontouchstart], [ontouchmove], [ontouchend], [ongesturestart]"),
+      hasImages: has("img, svg"),
+      hasBackgroundImages: has("[style*='background-image'], [style*='background:url']"),
+      hasAnimatedContent: has("[style*='animation'], [style*='transition'], marquee"),
+      hasAutoplay: has("video[autoplay], audio[autoplay]"),
+      hasLiveContent: has("[aria-live]"),
+      hasLinks: has("a[href]"),
+      hasHeadings: has("h1,h2,h3,h4,h5,h6"),
+      hasLandmarks: has("main, nav, header, footer, [role='main']"),
+      hasLang: !!document.documentElement.lang,
+      hasInteractive: has("a[href], button, input, select, textarea, [role='button']"),
+      hasTimeLimit: has("meta[http-equiv='refresh' i]"),
+    };
+    return { raw, features };
+  }, tags)) as { raw: RawAxeResult; features: PageFeatures };
 
   return {
     url,
-    violations: mapViolations(raw),
-    passes: (raw.passes ?? []).map(mapRuleSummary),
-    incomplete: (raw.incomplete ?? []).map(mapRuleSummary),
+    violations: mapViolations(result.raw),
+    passes: (result.raw.passes ?? []).map(mapRuleSummary),
+    incomplete: (result.raw.incomplete ?? []).map(mapRuleSummary),
+    features: result.features,
   };
 }

@@ -5,6 +5,7 @@ import {
   ScanFailedError,
   type ScannerPage,
 } from "@/lib/scanner";
+import { EMPTY_FEATURES } from "@/lib/standards/sc-applicability";
 
 function makePage(
   raw: unknown,
@@ -18,7 +19,7 @@ function makePage(
         : { status: () => 200 };
     }),
     addInitScript: vi.fn(async () => {}),
-    evaluate: vi.fn(async () => raw),
+    evaluate: vi.fn(async () => ({ raw, features: EMPTY_FEATURES })),
     screenshot: vi.fn(async () => Buffer.alloc(0)),
     screenshotElement: vi.fn(async () => Buffer.alloc(0)),
   };

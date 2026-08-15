@@ -68,6 +68,15 @@ const scanOk = async (url: string) => ({
   ],
   passes: [{ id: "region", tags: ["wcag2aa"] }],
   incomplete: [],
+  features: {
+    hasContent: true,
+    hasVideo: false, hasAudio: false, hasVideoCaptions: false, hasAudioDescription: false,
+    hasForms: false, hasTables: false, hasIframes: false, hasMetaRefresh: false,
+    hasMarquee: false, hasAccesskey: false, hasPositiveTabindex: false, hasDragHandlers: false,
+    hasTouchHandlers: false, hasImages: true, hasBackgroundImages: false,
+    hasAnimatedContent: false, hasAutoplay: false, hasLiveContent: false, hasLinks: true,
+    hasHeadings: true, hasLandmarks: true, hasLang: true, hasInteractive: true, hasTimeLimit: false,
+  },
 });
 
 const emptyCrawl = async () => ({
