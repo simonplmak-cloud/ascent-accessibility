@@ -31,7 +31,7 @@ export const evidenceRepository = {
 
   async listByAssessment(assessmentId: string): Promise<Evidence[]> {
     const rows = await query<RawRecord>(
-      "SELECT * FROM evidence WHERE assessmentId = type::record($assessmentId) ORDER BY createdAt ASC",
+      "SELECT * FROM evidence WHERE assessmentId = $assessmentId ORDER BY createdAt ASC",
       { assessmentId },
     );
     return rows.map(mapEvidence);

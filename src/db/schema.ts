@@ -161,7 +161,7 @@ DEFINE FIELD createdAt ON audit_log TYPE datetime DEFAULT time::now();
 DEFINE INDEX audit_log_api_key_idx ON audit_log FIELDS apiKeyId, createdAt;`,
 
   `DEFINE TABLE evidence SCHEMAFULL;
-DEFINE FIELD assessmentId ON evidence TYPE record<assessment>;
+DEFINE FIELD assessmentId ON evidence TYPE string;
 DEFINE FIELD pageUrl ON evidence TYPE string;
 DEFINE FIELD kind ON evidence TYPE string;
 DEFINE FIELD image ON evidence TYPE string;

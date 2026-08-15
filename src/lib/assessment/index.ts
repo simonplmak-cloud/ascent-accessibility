@@ -294,19 +294,21 @@ async function captureAndAttachEvidence(
     return;
   }
 
-  const elementIds = new Map<string, string>();
+  let fullPageId: string | null = null;
   try {
-    await evidenceStore.put({
+    const ev = await evidenceStore.put({
       assessmentId,
       pageUrl,
       kind: "page",
       image: captured.fullPage.toString("base64"),
       mime: captured.fullPageMime,
     });
+    fullPageId = ev.id;
   } catch {
     /* evidence store unavailable — continue without page screenshot */
   }
 
+  const elementIds = new Map<string, string>();
   for (const el of captured.elements) {
     try {
       const ev = await evidenceStore.put({
@@ -324,7 +326,7 @@ async function captureAndAttachEvidence(
 
   for (const finding of pageFindings) {
     for (let i = 0; i < finding.nodes.length; i++) {
-      const id = elementIds.get(`${finding.ruleId}:${i}`);
+      const id = elementIds.get(`${finding.ruleId}:${i}`) ?? fullPageId;
       if (id) finding.nodes[i]!.evidenceId = id;
     }
   }
