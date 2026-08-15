@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function ResourcesPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
@@ -36,13 +38,13 @@ export default function ResourcesPage() {
       </ul>
       <p className="mt-6 font-mono text-terminal-muted">
         Start with a self-assessment using our{" "}
-        <a href="/assess" className="underline underline-offset-4 hover:text-terminal-fg">
+        <Link href="/assess" className="underline underline-offset-4 hover:text-terminal-fg">
           accessibility tool
-        </a>
+        </Link>
         , or learn more in our{" "}
-        <a href="/learn" className="underline underline-offset-4 hover:text-terminal-fg">
+        <Link href="/learn" className="underline underline-offset-4 hover:text-terminal-fg">
           education section
-        </a>
+        </Link>
         .
       </p>
     </div>

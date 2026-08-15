@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function WcagLearnPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
@@ -36,9 +38,9 @@ export default function WcagLearnPage() {
         The level (A/AA/AAA) tells you how strict a criterion is. It is <em>not</em> the same
         as the impact of a specific violation. A Level A failure can be minor in practice,
         and a Level AA failure can block a user completely. See{" "}
-        <a href="/learn/severity" className="underline underline-offset-4 hover:text-terminal-fg">
+        <Link href="/learn/severity" className="underline underline-offset-4 hover:text-terminal-fg">
           understanding severity
-        </a>{" "}
+        </Link>{" "}
         for how we grade impact.
       </p>
     </div>
