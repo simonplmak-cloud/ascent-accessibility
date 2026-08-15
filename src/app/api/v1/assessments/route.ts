@@ -6,6 +6,7 @@ import { getClientIp } from "@/server/ip";
 import { rateLimiter } from "@/server/bootstrap";
 import { assessmentRepository } from "@/db/repository";
 import { getStandard } from "@/lib/standards/catalog";
+import { resolveCrawlScope } from "@/lib/assessment/scope";
 import { withCorrelationId } from "@/lib/observability/logger";
 
 export async function POST(req: Request) {
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { url, standard, depth, pageCap } = parsed.data;
+  const { url, standard, depth, pageCap, scope } = parsed.data;
 
   if (!getStandard(standard)) {
     return NextResponse.json(
@@ -39,11 +40,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ code }, { status: 400 });
   }
 
+  const crawlScope = resolveCrawlScope(scope, depth, pageCap);
   const assessment = await assessmentRepository.create({
     url: ssrf.url.href,
     standard,
-    depth: depth ?? 3,
-    pageCap: pageCap ?? 100,
+    depth: crawlScope.depth,
+    pageCap: crawlScope.pageCap,
   });
 
   withCorrelationId(assessment.id).info({ ip }, "assessment queued");

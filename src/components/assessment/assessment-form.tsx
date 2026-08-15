@@ -11,6 +11,7 @@ const POLL_INTERVAL_MS = 3000;
 export function AssessmentForm({ standards }: { standards: StandardOption[] }) {
   const [url, setUrl] = useState("");
   const [standard, setStandard] = useState("wcag22aa");
+  const [scope, setScope] = useState<"page" | "site">("site");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AssessmentResult | null>(null);
@@ -27,7 +28,7 @@ export function AssessmentForm({ standards }: { standards: StandardOption[] }) {
       const createRes = await fetch("/api/v1/assessments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, standard }),
+        body: JSON.stringify({ url, standard, scope }),
       });
       const createData = await createRes.json();
 
@@ -95,6 +96,29 @@ export function AssessmentForm({ standards }: { standards: StandardOption[] }) {
             ))}
           </select>
         </div>
+        <fieldset className="space-y-2">
+          <legend className="block font-mono text-sm text-terminal-fg">Scan scope</legend>
+          <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+            <input
+              type="radio"
+              name="scope"
+              value="site"
+              checked={scope === "site"}
+              onChange={() => setScope("site")}
+            />
+            Whole website
+          </label>
+          <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+            <input
+              type="radio"
+              name="scope"
+              value="page"
+              checked={scope === "page"}
+              onChange={() => setScope("page")}
+            />
+            Single page
+          </label>
+        </fieldset>
         <button
           type="submit"
           disabled={loading}

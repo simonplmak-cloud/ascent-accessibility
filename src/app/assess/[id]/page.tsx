@@ -88,7 +88,9 @@ export default async function ShareableReportPage({
           {assessment.url}
         </a>
       </h1>
-      <p className="mt-2 font-mono text-sm text-terminal-muted">{assessment.standard}</p>
+      <p className="mt-2 font-mono text-sm text-terminal-muted">
+        {assessment.standard} · {assessment.depth === 0 ? "Single page" : "Whole website"}
+      </p>
       <Report result={result} />
     </div>
   );
