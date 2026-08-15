@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ScoreSummary } from "./score-summary";
 import { ConformanceTable } from "./conformance-table";
+import { ManualReviewChecklist } from "./manual-review-checklist";
 import { ComparisonPanel } from "./comparison-panel";
 import { FindingEvidence } from "./finding-evidence";
 import { Methodology } from "./methodology";
@@ -52,6 +53,9 @@ export function Report({ result }: { result: AssessmentResult }) {
 
       {result.comparison?.conformance && (
         <ConformanceTable conformance={result.comparison.conformance} />
+      )}
+      {result.comparison?.conformance && (
+        <ManualReviewChecklist conformance={result.comparison.conformance} />
       )}
       <ComparisonPanel result={result} />
 
