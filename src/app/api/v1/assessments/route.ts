@@ -4,9 +4,11 @@ import { validateTargetUrl } from "@/server/ssrf";
 import { IP_RATE_LIMIT, RATE_WINDOW_MS } from "@/server/rate-limit";
 import { getClientIp } from "@/server/ip";
 import { rateLimiter } from "@/server/bootstrap";
-import { assessmentRepository } from "@/db/repository";
+import { assessmentRepository, subscriptionRepository } from "@/db/repository";
 import { getStandard } from "@/lib/standards/catalog";
 import { resolveCrawlScope } from "@/lib/assessment/scope";
+import { getUserId } from "@/server/auth";
+import { isWholeSiteAllowed } from "@/lib/entitlement";
 import { withCorrelationId } from "@/lib/observability/logger";
 
 export async function POST(req: Request) {
@@ -26,6 +28,16 @@ export async function POST(req: Request) {
   }
 
   const { url, standard, depth, pageCap, scope } = parsed.data;
+
+  if (scope === "site") {
+    const userId = await getUserId();
+    const subscribed = userId ? await subscriptionRepository.isActive(userId) : false;
+    const gate = isWholeSiteAllowed({ userId, subscribed });
+    if (!gate.ok) {
+      const status = gate.code === "UNAUTHORIZED" ? 401 : 402;
+      return NextResponse.json({ code: gate.code }, { status });
+    }
+  }
 
   if (!getStandard(standard)) {
     return NextResponse.json(

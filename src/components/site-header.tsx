@@ -10,6 +10,7 @@ const navItems = [
   { href: "/about", label: "About" },
   { href: "/learn", label: "Learn" },
   { href: "/history", label: "History" },
+  { href: "/site", label: "Site scans" },
   { href: "/api-keys", label: "API access" },
   { href: "/contact", label: "Contact" },
   { href: "/donate", label: "Donate" },

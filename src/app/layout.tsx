@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -16,16 +17,21 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const body = (
+    <body className="min-h-screen bg-terminal-bg text-terminal-fg antialiased">
+      <a href="#main" className="skip-link">
+        Skip to main content
+      </a>
+      <SiteHeader />
+      <main id="main">{children}</main>
+      <SiteFooter />
+    </body>
+  );
+
+  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   return (
     <html lang="en">
-      <body className="min-h-screen bg-terminal-bg text-terminal-fg antialiased">
-        <a href="#main" className="skip-link">
-          Skip to main content
-        </a>
-        <SiteHeader />
-        <main id="main">{children}</main>
-        <SiteFooter />
-      </body>
+      {clerkKey ? <ClerkProvider>{body}</ClerkProvider> : body}
     </html>
   );
 }

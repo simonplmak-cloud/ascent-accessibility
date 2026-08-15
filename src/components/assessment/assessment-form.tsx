@@ -8,10 +8,16 @@ import type { AssessmentResult, LogEntry, StandardOption } from "./types";
 const MAX_POLLS = 300;
 const POLL_INTERVAL_MS = 3000;
 
-export function AssessmentForm({ standards }: { standards: StandardOption[] }) {
+export function AssessmentForm({
+  standards,
+  fixedScope,
+}: {
+  standards: StandardOption[];
+  fixedScope?: "page" | "site";
+}) {
   const [url, setUrl] = useState("");
   const [standard, setStandard] = useState("wcag22aa");
-  const [scope, setScope] = useState<"page" | "site">("site");
+  const [scope, setScope] = useState<"page" | "site">(fixedScope ?? "site");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AssessmentResult | null>(null);
@@ -98,26 +104,40 @@ export function AssessmentForm({ standards }: { standards: StandardOption[] }) {
         </div>
         <fieldset className="space-y-2">
           <legend className="block font-mono text-sm text-terminal-fg">Scan scope</legend>
-          <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
-            <input
-              type="radio"
-              name="scope"
-              value="site"
-              checked={scope === "site"}
-              onChange={() => setScope("site")}
-            />
-            Whole website
-          </label>
-          <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
-            <input
-              type="radio"
-              name="scope"
-              value="page"
-              checked={scope === "page"}
-              onChange={() => setScope("page")}
-            />
-            Single page
-          </label>
+          {fixedScope === undefined && (
+            <>
+              <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+                <input
+                  type="radio"
+                  name="scope"
+                  value="site"
+                  checked={scope === "site"}
+                  onChange={() => setScope("site")}
+                />
+                Whole website
+              </label>
+              <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+                <input
+                  type="radio"
+                  name="scope"
+                  value="page"
+                  checked={scope === "page"}
+                  onChange={() => setScope("page")}
+                />
+                Single page
+              </label>
+            </>
+          )}
+          {fixedScope === "page" && (
+            <p className="font-mono text-sm text-terminal-muted">
+              Single page — free, no account required.
+            </p>
+          )}
+          {fixedScope === "site" && (
+            <p className="font-mono text-sm text-terminal-muted">
+              Whole website — subscriber feature.
+            </p>
+          )}
         </fieldset>
         <button
           type="submit"
@@ -171,6 +191,10 @@ function messageForCode(code: string): string {
       return "That URL is not publicly accessible.";
     case "RATE_LIMITED":
       return "Too many requests. Please wait a moment and try again.";
+    case "UNAUTHORIZED":
+      return "Whole-website scans require an account. Please sign in.";
+    case "PAYMENT_REQUIRED":
+      return "Whole-website scans require an active subscription.";
     default:
       return "Please enter a valid website URL.";
   }
