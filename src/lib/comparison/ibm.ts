@@ -20,16 +20,31 @@ const EMPTY: IbmScanOutput = {
   findings: [],
 };
 
-let ruleScCache: Map<string, string[]> | null = null;
+const ELEMENT_LIMIT = 10;
+
+export interface IbmPage {
+  locator(selector: string): {
+    first(): { screenshot(options?: { type?: "png" | "jpeg" }): Promise<Buffer> };
+  };
+}
 
 interface IbmRuleMeta {
   id: string;
   rulesets?: Array<{ num: string | string[] }>;
+  help?: Record<string, Record<string, string>>;
 }
 
-async function loadRuleScMap(): Promise<Map<string, string[]>> {
-  if (ruleScCache) return ruleScCache;
-  const map = new Map<string, string[]>();
+interface RuleMeta {
+  sc: Map<string, string[]>;
+  help: Map<string, string>;
+}
+
+let ruleMetaCache: RuleMeta | null = null;
+
+async function loadRuleMeta(): Promise<RuleMeta> {
+  if (ruleMetaCache) return ruleMetaCache;
+  const sc = new Map<string, string[]>();
+  const help = new Map<string, string>();
   try {
     const { getRules } = await import("accessibility-checker");
     const rules = (await getRules()) as IbmRuleMeta[];
@@ -42,13 +57,20 @@ async function loadRuleScMap(): Promise<Map<string, string[]>> {
           }
         }
       }
-      if (scs.size > 0) map.set(rule.id, [...scs]);
+      if (scs.size > 0) sc.set(rule.id, [...scs]);
+
+      const localeHelp = rule.help?.["en-US"] ?? rule.help?.en;
+      if (localeHelp) {
+        for (const [reasonId, text] of Object.entries(localeHelp)) {
+          help.set(`${rule.id}:${reasonId}`, text);
+        }
+      }
     }
   } catch {
     /* engine unavailable — leave unmapped */
   }
-  ruleScCache = map;
-  return map;
+  ruleMetaCache = { sc, help };
+  return ruleMetaCache;
 }
 
 function impactForLevel(level: string): ToolFinding["impact"] {
@@ -57,25 +79,42 @@ function impactForLevel(level: string): ToolFinding["impact"] {
   return "minor";
 }
 
-export async function runIbmScan(page: unknown, url: string): Promise<IbmScanOutput> {
+export async function runIbmScan(page: IbmPage, url: string): Promise<IbmScanOutput> {
   try {
     const { getCompliance } = await import("accessibility-checker");
-    const scMap = await loadRuleScMap();
+    const meta = await loadRuleMeta();
     const result = await getCompliance(page, url);
     const report: IbmReport | undefined = result.report;
     if (!report) return EMPTY;
 
     const findings: ToolFinding[] = [];
+    let screenshotCount = 0;
     for (const r of report.results) {
       if (!["violation", "potentialviolation", "recommendation"].includes(r.level)) continue;
-      const wcagSc = scMap.get(r.ruleId) ?? [];
+
+      const wcagSc = meta.sc.get(r.ruleId) ?? [];
       const firstSc = wcagSc[0];
+      const help = meta.help.get(`${r.ruleId}:${r.reasonId}`) ?? "";
+
+      let screenshot: Buffer | undefined;
+      if (r.level !== "recommendation" && screenshotCount < ELEMENT_LIMIT && r.path?.dom) {
+        try {
+          screenshot = await page
+            .locator(`xpath=${r.path.dom}`)
+            .first()
+            .screenshot({ type: "png" });
+          screenshotCount += 1;
+        } catch {
+          /* element not locatable — skip */
+        }
+      }
+
       findings.push({
         tool: "ibm",
         ruleId: r.ruleId,
         impact: impactForLevel(r.level),
         message: r.message,
-        help: r.message,
+        help,
         helpUrl: "",
         wcagSc,
         wcagLevel: firstSc ? (getSc(firstSc)?.level ?? null) : null,
@@ -86,6 +125,7 @@ export async function runIbmScan(page: unknown, url: string): Promise<IbmScanOut
             html: r.snippet ?? "",
             failureSummary: r.message,
             evidenceId: null,
+            screenshot,
           },
         ],
       });

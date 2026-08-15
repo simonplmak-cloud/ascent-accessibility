@@ -235,6 +235,7 @@ async function scanAndConsolidate(
 
             try {
               const ibm = await scanner.scanIbm(pageUrl);
+              await attachIbmEvidence(ibm.findings, deps.evidenceStore, assessmentId, pageUrl);
               ibmFindings.push(...ibm.findings);
               ibmCounts.violation += ibm.counts.violation;
               ibmCounts.potentialViolation += ibm.counts.potentialViolation;
@@ -328,6 +329,32 @@ async function captureAndAttachEvidence(
     for (let i = 0; i < finding.nodes.length; i++) {
       const id = elementIds.get(`${finding.ruleId}:${i}`) ?? fullPageId;
       if (id) finding.nodes[i]!.evidenceId = id;
+    }
+  }
+}
+
+async function attachIbmEvidence(
+  findings: ToolFinding[],
+  evidenceStore: EvidenceStorePort,
+  assessmentId: string,
+  pageUrl: string,
+): Promise<void> {
+  for (const finding of findings) {
+    for (const node of finding.nodes) {
+      if (!node.screenshot) continue;
+      try {
+        const ev = await evidenceStore.put({
+          assessmentId,
+          pageUrl,
+          kind: "element",
+          image: node.screenshot.toString("base64"),
+          mime: "image/png",
+        });
+        node.evidenceId = ev.id;
+      } catch {
+        /* skip on failure */
+      }
+      node.screenshot = undefined;
     }
   }
 }

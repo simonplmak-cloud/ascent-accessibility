@@ -15,7 +15,13 @@ export interface ToolFinding {
   wcagSc: string[];
   wcagLevel: "A" | "AA" | "AAA" | null;
   pageUrl: string;
-  nodes: Array<{ target: string; html: string; failureSummary: string; evidenceId: string | null }>;
+  nodes: Array<{
+    target: string;
+    html: string;
+    failureSummary: string;
+    evidenceId: string | null;
+    screenshot?: Buffer;
+  }>;
 }
 
 const IMPACT_RANK: Record<Impact, number> = { critical: 4, serious: 3, moderate: 2, minor: 1 };
@@ -38,6 +44,11 @@ function toInstance(node: ToolFinding["nodes"][number]): FindingInstance {
   };
 }
 
+function recommendationFor(finding: ToolFinding): string {
+  if (finding.tool === "ibm" && finding.help) return finding.help;
+  return getRecommendation(finding.ruleId, finding.impact);
+}
+
 function baseFinding(finding: ToolFinding): Finding {
   const sc = primarySc(finding);
   const scInfo = sc ? getSc(sc) : undefined;
@@ -47,7 +58,7 @@ function baseFinding(finding: ToolFinding): Finding {
     description: finding.message,
     pageUrl: finding.pageUrl,
     elementCount: finding.nodes.length,
-    recommendation: getRecommendation(finding.ruleId, finding.impact),
+    recommendation: recommendationFor(finding),
     help: finding.help,
     helpUrl: finding.helpUrl,
     wcagSc: finding.wcagSc,
@@ -60,7 +71,9 @@ function baseFinding(finding: ToolFinding): Finding {
 }
 
 function addSource(finding: Finding, f: ToolFinding, tool: FindingSource["tool"]): void {
-  finding.sources.push({ tool, ruleId: f.ruleId, impact: f.impact, message: f.message });
+  if (!finding.sources.some((s) => s.tool === tool && s.ruleId === f.ruleId)) {
+    finding.sources.push({ tool, ruleId: f.ruleId, impact: f.impact, message: f.message });
+  }
   if (IMPACT_RANK[f.impact] > IMPACT_RANK[finding.impact]) finding.impact = f.impact;
 }
 
