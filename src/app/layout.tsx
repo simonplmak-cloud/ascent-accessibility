@@ -5,11 +5,11 @@ import { SiteFooter } from "@/components/site-footer";
 
 export const metadata: Metadata = {
   title: {
-    default: "Ascent Partners — Web Accessibility Assessment",
-    template: "%s — Ascent Partners",
+    default: "Ascent Accessibility — Free WCAG Assessment by Ascent Partners Foundation",
+    template: "%s — Ascent Accessibility",
   },
   description:
-    "Assess your website against WCAG standards and get a score, findings, and remediation guidance.",
+    "A free tool by Ascent Partners Foundation. Assess your website against WCAG 2.2 AA and get a score, evidence-backed findings, and remediation guidance.",
   icons: { icon: "/favicon.png" },
 };
 
