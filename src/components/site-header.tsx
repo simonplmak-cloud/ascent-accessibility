@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { TextSizeControl } from "@/components/text-size-control";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -48,6 +49,7 @@ export function SiteHeader() {
               </li>
             ))}
           </ul>
+          <TextSizeControl />
           <Link
             href="/assess"
             className="rounded bg-terminal-fg px-4 py-2 font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
@@ -103,6 +105,10 @@ export function SiteHeader() {
                 </Link>
               </li>
             ))}
+            <li className="flex items-center justify-between px-4 py-3">
+              <span className="font-mono text-sm text-terminal-muted">Text size</span>
+              <TextSizeControl />
+            </li>
             <li className="p-4">
               <Link
                 href="/assess"

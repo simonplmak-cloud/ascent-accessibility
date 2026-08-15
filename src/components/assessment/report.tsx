@@ -1,17 +1,40 @@
+"use client";
+
+import { useState } from "react";
 import { ScoreSummary } from "./score-summary";
 import { ConformanceTable } from "./conformance-table";
 import { ComparisonPanel } from "./comparison-panel";
 import { FindingEvidence } from "./finding-evidence";
 import { Methodology } from "./methodology";
 import { LogPanel } from "./log-panel";
+import { buildReportSummary } from "@/lib/report-summary";
 import type { AssessmentResult } from "./types";
 
 export function Report({ result }: { result: AssessmentResult }) {
+  const [largePrint, setLargePrint] = useState(false);
+
   return (
-    <section aria-labelledby="report-heading" className="mt-8">
-      <h2 id="report-heading" className="font-mono text-lg font-semibold text-terminal-fg">
-        Assessment report
-      </h2>
+    <section
+      aria-labelledby="report-heading"
+      className={`mt-8 ${largePrint ? "large-print" : ""}`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="report-heading" className="font-mono text-lg font-semibold text-terminal-fg">
+          Assessment report
+        </h2>
+        <button
+          type="button"
+          onClick={() => setLargePrint((value) => !value)}
+          aria-pressed={largePrint}
+          className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+        >
+          {largePrint ? "Normal print" : "Large print"}
+        </button>
+      </div>
+
+      <p className="mt-4 font-mono leading-7 text-terminal-fg">
+        {buildReportSummary(result)}
+      </p>
 
       <div className="mt-4">
         <ScoreSummary

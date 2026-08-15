@@ -33,3 +33,65 @@ body {
   outline: 2px solid #ffa657;
   outline-offset: 2px;
 }
+
+/* Text size control — scales all rem-based text via the root font size. */
+html[data-text-size="large"] {
+  font-size: 112.5%;
+}
+
+html[data-text-size="xlarge"] {
+  font-size: 125%;
+}
+
+/* Large-print report view — bigger, roomier text. */
+.large-print {
+  font-size: 1.25rem;
+  line-height: 1.8;
+}
+
+.large-print .text-xs {
+  font-size: 1rem;
+}
+
+.large-print .text-sm {
+  font-size: 1.15rem;
+}
+
+.large-print .text-base {
+  font-size: 1.3rem;
+}
+
+.large-print .text-lg {
+  font-size: 1.6rem;
+}
+
+.large-print .text-xl {
+  font-size: 1.9rem;
+}
+
+.large-print .text-2xl {
+  font-size: 2.2rem;
+}
+
+.large-print .text-5xl {
+  font-size: 3.5rem;
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Respect users who need maximum contrast. */
+@media (prefers-contrast: more) {
+  body {
+    color: #ffffff;
+  }
+}
