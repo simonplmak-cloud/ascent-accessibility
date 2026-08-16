@@ -38,6 +38,7 @@ export async function createCheckoutSession(
     mode: recurring ? "subscription" : "payment",
     ui_mode: "embedded_page",
     submit_type: "donate",
+    allow_promotion_codes: true,
     branding_settings: checkoutBranding(),
     custom_text: {
       submit: { message: "Thank you for supporting Ascent Partners Foundation." },

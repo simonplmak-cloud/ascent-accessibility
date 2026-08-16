@@ -42,6 +42,8 @@ export async function createSubscriptionCheckout(
       mode: "subscription",
       ui_mode: "embedded_page",
       submit_type: "subscribe",
+      allow_promotion_codes: true,
+      customer_creation: "always",
       branding_settings: checkoutBranding(),
       custom_text: {
         submit: { message: "Subscribe to unlock whole-website scans." },
