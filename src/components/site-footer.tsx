@@ -4,6 +4,9 @@ const footerLinks = [
   { href: "/about", label: "About" },
   { href: "/pricing", label: "Pricing" },
   { href: "/learn", label: "Learn" },
+  { href: "/standards", label: "WCAG criteria" },
+  { href: "/methodology", label: "Methodology" },
+  { href: "/faq", label: "FAQ" },
   { href: "/resources", label: "Resources" },
   { href: "/contact", label: "Contact" },
   { href: "/donate", label: "Donate" },
@@ -14,6 +17,7 @@ const legalLinks = [
   { href: "/privacy", label: "Privacy" },
   { href: "/sla", label: "Service commitment" },
   { href: "/refund", label: "Refunds" },
+  { href: "/accessibility-statement", label: "Accessibility" },
 ];
 
 export function SiteFooter() {
