@@ -52,6 +52,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ code }, { status: 400 });
   }
 
+  const maxQueueDepth = Number(process.env.MAX_QUEUE_DEPTH ?? 500);
+  const queued = await assessmentRepository.countQueued();
+  if (queued >= maxQueueDepth) {
+    return NextResponse.json(
+      { code: "QUEUE_FULL", message: "The assessment queue is full. Please retry shortly." },
+      { status: 503, headers: { "Retry-After": "60" } },
+    );
+  }
+
   const crawlScope = resolveCrawlScope(scope, depth, pageCap);
   const assessment = await assessmentRepository.create({
     url: ssrf.url.href,

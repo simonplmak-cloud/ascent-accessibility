@@ -1,4 +1,4 @@
-import { query } from "../index";
+import { getDb, query } from "../index";
 import type { Assessment, Finding, LogEntry, NewAssessment, PassBand } from "../schema";
 
 export interface CompleteAssessmentInput {
@@ -177,6 +177,37 @@ export const assessmentRepository = {
       "SELECT * FROM assessment WHERE status = 'queued' ORDER BY createdAt ASC LIMIT $limit",
       { limit },
     );
+  },
+
+  // Atomically claim up to `limit` queued assessments (queued → running) and
+  // return the claimed summaries. Uses a transaction (SurrealDB's `IN` with a
+  // LIMIT subquery is not honored, so the LIMIT is evaluated via LET first).
+  // Concurrent workers cannot claim the same assessment.
+  async claimNext(limit = 5): Promise<AssessmentSummary[]> {
+    const db = await getDb();
+    const results = (await db
+      .query(
+        `BEGIN TRANSACTION;
+         LET $ids = (SELECT VALUE id FROM assessment WHERE status = 'queued' ORDER BY createdAt ASC LIMIT $limit);
+         UPDATE assessment SET status = 'running', updatedAt = time::now() WHERE id IN $ids RETURN AFTER;
+         COMMIT TRANSACTION;`,
+        { limit },
+      )
+      .json()
+      .collect()) as unknown[];
+
+    const claimed = results.find(
+      (r): r is Array<Record<string, unknown>> => Array.isArray(r) && r.length > 0,
+    );
+    return (claimed ?? []).map(mapSummary);
+  },
+
+  async countQueued(): Promise<number> {
+    const rows = await query<{ count: number }>(
+      "SELECT count() AS count FROM assessment WHERE status = 'queued' GROUP ALL",
+      {},
+    );
+    return rows[0]?.count ?? 0;
   },
 
   async recoverStaleRunning(cutoffIso: string): Promise<void> {

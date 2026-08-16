@@ -16,8 +16,8 @@ async function recoverStaleRunning() {
 }
 
 async function processQueued() {
-  const queued = await assessmentRepository.findQueued(BATCH_SIZE);
-  for (const assessment of queued) {
+  const claimed = await assessmentRepository.claimNext(BATCH_SIZE);
+  for (const assessment of claimed) {
     try {
       await runAssessment(assessment.id, {
         repository: assessmentRepository,
