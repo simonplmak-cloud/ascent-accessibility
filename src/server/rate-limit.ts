@@ -62,6 +62,18 @@ export class SurrealDbRateLimiter implements RateLimiter {
         { key, windowStart },
       );
       const count = rows[0]?.count ?? 0;
+
+      // Opportunistically prune expired windows (~1% of checks).
+      if (Math.random() < 0.01) {
+        try {
+          await query("DELETE rate_limit WHERE windowStart < $cutoff", {
+            cutoff: Date.now() - 3_600_000,
+          });
+        } catch {
+          /* ignore cleanup failures */
+        }
+      }
+
       return { allowed: count <= limit, remaining: Math.max(0, limit - count) };
     } catch {
       return { allowed: true, remaining: limit };
