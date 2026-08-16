@@ -21,9 +21,15 @@ async function launchBrowser(): Promise<Browser> {
     return chromium.connectOverCDP(`${url}?token=${token}`);
   }
   // Self-hosted Chromium (runs inside the container). These flags are required
-  // for headless Chromium running as root in a Docker container.
+  // for headless Chromium running as root in a Docker container. `--disable-gpu`
+  // cuts memory use and reduces OOM-kill crashes on heavy pages.
   return chromium.launch({
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+    ],
   });
 }
 

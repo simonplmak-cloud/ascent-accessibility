@@ -316,27 +316,28 @@ async function scanAndConsolidate(
               `scan of ${url}`,
             );
           } catch (error) {
-            if (error instanceof PageTimeoutError) {
-              logs.push({
-                timestamp: new Date().toISOString(),
-                level: "warn",
-                message: `page scan timed out — restarting browser: ${url}`,
-              });
-              try {
-                await scanner.close();
-              } catch {
-                /* ignore */
-              }
-              scanner = await deps.createScanner();
-            } else if (!(error instanceof ScanFailedError)) {
-              throw error;
-            } else {
-              logs.push({
-                timestamp: new Date().toISOString(),
-                level: "warn",
-                message: `scan failed: ${url}`,
-              });
+            // A single bad page (browser crash, scan timeout, or load failure)
+            // must not fail the whole assessment — restart the browser and
+            // continue with the next page. This is what previously left
+            // assessments "running" forever (a crash re-threw, and the stale
+            // record was re-queued in an endless retry loop).
+            const reason =
+              error instanceof PageTimeoutError
+                ? "timed out"
+                : error instanceof ScanFailedError
+                  ? "failed to load"
+                  : `errored (${error instanceof Error ? error.message : String(error)})`;
+            logs.push({
+              timestamp: new Date().toISOString(),
+              level: "warn",
+              message: `page scan ${reason} — restarting browser: ${url}`,
+            });
+            try {
+              await scanner.close();
+            } catch {
+              /* ignore */
             }
+            scanner = await deps.createScanner();
           }
         }
       } finally {
