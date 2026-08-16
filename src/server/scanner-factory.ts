@@ -20,7 +20,11 @@ async function launchBrowser(): Promise<Browser> {
     const url = process.env.BROWSERLESS_URL ?? "wss://chrome.browserless.io";
     return chromium.connectOverCDP(`${url}?token=${token}`);
   }
-  return chromium.launch();
+  // Self-hosted Chromium (runs inside the container). These flags are required
+  // for headless Chromium running as root in a Docker container.
+  return chromium.launch({
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+  });
 }
 
 function asScannerPage(page: Page): ScannerPage {
