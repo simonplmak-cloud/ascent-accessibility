@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { loadStripe } from "@stripe/stripe-js";
+import { loadStripe, type Appearance } from "@stripe/stripe-js";
 import {
   CheckoutElementsProvider,
   PaymentElement,
@@ -13,7 +13,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
 // Dark-mode appearance matching the site's terminal theme (tailwind terminal.*).
 // The `night` theme gives a dark base; the variables pin each surface to the
 // exact palette so text/contrast stay WCAG-compliant on the dark background.
-const appearance = {
+const appearance: Appearance = {
   theme: "night",
   variables: {
     colorPrimary: "#3fb950",
