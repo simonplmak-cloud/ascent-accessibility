@@ -16,7 +16,6 @@ export function createStripe(key = process.env.STRIPE_SECRET_KEY ?? ""): Stripe 
 
 // Per-session Checkout branding matching the site's dark terminal theme
 // (tailwind terminal.* palette). Fonts use Stripe's supported monospace set.
-// Note: `logo`/`icon` are not allowed on embedded Checkout (ui_mode embedded_page).
 export function checkoutBranding(): Stripe.Checkout.SessionCreateParams.BrandingSettings {
   return {
     background_color: "#0b0f14",
