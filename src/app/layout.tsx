@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SiteHeader } from "@/components/site-header";
+import { SiteHeader, type HeaderAuthState } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { getSessionUser } from "@/server/auth";
+import { subscriptionRepository } from "@/db/repository";
 
 export const metadata: Metadata = {
   title: {
@@ -13,15 +15,31 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.png" },
 };
 
-export default function RootLayout({
+// Resolves the header's role (signed-in / subscriber) without ever breaking the
+// page: if the database is unreachable we degrade to the anonymous nav rather
+// than throwing (which is what used to surface the "Something went wrong" page).
+async function getHeaderAuthState(): Promise<HeaderAuthState> {
+  try {
+    const user = await getSessionUser();
+    if (!user) return { signedIn: false, subscribed: false, email: null };
+    const subscribed = await subscriptionRepository.isActive(user.email);
+    return { signedIn: true, subscribed, email: user.email };
+  } catch {
+    return { signedIn: false, subscribed: false, email: null };
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const authState = await getHeaderAuthState();
+
   const body = (
     <body className="min-h-screen bg-terminal-bg text-terminal-fg antialiased">
       <a href="#main" className="skip-link">
         Skip to main content
       </a>
-      <SiteHeader />
+      <SiteHeader authState={authState} />
       <main id="main">{children}</main>
       <SiteFooter />
     </body>

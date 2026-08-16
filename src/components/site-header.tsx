@@ -3,21 +3,54 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { TextSizeControl } from "@/components/text-size-control";
 
-const navItems = [
+export interface HeaderAuthState {
+  signedIn: boolean;
+  subscribed: boolean;
+  email: string | null;
+}
+
+// Always visible — marketing/content pages.
+const baseNavItems = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/learn", label: "Learn" },
-  { href: "/history", label: "History" },
-  { href: "/site", label: "Site scans" },
-  { href: "/api-keys", label: "API access" },
+  { href: "/resources", label: "Resources" },
   { href: "/contact", label: "Contact" },
   { href: "/donate", label: "Donate" },
 ];
 
-export function SiteHeader() {
+// Role-gated — only shown to signed-in users (and API access to subscribers).
+// Anonymous visitors don't see History, Site scans, or API access.
+const signedInNavItems = [
+  { href: "/history", label: "History" },
+  { href: "/site", label: "Site scans" },
+];
+
+const subscriberNavItems = [{ href: "/api-keys", label: "API access" }];
+
+export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
   const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const router = useRouter();
+
+  const navItems = [
+    ...baseNavItems,
+    ...(authState.signedIn ? signedInNavItems : []),
+    ...(authState.subscribed ? subscriberNavItems : []),
+  ];
+
+  async function signOut() {
+    setSigningOut(true);
+    try {
+      await fetch("/api/auth/sign-out", { method: "POST" });
+      router.refresh();
+    } finally {
+      setSigningOut(false);
+    }
+  }
 
   return (
     <header className="border-b border-terminal-border">
@@ -51,6 +84,23 @@ export function SiteHeader() {
             ))}
           </ul>
           <TextSizeControl />
+          {authState.signedIn ? (
+            <button
+              type="button"
+              onClick={signOut}
+              disabled={signingOut}
+              className="rounded border border-terminal-border px-3 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
+            >
+              {signingOut ? "Signing out…" : "Sign out"}
+            </button>
+          ) : (
+            <Link
+              href="/sign-in"
+              className="rounded border border-terminal-border px-3 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+            >
+              Sign in
+            </Link>
+          )}
           <Link
             href="/assess"
             className="rounded bg-terminal-fg px-4 py-2 font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
@@ -109,6 +159,29 @@ export function SiteHeader() {
             <li className="flex items-center justify-between px-4 py-3">
               <span className="font-mono text-sm text-terminal-muted">Text size</span>
               <TextSizeControl />
+            </li>
+            <li className="p-4">
+              {authState.signedIn ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    void signOut();
+                  }}
+                  disabled={signingOut}
+                  className="block w-full rounded border border-terminal-border px-4 py-2 text-center font-mono text-sm font-medium text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
+                >
+                  {signingOut ? "Signing out…" : "Sign out"}
+                </button>
+              ) : (
+                <Link
+                  href="/sign-in"
+                  onClick={() => setOpen(false)}
+                  className="block rounded border border-terminal-border px-4 py-2 text-center font-mono text-sm font-medium text-terminal-fg hover:bg-terminal-surface"
+                >
+                  Sign in
+                </Link>
+              )}
             </li>
             <li className="p-4">
               <Link

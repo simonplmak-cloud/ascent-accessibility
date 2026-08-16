@@ -1,10 +1,9 @@
 import Link from "next/link";
 
 const footerLinks = [
-  { href: "/history", label: "History" },
-  { href: "/api-keys", label: "API access" },
-  { href: "/learn", label: "Learn" },
   { href: "/about", label: "About" },
+  { href: "/learn", label: "Learn" },
+  { href: "/resources", label: "Resources" },
   { href: "/contact", label: "Contact" },
   { href: "/donate", label: "Donate" },
 ];
