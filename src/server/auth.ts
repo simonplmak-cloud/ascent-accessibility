@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { createConnection } from "@/db";
-import { SESSION_COOKIE, verifySessionToken, type SessionUser } from "@/lib/auth/session";
+import { ANON_COOKIE, SESSION_COOKIE, verifySessionToken, type SessionUser } from "@/lib/auth/session";
 
 export async function getSessionUser(): Promise<SessionUser | null> {
   const store = await cookies();
@@ -20,4 +20,13 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 export async function getUserId(): Promise<string | null> {
   const user = await getSessionUser();
   return user?.id ?? null;
+}
+
+// Owner of an assessment: the signed-in user's id, or the anonymous session id
+// (a browser cookie) so anonymous visitors still see only their own history.
+export async function getOwnerId(): Promise<string | null> {
+  const user = await getSessionUser();
+  if (user) return user.id;
+  const store = await cookies();
+  return store.get(ANON_COOKIE)?.value ?? null;
 }

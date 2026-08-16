@@ -1,4 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { assessRequestSchema } from "@/server/validation";
 import { validateTargetUrl } from "@/server/ssrf";
 import { IP_RATE_LIMIT, RATE_WINDOW_MS } from "@/server/rate-limit";
@@ -7,9 +9,10 @@ import { rateLimiter } from "@/server/bootstrap";
 import { assessmentRepository, subscriptionRepository } from "@/db/repository";
 import { getStandard } from "@/lib/standards/catalog";
 import { resolveCrawlScope } from "@/lib/assessment/scope";
-import { getUserId } from "@/server/auth";
+import { getOwnerId, getSessionUser, getUserId } from "@/server/auth";
 import { isWholeSiteAllowed } from "@/lib/entitlement";
 import { withCorrelationId } from "@/lib/observability/logger";
+import { ANON_COOKIE } from "@/lib/auth/session";
 
 export async function POST(req: Request) {
   const ip = getClientIp(req);
@@ -62,22 +65,49 @@ export async function POST(req: Request) {
   }
 
   const crawlScope = resolveCrawlScope(scope, depth, pageCap);
+
+  // Owner: the signed-in user, or an anonymous session id (via cookie) so each
+  // visitor's history is scoped to them (no leaking other users' assessments).
+  const sessionUser = await getSessionUser();
+  let ownerId = sessionUser?.id ?? null;
+  let newAnonId: string | null = null;
+  if (!ownerId) {
+    const store = await cookies();
+    ownerId = store.get(ANON_COOKIE)?.value ?? null;
+    if (!ownerId) {
+      ownerId = `anon_${randomUUID()}`;
+      newAnonId = ownerId;
+    }
+  }
+
   const assessment = await assessmentRepository.create({
     url: ssrf.url.href,
     standard,
     depth: crawlScope.depth,
     pageCap: crawlScope.pageCap,
+    ownerId,
   });
 
   withCorrelationId(assessment.id).info({ ip }, "assessment queued");
 
-  return NextResponse.json(
+  const response = NextResponse.json(
     { id: assessment.id, status: "queued", url: ssrf.url.href, standard },
     { status: 202 },
   );
+  if (newAnonId) {
+    response.cookies.set(ANON_COOKIE, newAnonId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+    });
+  }
+  return response;
 }
 
 export async function GET() {
-  const assessments = await assessmentRepository.list();
+  const ownerId = await getOwnerId();
+  const assessments = await assessmentRepository.list(ownerId);
   return NextResponse.json({ assessments });
 }

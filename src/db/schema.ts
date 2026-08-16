@@ -59,6 +59,7 @@ export interface Assessment {
   lastError: string | null;
   findings: Finding[];
   log: LogEntry[];
+  ownerId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -68,6 +69,7 @@ export interface NewAssessment {
   standard: string;
   depth?: number;
   pageCap?: number;
+  ownerId?: string | null;
 }
 
 export interface ApiKey {
@@ -150,9 +152,11 @@ DEFINE FIELD lastError ON assessment TYPE option<string>;
 DEFINE FIELD findings ON assessment TYPE option<string> DEFAULT "";
 DEFINE FIELD log ON assessment TYPE option<string> DEFAULT "";
 DEFINE FIELD comparison ON assessment TYPE option<string> DEFAULT "";
+DEFINE FIELD ownerId ON assessment TYPE option<string> DEFAULT NONE;
 DEFINE FIELD createdAt ON assessment TYPE datetime DEFAULT time::now();
 DEFINE FIELD updatedAt ON assessment TYPE datetime DEFAULT time::now();
-DEFINE INDEX assessment_status_created_idx ON assessment FIELDS status, createdAt;`,
+DEFINE INDEX assessment_status_created_idx ON assessment FIELDS status, createdAt;
+DEFINE INDEX assessment_owner_created_idx ON assessment FIELDS ownerId, createdAt;`,
 
   `DEFINE TABLE api_key SCHEMAFULL;
 DEFINE FIELD name ON api_key TYPE string;

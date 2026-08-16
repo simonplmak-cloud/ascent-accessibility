@@ -53,6 +53,9 @@ DEFINE FIELD key ON rate_limit TYPE string;
 DEFINE FIELD windowStart ON rate_limit TYPE int;
 DEFINE FIELD count ON rate_limit TYPE int DEFAULT 0;
 DEFINE INDEX rate_limit_key_window_idx ON rate_limit FIELDS key, windowStart UNIQUE;`,
+
+  `DEFINE FIELD OVERWRITE ownerId ON assessment TYPE option<string> DEFAULT NONE;
+DEFINE INDEX OVERWRITE assessment_owner_created_idx ON assessment FIELDS ownerId, createdAt;`,
 ];
 
 async function main() {

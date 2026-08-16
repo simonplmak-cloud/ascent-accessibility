@@ -1,6 +1,7 @@
 import type { Surreal } from "surrealdb";
 
 export const SESSION_COOKIE = "wcag_session";
+export const ANON_COOKIE = "wcag_anon";
 export const ACCESS_METHOD = "user";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24; // 24h
 

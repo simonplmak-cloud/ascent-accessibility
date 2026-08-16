@@ -148,7 +148,14 @@ export const assessmentRepository = {
     });
   },
 
-  async list(limit = 500): Promise<AssessmentSummary[]> {
+  async list(ownerId?: string | null, limit = 500): Promise<AssessmentSummary[]> {
+    if (ownerId) {
+      const rows = await query<Record<string, unknown>>(
+        `SELECT ${SUMMARY_PROJECTION} FROM assessment WHERE ownerId = $ownerId ORDER BY createdAt DESC LIMIT $limit`,
+        { ownerId, limit },
+      );
+      return rows.map(mapSummary);
+    }
     const rows = await query<Record<string, unknown>>(
       `SELECT ${SUMMARY_PROJECTION} FROM assessment ORDER BY createdAt DESC LIMIT $limit`,
       { limit },

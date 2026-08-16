@@ -144,6 +144,11 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           </>
         )}
       </p>
+
+      <p className="mt-4 font-mono text-xs text-terminal-muted">
+        Signing in requires cookies. If you are asked to sign in again right away, your browser is
+        blocking cookies — please allow cookies for this site and try again.
+      </p>
     </div>
   );
 }
