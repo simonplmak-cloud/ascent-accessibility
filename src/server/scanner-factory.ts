@@ -27,6 +27,28 @@ async function launchBrowser(): Promise<Browser> {
   });
 }
 
+// A single long-lived browser shared across all scans. Launching a fresh
+// Chromium per worker is memory-prohibitive (a browser ≈ 250MB vs a page ≈ 50MB);
+// sharing one browser + one page per worker keeps memory proportional to the
+// number of *pages*, not browsers.
+let sharedBrowser: Browser | null = null;
+
+async function getSharedBrowser(): Promise<Browser> {
+  if (sharedBrowser && sharedBrowser.isConnected()) {
+    return sharedBrowser;
+  }
+  if (sharedBrowser) {
+    try {
+      await sharedBrowser.close();
+    } catch {
+      /* ignore */
+    }
+    sharedBrowser = null;
+  }
+  sharedBrowser = await launchBrowser();
+  return sharedBrowser;
+}
+
 function asScannerPage(page: Page): ScannerPage {
   return {
     goto: (url, options) => page.goto(url, { timeout: options?.timeout }),
@@ -41,7 +63,7 @@ function asScannerPage(page: Page): ScannerPage {
 }
 
 export async function createPageScanner(): Promise<PageScanner> {
-  const browser = await launchBrowser();
+  const browser = await getSharedBrowser();
   const page = await browser.newPage();
   // Inject axe-core before navigation (addInitScript runs via CDP and is not
   // blocked by the target page's Content-Security-Policy).
@@ -51,6 +73,13 @@ export async function createPageScanner(): Promise<PageScanner> {
     scan: (url: string, tags: string[]) => scanPage(url, tags, scannerPage),
     captureEvidence: (result: ScanResult) => captureEvidence(scannerPage, result),
     scanIbm: (url: string) => runIbmScan(page, url),
-    close: async () => browser.close(),
+    // Close only the page — the browser is shared and stays alive for reuse.
+    close: async () => {
+      try {
+        await page.close();
+      } catch {
+        /* ignore */
+      }
+    },
   };
 }
