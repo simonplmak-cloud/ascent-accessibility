@@ -1,6 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { listStandards } from "@/lib/standards/catalog";
 import { AssessmentForm } from "@/components/assessment/assessment-form";
+
+export const metadata: Metadata = {
+  title: "Start an assessment",
+  description:
+    "Assess your website against WCAG 2.2 AA. Submit a URL and get a score, findings, and remediation guidance.",
+};
 
 export default function AssessPage() {
   const standards = listStandards().map((s) => ({ id: s.id, name: s.name }));

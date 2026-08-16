@@ -1,3 +1,5 @@
+import { query } from "@/db";
+
 export interface RateLimiter {
   check(key: string, limit: number, windowMs: number): Promise<{ allowed: boolean; remaining: number }>;
 }
@@ -27,5 +29,42 @@ export class SlidingWindowRateLimiter implements RateLimiter {
     bucket.push(now);
     this.buckets.set(key, bucket);
     return { allowed: true, remaining: limit - bucket.length };
+  }
+}
+
+// Fixed-window counter stored in SurrealDB so limits are shared across all
+// serverless instances (the in-memory limiter above is per-instance only).
+// Fails open (allows) on any DB error so a SurrealDB outage never blocks scans.
+export class SurrealDbRateLimiter implements RateLimiter {
+  async check(key: string, limit: number, windowMs: number) {
+    const windowStart = Math.floor(Date.now() / windowMs) * windowMs;
+    try {
+      const updated = await query<{ count: number }>(
+        "UPDATE rate_limit SET count = count + 1 WHERE key = $key AND windowStart = $windowStart RETURN AFTER",
+        { key, windowStart },
+      );
+      if (updated.length === 0) {
+        try {
+          await query(
+            "CREATE rate_limit SET key = $key, windowStart = $windowStart, count = 1",
+            { key, windowStart },
+          );
+        } catch {
+          // Lost a create race against another instance — increment instead.
+          await query(
+            "UPDATE rate_limit SET count = count + 1 WHERE key = $key AND windowStart = $windowStart",
+            { key, windowStart },
+          );
+        }
+      }
+      const rows = await query<{ count: number }>(
+        "SELECT count FROM rate_limit WHERE key = $key AND windowStart = $windowStart LIMIT 1",
+        { key, windowStart },
+      );
+      const count = rows[0]?.count ?? 0;
+      return { allowed: count <= limit, remaining: Math.max(0, limit - count) };
+    } catch {
+      return { allowed: true, remaining: limit };
+    }
   }
 }

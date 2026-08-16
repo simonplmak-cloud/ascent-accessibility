@@ -1,4 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Free WCAG 2.2 AA Accessibility Assessment",
+  description:
+    "Run a free accessibility assessment against WCAG 2.2 AA. Get a score, concrete findings, and remediation guidance — no login required.",
+};
 
 export default function Home() {
   return (

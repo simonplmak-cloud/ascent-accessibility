@@ -1,4 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Learn",
+  description:
+    "Guides on web accessibility, WCAG success criteria, and how to use screen readers.",
+};
 
 const topics = [
   {

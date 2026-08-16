@@ -47,6 +47,12 @@ DEFINE INDEX user_email_idx ON user FIELDS email UNIQUE;`,
   `DEFINE TABLE subscription PERMISSIONS
   FOR select WHERE userId = type::string($auth.id)
   FOR create, update, delete NONE;`,
+
+  `DEFINE TABLE rate_limit SCHEMAFULL;
+DEFINE FIELD key ON rate_limit TYPE string;
+DEFINE FIELD windowStart ON rate_limit TYPE int;
+DEFINE FIELD count ON rate_limit TYPE int DEFAULT 0;
+DEFINE INDEX rate_limit_key_window_idx ON rate_limit FIELDS key, windowStart UNIQUE;`,
 ];
 
 async function main() {

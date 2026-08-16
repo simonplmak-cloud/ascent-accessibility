@@ -1,4 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "Ascent Partners Foundation is a Hong Kong registered charity connecting leaders with the tools to turn sustainability into action.",
+};
 
 export default function AboutPage() {
   return (
