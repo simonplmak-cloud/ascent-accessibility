@@ -1,16 +1,20 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { SESSION_COOKIE } from "@/lib/auth/session";
 
-const isProtectedRoute = createRouteMatcher(["/site(.*)", "/account(.*)"]);
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isProtected = pathname.startsWith("/site") || pathname.startsWith("/account");
+  if (!isProtected) return NextResponse.next();
 
-const clerk = process.env.CLERK_SECRET_KEY
-  ? clerkMiddleware(async (auth, req) => {
-      if (isProtectedRoute(req)) await auth.protect();
-    })
-  : undefined;
-
-export default clerk ?? (() => NextResponse.next());
+  const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
+  if (!hasSession) {
+    const url = new URL("/sign-in", request.url);
+    url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
+  }
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/site/:path*", "/account/:path*"],
 };

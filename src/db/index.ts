@@ -4,21 +4,41 @@ declare global {
   var __surreal: Surreal | undefined;
 }
 
+export interface DbConfig {
+  url: string;
+  namespace: string;
+  database: string;
+  token: string | undefined;
+  username: string | undefined;
+  password: string | undefined;
+}
+
+export function dbConfig(): DbConfig {
+  const url = process.env.SURREAL_URL ?? process.env.SURREAL_ENDPOINT;
+  if (!url) {
+    throw new Error("SURREAL_URL must be set");
+  }
+  return {
+    url,
+    namespace: process.env.SURREAL_NAMESPACE ?? "wcag-score",
+    database: process.env.SURREAL_DATABASE ?? "main",
+    token: process.env.SURREAL_TOKEN,
+    username: process.env.SURREAL_USERNAME,
+    password: process.env.SURREAL_PASSWORD,
+  };
+}
+
+export async function createConnection(): Promise<Surreal> {
+  const { url } = dbConfig();
+  const db = new Surreal();
+  await db.connect(url, { versionCheck: false });
+  return db;
+}
+
 export async function getDb(): Promise<Surreal> {
   if (!globalThis.__surreal) {
-    const url = process.env.SURREAL_URL ?? process.env.SURREAL_ENDPOINT;
-    if (!url) {
-      throw new Error("SURREAL_URL must be set");
-    }
-
-    const namespace = process.env.SURREAL_NAMESPACE ?? "wcag-score";
-    const database = process.env.SURREAL_DATABASE ?? "main";
-    const token = process.env.SURREAL_TOKEN;
-    const username = process.env.SURREAL_USERNAME;
-    const password = process.env.SURREAL_PASSWORD;
-
-    const db = new Surreal();
-    await db.connect(url, { versionCheck: false });
+    const { namespace, database, token, username, password } = dbConfig();
+    const db = await createConnection();
 
     if (token) {
       await db.authenticate(token);

@@ -20,6 +20,33 @@ DEFINE FIELD stripeSubscriptionId ON subscription TYPE option<string>;
 DEFINE FIELD createdAt ON subscription TYPE datetime DEFAULT time::now();
 DEFINE FIELD updatedAt ON subscription TYPE datetime DEFAULT time::now();
 DEFINE INDEX subscription_user_idx ON subscription FIELDS userId UNIQUE;`,
+
+  `DEFINE TABLE user SCHEMAFULL PERMISSIONS
+  FOR select WHERE id = $auth.id
+  FOR create, update, delete NONE;
+DEFINE FIELD name ON user TYPE string;
+DEFINE FIELD email ON user TYPE string;
+DEFINE FIELD password ON user TYPE string PERMISSIONS FOR select NONE;
+DEFINE FIELD createdAt ON user TYPE datetime DEFAULT time::now();
+DEFINE INDEX user_email_idx ON user FIELDS email UNIQUE;`,
+
+  `DEFINE ACCESS user ON DATABASE TYPE RECORD
+  SIGNUP (
+    CREATE user CONTENT {
+      name: $name,
+      email: $email,
+      password: crypto::argon2::generate($password)
+    }
+  )
+  SIGNIN (
+    SELECT * FROM user WHERE email = $email
+      AND crypto::argon2::compare(password, $password)
+  )
+  DURATION FOR SESSION 24h;`,
+
+  `DEFINE TABLE subscription PERMISSIONS
+  FOR select WHERE userId = type::string($auth.id)
+  FOR create, update, delete NONE;`,
 ];
 
 async function main() {

@@ -1,14 +1,23 @@
-import { auth as clerkAuth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
+import { createConnection } from "@/db";
+import { SESSION_COOKIE, verifySessionToken, type SessionUser } from "@/lib/auth/session";
 
-// Returns the authenticated Clerk user id, or null when Clerk is not configured
-// (no CLERK_SECRET_KEY) or no session is present. Fails open to null so the app
-// still runs without Clerk keys — whole-site scans then fail closed (401).
-export async function getUserId(): Promise<string | null> {
-  if (!process.env.CLERK_SECRET_KEY) return null;
+export async function getSessionUser(): Promise<SessionUser | null> {
+  const store = await cookies();
+  const token = store.get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+
+  const db = await createConnection();
   try {
-    const { userId } = await clerkAuth();
-    return userId ?? null;
+    return await verifySessionToken(db, token);
   } catch {
     return null;
+  } finally {
+    await db.close();
   }
+}
+
+export async function getUserId(): Promise<string | null> {
+  const user = await getSessionUser();
+  return user?.id ?? null;
 }

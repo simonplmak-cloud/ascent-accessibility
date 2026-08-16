@@ -1,17 +1,14 @@
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
-import { getUserId } from "@/server/auth";
+import { getSessionUser } from "@/server/auth";
 import { createSubscriptionCheckout } from "@/server/subscription";
 
 export async function POST() {
-  const userId = await getUserId();
-  if (!userId) {
+  const user = await getSessionUser();
+  if (!user) {
     return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
 
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const result = await createSubscriptionCheckout(userId, email);
+  const result = await createSubscriptionCheckout(user.id, user.email);
 
   if (result.error) {
     return NextResponse.json({ code: "NOT_CONFIGURED", message: result.error }, { status: 503 });

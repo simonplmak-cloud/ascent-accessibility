@@ -1,19 +1,41 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SignInButton, SignUpButton, useAuth, useUser } from "@clerk/nextjs";
+import Link from "next/link";
 import { AssessmentForm } from "@/components/assessment/assessment-form";
 import type { StandardOption } from "@/components/assessment/types";
 
+interface SessionUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
 export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
-  const { isLoaded, isSignedIn } = useAuth();
-  const { user } = useUser();
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn) {
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/session");
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user ?? null);
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setLoaded(true);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
       setChecking(false);
       return;
     }
@@ -30,7 +52,7 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
         setChecking(false);
       }
     })();
-  }, [isLoaded, isSignedIn]);
+  }, [user]);
 
   async function subscribe() {
     setError(null);
@@ -56,7 +78,14 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
     else setError("Could not open the billing portal. Please try again.");
   }
 
-  if (!isLoaded || checking) {
+  async function signOut() {
+    setError(null);
+    await fetch("/api/auth/sign-out", { method: "POST" });
+    setUser(null);
+    setSubscribed(false);
+  }
+
+  if (!loaded || (user && checking)) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
         <p className="font-mono text-sm text-terminal-muted">Loading…</p>
@@ -74,37 +103,47 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
         subscription, billed in USD.
       </p>
 
-      {!isSignedIn ? (
+      {!user ? (
         <div className="mt-8 rounded border border-terminal-border bg-terminal-surface p-6">
           <p className="font-mono text-sm text-terminal-fg">
             Sign in to run whole-website scans.
           </p>
           <div className="mt-4 flex gap-3">
-            <SignInButton mode="modal">
-              <button className="rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg">
-                Sign in
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="rounded border border-terminal-border px-4 py-2 font-mono text-sm text-terminal-fg">
-                Create an account
-              </button>
-            </SignUpButton>
+            <Link
+              href="/sign-in"
+              className="rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/sign-up"
+              className="rounded border border-terminal-border px-4 py-2 font-mono text-sm text-terminal-fg"
+            >
+              Create an account
+            </Link>
           </div>
         </div>
       ) : !subscribed ? (
         <div className="mt-8 rounded border border-terminal-border bg-terminal-surface p-6">
           <p className="font-mono text-sm text-terminal-fg">
-            Welcome, {user?.primaryEmailAddress?.emailAddress ?? "there"}. Whole-website scans
-            need an active subscription.
+            Welcome, {user.email}. Whole-website scans need an active subscription.
           </p>
-          <button
-            type="button"
-            onClick={subscribe}
-            className="mt-4 rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
-          >
-            Subscribe — US$28/month
-          </button>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={subscribe}
+              className="rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
+            >
+              Subscribe — US$28/month
+            </button>
+            <button
+              type="button"
+              onClick={signOut}
+              className="rounded border border-terminal-border px-4 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
+            >
+              Sign out
+            </button>
+          </div>
           {error && (
             <p role="alert" className="mt-3 font-mono text-sm text-terminal-critical">
               {error}
@@ -113,17 +152,26 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
         </div>
       ) : (
         <div className="mt-8">
-          <div className="mb-4 flex items-center justify-between rounded border border-terminal-pass bg-terminal-surface p-4">
+          <div className="mb-4 flex items-center justify-between gap-4 rounded border border-terminal-pass bg-terminal-surface p-4">
             <p className="font-mono text-sm text-terminal-fg">
               Subscription active — whole-website scans unlocked.
             </p>
-            <button
-              type="button"
-              onClick={manageSubscription}
-              className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
-            >
-              Manage subscription
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={manageSubscription}
+                className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
+              >
+                Manage subscription
+              </button>
+              <button
+                type="button"
+                onClick={signOut}
+                className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
+              >
+                Sign out
+              </button>
+            </div>
           </div>
           {error && (
             <p role="alert" className="mb-4 font-mono text-sm text-terminal-critical">

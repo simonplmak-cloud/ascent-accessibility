@@ -19,7 +19,6 @@
     "worker:build": "esbuild src/worker/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/worker.js --tsconfig=tsconfig.json --packages=external"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.9.0",
     "accessibility-checker": "^4.0.30",
     "axe-core": "^4.10.2",
     "next": "^15.1.3",
