@@ -14,17 +14,6 @@ export function createStripe(key = process.env.STRIPE_SECRET_KEY ?? ""): Stripe 
   return new Stripe(key);
 }
 
-// Per-session Checkout branding matching the site's dark terminal theme
-// (tailwind terminal.* palette). Fonts use Stripe's supported monospace set.
-export function checkoutBranding(): Stripe.Checkout.SessionCreateParams.BrandingSettings {
-  return {
-    background_color: "#0b0f14",
-    button_color: "#3fb950",
-    display_name: "Ascent Accessibility",
-    font_family: "inconsolata",
-  };
-}
-
 // Donation checkout, billed in USD. `recurring` creates a monthly (subscription)
 // donation; otherwise a one-time payment. Embedded Checkout renders on-site.
 export async function createCheckoutSession(
@@ -35,13 +24,8 @@ export async function createCheckoutSession(
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const session = await stripe.checkout.sessions.create({
     mode: recurring ? "subscription" : "payment",
-    ui_mode: "embedded_page",
-    submit_type: "donate",
+    ui_mode: "elements",
     allow_promotion_codes: true,
-    branding_settings: checkoutBranding(),
-    custom_text: {
-      submit: { message: "Thank you for supporting Ascent Partners Foundation." },
-    },
     line_items: [
       {
         price_data: {

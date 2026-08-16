@@ -131,7 +131,7 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
             <p className="mb-4 font-mono text-sm text-terminal-fg">
               Complete your subscription — US$28/month, billed in USD.
             </p>
-            <EmbeddedCheckoutForm clientSecret={clientSecret} />
+            <EmbeddedCheckoutForm clientSecret={clientSecret} submitLabel="Subscribe" />
             <button
               type="button"
               onClick={() => setClientSecret(null)}

@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { subscriptionRepository } from "@/db/repository";
-import { checkoutBranding, getStripe } from "@/server/stripe";
+import { getStripe } from "@/server/stripe";
 
 export interface CheckoutResult {
   url?: string;
@@ -40,13 +40,8 @@ export async function createSubscriptionCheckout(
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      ui_mode: "embedded_page",
-      submit_type: "subscribe",
+      ui_mode: "elements",
       allow_promotion_codes: true,
-      branding_settings: checkoutBranding(),
-      custom_text: {
-        submit: { message: "Subscribe to unlock whole-website scans." },
-      },
       line_items: [
         {
           price_data: {

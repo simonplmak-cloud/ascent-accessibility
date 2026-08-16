@@ -69,7 +69,7 @@ export default function DonatePage() {
           {recurring ? "Monthly" : "One-time"} donation of ${amount} USD.
         </p>
         <div className="mt-6">
-          <EmbeddedCheckoutForm clientSecret={clientSecret} />
+          <EmbeddedCheckoutForm clientSecret={clientSecret} submitLabel="Donate" />
         </div>
         <button
           type="button"
