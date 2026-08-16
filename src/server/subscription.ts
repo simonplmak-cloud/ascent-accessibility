@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { subscriptionRepository } from "@/db/repository";
-import { getStripe } from "@/server/stripe";
+import { checkoutBranding, getStripe } from "@/server/stripe";
 
 export interface CheckoutResult {
   url?: string;
@@ -12,10 +12,12 @@ export async function createPortalSession(customerId: string): Promise<CheckoutR
   if (!stripe) return { error: "STRIPE_SECRET_KEY is not configured" };
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const configuration = process.env.STRIPE_PORTAL_CONFIG_ID;
   try {
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${siteUrl}/site`,
+      ...(configuration ? { configuration } : {}),
     });
     if (!session.url) return { error: "Stripe did not return a portal URL" };
     return { url: session.url };
@@ -37,6 +39,11 @@ export async function createSubscriptionCheckout(
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      submit_type: "subscribe",
+      branding_settings: checkoutBranding(),
+      custom_text: {
+        submit: { message: "Subscribe to unlock whole-website scans." },
+      },
       line_items: [
         {
           price_data: {
