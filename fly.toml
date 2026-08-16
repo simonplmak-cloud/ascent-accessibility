@@ -13,3 +13,4 @@ primary_region = "sin"
 
 [machine]
   size = "shared-cpu-2x"
+  memory = "4096"

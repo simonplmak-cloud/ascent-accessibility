@@ -27,28 +27,6 @@ async function launchBrowser(): Promise<Browser> {
   });
 }
 
-// A single long-lived browser shared across all scans. Launching a fresh
-// Chromium per worker is memory-prohibitive (a browser ≈ 250MB vs a page ≈ 50MB);
-// sharing one browser + one page per worker keeps memory proportional to the
-// number of *pages*, not browsers.
-let sharedBrowser: Browser | null = null;
-
-async function getSharedBrowser(): Promise<Browser> {
-  if (sharedBrowser && sharedBrowser.isConnected()) {
-    return sharedBrowser;
-  }
-  if (sharedBrowser) {
-    try {
-      await sharedBrowser.close();
-    } catch {
-      /* ignore */
-    }
-    sharedBrowser = null;
-  }
-  sharedBrowser = await launchBrowser();
-  return sharedBrowser;
-}
-
 function asScannerPage(page: Page): ScannerPage {
   return {
     goto: (url, options) => page.goto(url, { timeout: options?.timeout }),
@@ -62,8 +40,11 @@ function asScannerPage(page: Page): ScannerPage {
   };
 }
 
+// One browser per scanner worker. The browser is reused across the pages that
+// worker scans, then closed when the worker finishes — so browser lifetime is
+// bounded to one assessment and memory doesn't accumulate across assessments.
 export async function createPageScanner(): Promise<PageScanner> {
-  const browser = await getSharedBrowser();
+  const browser = await launchBrowser();
   const page = await browser.newPage();
   // Inject axe-core before navigation (addInitScript runs via CDP and is not
   // blocked by the target page's Content-Security-Policy).
@@ -73,10 +54,9 @@ export async function createPageScanner(): Promise<PageScanner> {
     scan: (url: string, tags: string[]) => scanPage(url, tags, scannerPage),
     captureEvidence: (result: ScanResult) => captureEvidence(scannerPage, result),
     scanIbm: (url: string) => runIbmScan(page, url),
-    // Close only the page — the browser is shared and stays alive for reuse.
     close: async () => {
       try {
-        await page.close();
+        await browser.close();
       } catch {
         /* ignore */
       }
