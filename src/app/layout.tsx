@@ -31,7 +31,13 @@ export default function RootLayout({
   const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   return (
     <html lang="en">
-      {clerkKey ? <ClerkProvider>{body}</ClerkProvider> : body}
+      {clerkKey ? (
+        <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up">
+          {body}
+        </ClerkProvider>
+      ) : (
+        body
+      )}
     </html>
   );
 }
