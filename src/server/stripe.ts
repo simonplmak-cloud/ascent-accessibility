@@ -16,14 +16,13 @@ export function createStripe(key = process.env.STRIPE_SECRET_KEY ?? ""): Stripe 
 
 // Per-session Checkout branding matching the site's dark terminal theme
 // (tailwind terminal.* palette). Fonts use Stripe's supported monospace set.
+// Note: `logo`/`icon` are not allowed on embedded Checkout (ui_mode embedded_page).
 export function checkoutBranding(): Stripe.Checkout.SessionCreateParams.BrandingSettings {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://wcag-score.ascent.partners";
   return {
     background_color: "#0b0f14",
     button_color: "#3fb950",
     display_name: "Ascent Accessibility",
     font_family: "inconsolata",
-    logo: { type: "url", url: `${siteUrl}/images/apf-logo.png` },
   };
 }
 
