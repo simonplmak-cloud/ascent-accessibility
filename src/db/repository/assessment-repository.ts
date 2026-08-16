@@ -225,9 +225,12 @@ export const assessmentRepository = {
   async appendLog(id: string, entries: LogEntry[]): Promise<void> {
     if (entries.length === 0) return;
     const merged = [...(await readLogRaw(id)), ...entries].slice(-MAX_LOG_ENTRIES);
-    await query("UPDATE assessment SET log = $log WHERE id = type::record($id)", {
-      id,
-      log: JSON.stringify(merged),
-    });
+    // Also touch updatedAt as a heartbeat so recoverStaleRunning (which resets
+    // "running" records with a stale updatedAt) doesn't re-queue a scan that is
+    // still making progress on a large site.
+    await query(
+      "UPDATE assessment SET log = $log, updatedAt = time::now() WHERE id = type::record($id)",
+      { id, log: JSON.stringify(merged) },
+    );
   },
 };

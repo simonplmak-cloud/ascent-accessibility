@@ -167,13 +167,16 @@ const defaultDeps: CrawlerDeps = {
   async fetchHtml(url) {
     const res = await fetch(url, {
       redirect: "follow",
+      signal: AbortSignal.timeout(30_000),
       headers: { "user-agent": "APF-AccessibilityScanner/1.0" },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.text();
   },
   async fetchRobots(origin) {
-    const res = await fetch(`${origin}/robots.txt`);
+    const res = await fetch(`${origin}/robots.txt`, {
+      signal: AbortSignal.timeout(30_000),
+    });
     if (!res.ok) return null;
     return res.text();
   },

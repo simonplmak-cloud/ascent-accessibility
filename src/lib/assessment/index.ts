@@ -181,6 +181,35 @@ export async function runAssessment(
   }
 }
 
+// Per-page scan timeout. `page.goto` already has a 45s timeout, but
+// `page.evaluate` (axe-core run) and `scanIbm` have none — a pathological page
+// can hang a worker forever and block the whole queue. On timeout we close and
+// recreate the browser so the hung operation is actually torn down.
+const PAGE_TIMEOUT_MS = Number(process.env.WORKER_PAGE_TIMEOUT_MS ?? 180_000);
+
+class PageTimeoutError extends Error {
+  constructor(label: string, ms: number) {
+    super(`${label} timed out after ${ms}ms`);
+    this.name = "PageTimeoutError";
+  }
+}
+
+async function withTimeout<T>(
+  operation: () => Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new PageTimeoutError(label, ms)), ms);
+  });
+  try {
+    return await Promise.race([operation(), timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 async function scanAndConsolidate(
   urls: string[],
   standard: Standard,
@@ -212,84 +241,110 @@ async function scanAndConsolidate(
   const workers = Array.from(
     { length: Math.min(concurrency, queue.length) },
     async () => {
-      const scanner = await deps.createScanner();
+      let scanner = await deps.createScanner();
       try {
         for (let pageUrl = queue.shift(); pageUrl !== undefined; pageUrl = queue.shift()) {
+          const url = pageUrl;
           try {
-            logs.push({
-              timestamp: new Date().toISOString(),
-              level: "info",
-              message: `scanning ${pageUrl} with axe-core`,
-            });
-            const scan = await scanner.scan(pageUrl, standard.axeTags);
-            logs.push({
-              timestamp: new Date().toISOString(),
-              level: "info",
-              message: `axe-core: ${scan.violations.length} violation(s) on ${pageUrl}`,
-            });
+            await withTimeout(
+              async () => {
+                logs.push({
+                  timestamp: new Date().toISOString(),
+                  level: "info",
+                  message: `scanning ${url} with axe-core`,
+                });
+                const scan = await scanner.scan(url, standard.axeTags);
+                logs.push({
+                  timestamp: new Date().toISOString(),
+                  level: "info",
+                  message: `axe-core: ${scan.violations.length} violation(s) on ${url}`,
+                });
 
-            for (const pass of scan.passes) {
-              for (const sc of scsForTags(pass.tags)) passedScs.add(sc);
-            }
-            features = mergeFeatures(features, scan.features);
+                for (const pass of scan.passes) {
+                  for (const sc of scsForTags(pass.tags)) passedScs.add(sc);
+                }
+                features = mergeFeatures(features, scan.features);
 
-            const pageFindings = axeViolationsToFindings(pageUrl, scan.violations);
-            await captureAndAttachEvidence(
-              pageUrl,
-              scan,
-              pageFindings,
-              scanner,
-              deps.evidenceStore,
-              assessmentId,
+                const pageFindings = axeViolationsToFindings(url, scan.violations);
+                await captureAndAttachEvidence(
+                  url,
+                  scan,
+                  pageFindings,
+                  scanner,
+                  deps.evidenceStore,
+                  assessmentId,
+                );
+                if (scan.violations.length > 0) {
+                  logs.push({
+                    timestamp: new Date().toISOString(),
+                    level: "info",
+                    message: `captured screenshot evidence for ${url}`,
+                  });
+                }
+                axeFindings.push(...pageFindings);
+
+                const lighthouse = computeLighthouseScore(scan.violations.map((v) => v.id));
+                lighthouseScores.push(lighthouse.score);
+                for (const audit of lighthouse.failedAudits) {
+                  lighthouseFailed.set(audit.id, audit.weight);
+                }
+
+                try {
+                  logs.push({
+                    timestamp: new Date().toISOString(),
+                    level: "info",
+                    message: `running IBM Equal Access on ${url}`,
+                  });
+                  const ibm = await scanner.scanIbm(url);
+                  await attachIbmEvidence(ibm.findings, deps.evidenceStore, assessmentId, url);
+                  ibmFindings.push(...ibm.findings);
+                  ibmCounts.violation += ibm.counts.violation;
+                  ibmCounts.potentialViolation += ibm.counts.potentialViolation;
+                  ibmCounts.recommendation += ibm.counts.recommendation;
+                  ibmCounts.pass += ibm.counts.pass;
+                  ibmCounts.manual += ibm.counts.manual;
+                  logs.push({
+                    timestamp: new Date().toISOString(),
+                    level: "info",
+                    message: `IBM Equal Access: ${ibm.counts.violation} violation(s), ${ibm.counts.pass} pass(es) on ${url}`,
+                  });
+                } catch {
+                  /* IBM unavailable — continue with axe only */
+                }
+              },
+              PAGE_TIMEOUT_MS,
+              `scan of ${url}`,
             );
-            if (scan.violations.length > 0) {
-              logs.push({
-                timestamp: new Date().toISOString(),
-                level: "info",
-                message: `captured screenshot evidence for ${pageUrl}`,
-              });
-            }
-            axeFindings.push(...pageFindings);
-
-            const lighthouse = computeLighthouseScore(scan.violations.map((v) => v.id));
-            lighthouseScores.push(lighthouse.score);
-            for (const audit of lighthouse.failedAudits) {
-              lighthouseFailed.set(audit.id, audit.weight);
-            }
-
-            try {
-              logs.push({
-                timestamp: new Date().toISOString(),
-                level: "info",
-                message: `running IBM Equal Access on ${pageUrl}`,
-              });
-              const ibm = await scanner.scanIbm(pageUrl);
-              await attachIbmEvidence(ibm.findings, deps.evidenceStore, assessmentId, pageUrl);
-              ibmFindings.push(...ibm.findings);
-              ibmCounts.violation += ibm.counts.violation;
-              ibmCounts.potentialViolation += ibm.counts.potentialViolation;
-              ibmCounts.recommendation += ibm.counts.recommendation;
-              ibmCounts.pass += ibm.counts.pass;
-              ibmCounts.manual += ibm.counts.manual;
-              logs.push({
-                timestamp: new Date().toISOString(),
-                level: "info",
-                message: `IBM Equal Access: ${ibm.counts.violation} violation(s), ${ibm.counts.pass} pass(es) on ${pageUrl}`,
-              });
-            } catch {
-              /* IBM unavailable — continue with axe only */
-            }
           } catch (error) {
-            if (!(error instanceof ScanFailedError)) throw error;
-            logs.push({
-              timestamp: new Date().toISOString(),
-              level: "warn",
-              message: `scan failed: ${pageUrl}`,
-            });
+            if (error instanceof PageTimeoutError) {
+              logs.push({
+                timestamp: new Date().toISOString(),
+                level: "warn",
+                message: `page scan timed out — restarting browser: ${url}`,
+              });
+              try {
+                await scanner.close();
+              } catch {
+                /* ignore */
+              }
+              scanner = await deps.createScanner();
+            } else if (!(error instanceof ScanFailedError)) {
+              throw error;
+            } else {
+              logs.push({
+                timestamp: new Date().toISOString(),
+                level: "warn",
+                message: `scan failed: ${url}`,
+              });
+            }
           }
         }
       } finally {
-        await scanner.close();
+        try {
+          await scanner.close();
+        } catch {
+          /* ignore */
+        }
       }
     },
   );
