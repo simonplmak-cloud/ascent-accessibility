@@ -12,12 +12,16 @@ export async function createPortalSession(customerId: string): Promise<CheckoutR
   if (!stripe) return { error: "STRIPE_SECRET_KEY is not configured" };
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const session = await stripe.billingPortal.sessions.create({
-    customer: customerId,
-    return_url: `${siteUrl}/site`,
-  });
-  if (!session.url) return { error: "Stripe did not return a portal URL" };
-  return { url: session.url };
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${siteUrl}/site`,
+    });
+    if (!session.url) return { error: "Stripe did not return a portal URL" };
+    return { url: session.url };
+  } catch {
+    return { error: "Could not open the billing portal. Please try again." };
+  }
 }
 
 export async function createSubscriptionCheckout(
@@ -30,28 +34,32 @@ export async function createSubscriptionCheckout(
   const priceUsd = Number(process.env.STRIPE_SITE_PRICE_USD ?? 28);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    line_items: [
-      {
-        price_data: {
-          currency: "usd",
-          unit_amount: Math.round(priceUsd * 100),
-          recurring: { interval: "month" },
-          product_data: { name: "Ascent Accessibility — Whole-site scans" },
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            unit_amount: Math.round(priceUsd * 100),
+            recurring: { interval: "month" },
+            product_data: { name: "Ascent Accessibility — Whole-site scans" },
+          },
+          quantity: 1,
         },
-        quantity: 1,
-      },
-    ],
-    customer_email: customerEmail,
-    client_reference_id: userId,
-    metadata: { userId },
-    success_url: `${siteUrl}/site?subscribed=1`,
-    cancel_url: `${siteUrl}/site`,
-  });
+      ],
+      customer_email: customerEmail,
+      client_reference_id: userId,
+      metadata: { userId },
+      success_url: `${siteUrl}/site?subscribed=1`,
+      cancel_url: `${siteUrl}/site`,
+    });
 
-  if (!session.url) return { error: "Stripe did not return a checkout URL" };
-  return { url: session.url };
+    if (!session.url) return { error: "Stripe did not return a checkout URL" };
+    return { url: session.url };
+  } catch {
+    return { error: "Could not start checkout. Please try again." };
+  }
 }
 
 export async function handleStripeWebhook(rawBody: string, signature: string | null): Promise<Response> {
