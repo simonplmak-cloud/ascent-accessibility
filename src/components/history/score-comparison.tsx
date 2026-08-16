@@ -5,7 +5,12 @@ import { groupByUrl, type HistoryItem } from "@/lib/history";
 function formatShort(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "2-digit" });
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    month: "short",
+    day: "numeric",
+    year: "2-digit",
+  }).format(date);
 }
 
 export function ScoreComparison({ items }: { items: HistoryItem[] }) {

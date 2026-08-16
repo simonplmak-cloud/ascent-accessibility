@@ -34,13 +34,14 @@ function statusClass(status: HistoryItem["status"]): string {
 function formatDate(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleString(undefined, {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  });
+  }).format(date);
 }
 
 interface HistoryTableProps {
