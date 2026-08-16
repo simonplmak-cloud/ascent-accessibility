@@ -16,6 +16,7 @@ export interface HeaderAuthState {
 const baseNavItems = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/learn", label: "Learn" },
   { href: "/resources", label: "Resources" },
   { href: "/contact", label: "Contact" },
