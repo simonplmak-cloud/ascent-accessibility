@@ -32,7 +32,7 @@ describe("createApiKeyService", () => {
   it("issues a key and stores only its hash", async () => {
     const store = makeStore();
     const service = createApiKeyService(store);
-    const issued = await service.issue("CI", 60);
+    const issued = await service.issue("CI", 60, "user-1");
 
     expect(issued.key).toMatch(/^ak_/);
     expect(issued.keyPrefix).toBe(issued.key.slice(0, 11));
@@ -41,6 +41,7 @@ describe("createApiKeyService", () => {
         name: "CI",
         rateLimit: 60,
         keyHash: hashKey(issued.key),
+        userId: "user-1",
       }),
     );
   });
@@ -68,6 +69,7 @@ describe("createApiKeyService", () => {
           id: "key-1",
           status: "revoked",
           rateLimit: 60,
+          userId: "user-1",
           expiresAt: null,
         })),
       }),
@@ -85,6 +87,7 @@ describe("createApiKeyService", () => {
           id: "key-1",
           status: "active",
           rateLimit: 60,
+          userId: "user-1",
           expiresAt: new Date(Date.now() - 1000),
         })),
       }),
@@ -102,6 +105,7 @@ describe("createApiKeyService", () => {
           id: "key-1",
           status: "active",
           rateLimit: 120,
+          userId: "user-1",
           expiresAt: null,
         })),
       }),
@@ -109,6 +113,7 @@ describe("createApiKeyService", () => {
     await expect(service.authenticate("ak_valid")).resolves.toEqual({
       ok: true,
       apiKeyId: "key-1",
+      userId: "user-1",
       rateLimit: 120,
     });
   });

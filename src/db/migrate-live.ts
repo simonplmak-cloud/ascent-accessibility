@@ -56,6 +56,9 @@ DEFINE INDEX rate_limit_key_window_idx ON rate_limit FIELDS key, windowStart UNI
 
   `DEFINE FIELD OVERWRITE ownerId ON assessment TYPE option<string> DEFAULT NONE;
 DEFINE INDEX OVERWRITE assessment_owner_created_idx ON assessment FIELDS ownerId, createdAt;`,
+
+  `DEFINE FIELD OVERWRITE userId ON api_key TYPE option<string> DEFAULT NONE;
+DEFINE INDEX OVERWRITE api_key_user_idx ON api_key FIELDS userId;`,
 ];
 
 async function main() {

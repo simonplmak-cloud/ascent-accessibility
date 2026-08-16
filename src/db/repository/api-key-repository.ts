@@ -11,6 +11,7 @@ function mapApiKey(raw: RawRecord): ApiKey {
     keyPrefix: String(raw.keyPrefix),
     rateLimit: Number(raw.rateLimit),
     status: raw.status as ApiKey["status"],
+    userId: raw.userId ? String(raw.userId) : null,
     expiresAt: raw.expiresAt ? new Date(String(raw.expiresAt)) : null,
     createdAt: String(raw.createdAt),
   };
@@ -40,8 +41,9 @@ export const apiKeyRepository = {
     return rows[0] ? mapApiKey(rows[0]) : undefined;
   },
 
-  async list(): Promise<ApiKey[]> {
-    const rows = await query<RawRecord>("SELECT * FROM api_key");
+  async list(userId?: string | null): Promise<ApiKey[]> {
+    if (!userId) return [];
+    const rows = await query<RawRecord>("SELECT * FROM api_key WHERE userId = $userId", { userId });
     return rows.map(mapApiKey);
   },
 

@@ -79,6 +79,7 @@ export interface ApiKey {
   keyPrefix: string;
   rateLimit: number;
   status: ApiKeyStatus;
+  userId: string | null;
   expiresAt: Date | null;
   createdAt: string;
 }
@@ -88,6 +89,7 @@ export interface NewApiKey {
   keyHash: string;
   keyPrefix: string;
   rateLimit: number;
+  userId: string | null;
 }
 
 export interface AuditLog {
@@ -164,9 +166,11 @@ DEFINE FIELD keyHash ON api_key TYPE string;
 DEFINE FIELD keyPrefix ON api_key TYPE string;
 DEFINE FIELD rateLimit ON api_key TYPE int DEFAULT 60;
 DEFINE FIELD status ON api_key TYPE string DEFAULT "active";
+DEFINE FIELD userId ON api_key TYPE option<string> DEFAULT NONE;
 DEFINE FIELD expiresAt ON api_key TYPE option<datetime>;
 DEFINE FIELD createdAt ON api_key TYPE datetime DEFAULT time::now();
-DEFINE INDEX api_key_hash_idx ON api_key FIELDS keyHash UNIQUE;`,
+DEFINE INDEX api_key_hash_idx ON api_key FIELDS keyHash UNIQUE;
+DEFINE INDEX api_key_user_idx ON api_key FIELDS userId;`,
 
   `DEFINE TABLE audit_log SCHEMAFULL;
 DEFINE FIELD apiKeyId ON audit_log TYPE option<record<api_key>>;

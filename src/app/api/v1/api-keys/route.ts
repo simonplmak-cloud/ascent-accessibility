@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import { apiKeyCreateSchema } from "@/server/validation";
 import { apiKeyService } from "@/server/bootstrap";
-import { apiKeyRepository } from "@/db/repository";
+import { apiKeyRepository, subscriptionRepository } from "@/db/repository";
+import { getSessionUser, getUserId } from "@/server/auth";
 
 export async function POST(req: Request) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
+  }
+  const subscribed = await subscriptionRepository.isActive(user.id);
+  if (!subscribed) {
+    return NextResponse.json({ code: "PAYMENT_REQUIRED" }, { status: 402 });
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = apiKeyCreateSchema.safeParse(body);
   if (!parsed.success) {
@@ -13,12 +23,13 @@ export async function POST(req: Request) {
     );
   }
 
-  const issued = await apiKeyService.issue(parsed.data.name, parsed.data.rateLimit ?? 60);
+  const issued = await apiKeyService.issue(parsed.data.name, parsed.data.rateLimit ?? 60, user.id);
   return NextResponse.json(issued, { status: 201 });
 }
 
 export async function GET() {
-  const keys = await apiKeyRepository.list();
+  const userId = await getUserId();
+  const keys = await apiKeyRepository.list(userId);
   return NextResponse.json(
     keys.map((key) => ({
       id: key.id,

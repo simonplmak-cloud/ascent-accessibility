@@ -1,13 +1,14 @@
 import { createHash, randomBytes } from "node:crypto";
 
 export type AuthResult =
-  | { ok: true; apiKeyId: string; rateLimit: number }
+  | { ok: true; apiKeyId: string; userId: string | null; rateLimit: number }
   | { ok: false; reason: "missing" | "invalid" | "revoked" | "expired" };
 
 export interface StoredApiKey {
   id: string;
   status: string;
   rateLimit: number;
+  userId: string | null;
   expiresAt: Date | null;
 }
 
@@ -18,11 +19,16 @@ export interface ApiKeyStore {
     keyHash: string;
     keyPrefix: string;
     rateLimit: number;
+    userId: string | null;
   }): Promise<{ id: string }>;
 }
 
 export interface ApiKeyService {
-  issue(name: string, rateLimit: number): Promise<{ id: string; key: string; keyPrefix: string }>;
+  issue(
+    name: string,
+    rateLimit: number,
+    userId: string | null,
+  ): Promise<{ id: string; key: string; keyPrefix: string }>;
   authenticate(rawKey: string | undefined): Promise<AuthResult>;
 }
 
@@ -40,13 +46,14 @@ export function keyPrefix(rawKey: string): string {
 
 export function createApiKeyService(store: ApiKeyStore): ApiKeyService {
   return {
-    async issue(name, rateLimit) {
+    async issue(name, rateLimit, userId) {
       const key = generateKey();
       const { id } = await store.create({
         name,
         keyHash: hashKey(key),
         keyPrefix: keyPrefix(key),
         rateLimit,
+        userId,
       });
       return { id, key, keyPrefix: keyPrefix(key) };
     },
@@ -59,7 +66,7 @@ export function createApiKeyService(store: ApiKeyStore): ApiKeyService {
       if (stored.expiresAt && stored.expiresAt.getTime() < Date.now()) {
         return { ok: false, reason: "expired" };
       }
-      return { ok: true, apiKeyId: stored.id, rateLimit: stored.rateLimit };
+      return { ok: true, apiKeyId: stored.id, userId: stored.userId, rateLimit: stored.rateLimit };
     },
   };
 }

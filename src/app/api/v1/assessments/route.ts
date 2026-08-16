@@ -5,7 +5,7 @@ import { assessRequestSchema } from "@/server/validation";
 import { validateTargetUrl } from "@/server/ssrf";
 import { IP_RATE_LIMIT, RATE_WINDOW_MS } from "@/server/rate-limit";
 import { getClientIp } from "@/server/ip";
-import { rateLimiter } from "@/server/bootstrap";
+import { apiKeyService, rateLimiter } from "@/server/bootstrap";
 import { assessmentRepository, subscriptionRepository } from "@/db/repository";
 import { getStandard } from "@/lib/standards/catalog";
 import { resolveCrawlScope } from "@/lib/assessment/scope";
@@ -21,6 +21,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ code: "RATE_LIMITED" }, { status: 429 });
   }
 
+  // API-key authentication (programmatic access — subscribed users only).
+  const authHeader = req.headers.get("authorization");
+  const rawKey = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
+  let apiKeyUserId: string | null = null;
+  if (rawKey) {
+    const auth = await apiKeyService.authenticate(rawKey);
+    if (!auth.ok) {
+      return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
+    }
+    const subscribed = auth.userId ? await subscriptionRepository.isActive(auth.userId) : false;
+    if (!subscribed) {
+      return NextResponse.json({ code: "PAYMENT_REQUIRED" }, { status: 402 });
+    }
+    apiKeyUserId = auth.userId;
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = assessRequestSchema.safeParse(body);
   if (!parsed.success) {
@@ -33,12 +49,14 @@ export async function POST(req: Request) {
   const { url, standard, depth, pageCap, scope } = parsed.data;
 
   if (scope === "site") {
-    const userId = await getUserId();
-    const subscribed = userId ? await subscriptionRepository.isActive(userId) : false;
-    const gate = isWholeSiteAllowed({ userId, subscribed });
-    if (!gate.ok) {
-      const status = gate.code === "UNAUTHORIZED" ? 401 : 402;
-      return NextResponse.json({ code: gate.code }, { status });
+    if (!apiKeyUserId) {
+      const userId = await getUserId();
+      const subscribed = userId ? await subscriptionRepository.isActive(userId) : false;
+      const gate = isWholeSiteAllowed({ userId, subscribed });
+      if (!gate.ok) {
+        const status = gate.code === "UNAUTHORIZED" ? 401 : 402;
+        return NextResponse.json({ code: gate.code }, { status });
+      }
     }
   }
 
@@ -66,17 +84,19 @@ export async function POST(req: Request) {
 
   const crawlScope = resolveCrawlScope(scope, depth, pageCap);
 
-  // Owner: the signed-in user, or an anonymous session id (via cookie) so each
-  // visitor's history is scoped to them (no leaking other users' assessments).
-  const sessionUser = await getSessionUser();
-  let ownerId = sessionUser?.id ?? null;
+  // Owner: API-key user > signed-in user > anonymous session cookie.
+  let ownerId = apiKeyUserId ?? null;
   let newAnonId: string | null = null;
   if (!ownerId) {
-    const store = await cookies();
-    ownerId = store.get(ANON_COOKIE)?.value ?? null;
+    const sessionUser = await getSessionUser();
+    ownerId = sessionUser?.id ?? null;
     if (!ownerId) {
-      ownerId = `anon_${randomUUID()}`;
-      newAnonId = ownerId;
+      const store = await cookies();
+      ownerId = store.get(ANON_COOKIE)?.value ?? null;
+      if (!ownerId) {
+        ownerId = `anon_${randomUUID()}`;
+        newAnonId = ownerId;
+      }
     }
   }
 
