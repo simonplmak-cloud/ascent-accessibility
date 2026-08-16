@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   if (!user) {
     return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
-  const subscribed = await subscriptionRepository.isActive(user.id);
+  const subscribed = await subscriptionRepository.isActive(user.email);
   if (!subscribed) {
     return NextResponse.json({ code: "PAYMENT_REQUIRED" }, { status: 402 });
   }
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const issued = await apiKeyService.issue(parsed.data.name, parsed.data.rateLimit ?? 60, user.id);
+  const issued = await apiKeyService.issue(parsed.data.name, parsed.data.rateLimit ?? 60, user.email);
   return NextResponse.json(issued, { status: 201 });
 }
 

@@ -19,14 +19,14 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
 export async function getUserId(): Promise<string | null> {
   const user = await getSessionUser();
-  return user?.id ?? null;
+  return user?.email ?? null;
 }
 
-// Owner of an assessment: the signed-in user's id, or the anonymous session id
+// Owner of an assessment: the signed-in user's email, or the anonymous session id
 // (a browser cookie) so anonymous visitors still see only their own history.
 export async function getOwnerId(): Promise<string | null> {
   const user = await getSessionUser();
-  if (user) return user.id;
+  if (user) return user.email;
   const store = await cookies();
   return store.get(ANON_COOKIE)?.value ?? null;
 }

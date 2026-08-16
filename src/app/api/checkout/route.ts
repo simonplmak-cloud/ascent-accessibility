@@ -8,7 +8,7 @@ export async function POST() {
     return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
 
-  const result = await createSubscriptionCheckout(user.id, user.email);
+  const result = await createSubscriptionCheckout(user.email, user.email);
 
   if (result.error) {
     return NextResponse.json({ code: "NOT_CONFIGURED", message: result.error }, { status: 503 });

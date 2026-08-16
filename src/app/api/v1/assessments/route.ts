@@ -16,10 +16,6 @@ import { ANON_COOKIE } from "@/lib/auth/session";
 
 export async function POST(req: Request) {
   const ip = getClientIp(req);
-  const limited = await rateLimiter.check(ip, IP_RATE_LIMIT, RATE_WINDOW_MS);
-  if (!limited.allowed) {
-    return NextResponse.json({ code: "RATE_LIMITED" }, { status: 429 });
-  }
 
   // API-key authentication (programmatic access — subscribed users only).
   const authHeader = req.headers.get("authorization");
@@ -34,7 +30,17 @@ export async function POST(req: Request) {
     if (!subscribed) {
       return NextResponse.json({ code: "PAYMENT_REQUIRED" }, { status: 402 });
     }
+    // Per-key rate limit (requests/min) — IP limiter does not apply to API keys.
+    const keyLimited = await rateLimiter.check(auth.apiKeyId, auth.rateLimit, 60_000);
+    if (!keyLimited.allowed) {
+      return NextResponse.json({ code: "RATE_LIMITED" }, { status: 429 });
+    }
     apiKeyUserId = auth.userId;
+  } else {
+    const limited = await rateLimiter.check(ip, IP_RATE_LIMIT, RATE_WINDOW_MS);
+    if (!limited.allowed) {
+      return NextResponse.json({ code: "RATE_LIMITED" }, { status: 429 });
+    }
   }
 
   const body = await req.json().catch(() => null);
@@ -84,12 +90,12 @@ export async function POST(req: Request) {
 
   const crawlScope = resolveCrawlScope(scope, depth, pageCap);
 
-  // Owner: API-key user > signed-in user > anonymous session cookie.
+  // Owner: API-key user's email > signed-in user's email > anonymous session cookie.
   let ownerId = apiKeyUserId ?? null;
   let newAnonId: string | null = null;
   if (!ownerId) {
     const sessionUser = await getSessionUser();
-    ownerId = sessionUser?.id ?? null;
+    ownerId = sessionUser?.email ?? null;
     if (!ownerId) {
       const store = await cookies();
       ownerId = store.get(ANON_COOKIE)?.value ?? null;
