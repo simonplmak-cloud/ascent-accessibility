@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { EmbeddedCheckoutForm } from "@/components/checkout/embedded-checkout";
 
 const PRESETS = [50, 100, 250, 500];
 
@@ -9,6 +10,15 @@ export default function DonatePage() {
   const [recurring, setRecurring] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [thankYou, setThankYou] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("success") === "1" || params.get("session_id")) {
+      setThankYou(true);
+    }
+  }, []);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -21,11 +31,11 @@ export default function DonatePage() {
         body: JSON.stringify({ amount, recurring }),
       });
       const data = await res.json();
-      if (!res.ok || !data.url) {
+      if (!res.ok || !data.clientSecret) {
         setError(data.message ?? "Payment is temporarily unavailable. Please try again.");
         return;
       }
-      window.location.href = data.url;
+      setClientSecret(data.clientSecret);
     } catch {
       setError("Payment is temporarily unavailable. Please try again.");
     } finally {
@@ -33,12 +43,51 @@ export default function DonatePage() {
     }
   }
 
+  if (thankYou) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16">
+        <h1 className="font-mono text-3xl font-bold text-terminal-pass">Thank you</h1>
+        <p className="mt-4 font-mono leading-7 text-terminal-muted">
+          Your support keeps the accessibility assessment tool free and available to everyone. A
+          receipt will be emailed to you by Stripe.
+        </p>
+        <a
+          href="/donate"
+          className="mt-6 inline-block rounded bg-terminal-fg px-6 py-2 font-mono text-terminal-bg hover:bg-terminal-serious"
+        >
+          Make another donation
+        </a>
+      </div>
+    );
+  }
+
+  if (clientSecret) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16">
+        <h1 className="font-mono text-3xl font-bold text-terminal-fg">Complete your donation</h1>
+        <p className="mt-2 font-mono text-terminal-muted">
+          {recurring ? "Monthly" : "One-time"} donation of ${amount} USD.
+        </p>
+        <div className="mt-6">
+          <EmbeddedCheckoutForm clientSecret={clientSecret} />
+        </div>
+        <button
+          type="button"
+          onClick={() => setClientSecret(null)}
+          className="mt-4 font-mono text-sm text-terminal-muted underline underline-offset-4 hover:text-terminal-fg"
+        >
+          Change amount
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-xl px-4 py-16">
       <h1 className="font-mono text-3xl font-bold text-terminal-fg">Support the tool</h1>
       <p className="mt-4 font-mono text-terminal-muted">
-        Your donation keeps the assessment tool free and available to everyone. Give once, or
-        set up a monthly donation.
+        Your donation keeps the assessment tool free and available to everyone. Give once, or set
+        up a monthly donation.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
@@ -107,7 +156,7 @@ export default function DonatePage() {
           disabled={submitting}
           className="rounded bg-terminal-fg px-6 py-2 font-mono text-terminal-bg hover:bg-terminal-serious disabled:opacity-50"
         >
-          {submitting ? "Redirecting…" : recurring ? "Donate monthly" : "Donate"}
+          {submitting ? "Preparing…" : recurring ? "Donate monthly" : "Donate"}
         </button>
       </form>
 

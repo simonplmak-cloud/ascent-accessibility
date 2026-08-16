@@ -18,12 +18,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { url } = await createCheckoutSession(
+    const { clientSecret } = await createCheckoutSession(
       parsed.data.amount,
       undefined,
       parsed.data.recurring,
     );
-    return NextResponse.json({ url });
+    return NextResponse.json({ clientSecret });
   } catch {
     return NextResponse.json(
       { code: "STRIPE_ERROR", message: "Payment is temporarily unavailable. Please try again." },

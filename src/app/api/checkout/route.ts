@@ -13,5 +13,5 @@ export async function POST() {
   if (result.error) {
     return NextResponse.json({ code: "NOT_CONFIGURED", message: result.error }, { status: 503 });
   }
-  return NextResponse.json({ url: result.url });
+  return NextResponse.json({ clientSecret: result.clientSecret });
 }

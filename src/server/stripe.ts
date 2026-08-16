@@ -28,15 +28,16 @@ export function checkoutBranding(): Stripe.Checkout.SessionCreateParams.Branding
 }
 
 // Donation checkout, billed in USD. `recurring` creates a monthly (subscription)
-// donation; otherwise a one-time payment.
+// donation; otherwise a one-time payment. Embedded Checkout renders on-site.
 export async function createCheckoutSession(
   amountUsd: number,
   stripe: Stripe = createStripe(),
   recurring = false,
-): Promise<{ url: string }> {
+): Promise<{ clientSecret: string }> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const session = await stripe.checkout.sessions.create({
     mode: recurring ? "subscription" : "payment",
+    ui_mode: "embedded_page",
     submit_type: "donate",
     branding_settings: checkoutBranding(),
     custom_text: {
@@ -53,12 +54,11 @@ export async function createCheckoutSession(
         quantity: 1,
       },
     ],
-    success_url: `${siteUrl}/donate?success=1`,
-    cancel_url: `${siteUrl}/donate`,
+    return_url: `${siteUrl}/donate?session_id={CHECKOUT_SESSION_ID}`,
   });
 
-  if (!session.url) {
-    throw new Error("Stripe did not return a checkout URL");
+  if (!session.client_secret) {
+    throw new Error("Stripe did not return a client secret");
   }
-  return { url: session.url };
+  return { clientSecret: session.client_secret };
 }

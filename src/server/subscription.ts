@@ -4,6 +4,7 @@ import { checkoutBranding, getStripe } from "@/server/stripe";
 
 export interface CheckoutResult {
   url?: string;
+  clientSecret?: string;
   error?: string;
 }
 
@@ -39,6 +40,7 @@ export async function createSubscriptionCheckout(
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      ui_mode: "embedded_page",
       submit_type: "subscribe",
       branding_settings: checkoutBranding(),
       custom_text: {
@@ -58,12 +60,11 @@ export async function createSubscriptionCheckout(
       customer_email: customerEmail,
       client_reference_id: userId,
       metadata: { userId },
-      success_url: `${siteUrl}/site?subscribed=1`,
-      cancel_url: `${siteUrl}/site`,
+      return_url: `${siteUrl}/site?session_id={CHECKOUT_SESSION_ID}`,
     });
 
-    if (!session.url) return { error: "Stripe did not return a checkout URL" };
-    return { url: session.url };
+    if (!session.client_secret) return { error: "Stripe did not return a client secret" };
+    return { clientSecret: session.client_secret };
   } catch {
     return { error: "Could not start checkout. Please try again." };
   }

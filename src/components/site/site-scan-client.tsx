@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AssessmentForm } from "@/components/assessment/assessment-form";
+import { EmbeddedCheckoutForm } from "@/components/checkout/embedded-checkout";
 import type { StandardOption } from "@/components/assessment/types";
 
 interface SessionUser {
@@ -17,6 +18,7 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
   const [subscribed, setSubscribed] = useState(false);
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -62,7 +64,7 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
       return;
     }
     const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    if (data.clientSecret) setClientSecret(data.clientSecret);
     else setError("Could not start checkout. Please try again.");
   }
 
@@ -124,32 +126,48 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
           </div>
         </div>
       ) : !subscribed ? (
-        <div className="mt-8 rounded border border-terminal-border bg-terminal-surface p-6">
-          <p className="font-mono text-sm text-terminal-fg">
-            Welcome, {user.email}. Whole-website scans need an active subscription.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
+        clientSecret ? (
+          <div className="mt-8">
+            <p className="mb-4 font-mono text-sm text-terminal-fg">
+              Complete your subscription — US$28/month, billed in USD.
+            </p>
+            <EmbeddedCheckoutForm clientSecret={clientSecret} />
             <button
               type="button"
-              onClick={subscribe}
-              className="rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
+              onClick={() => setClientSecret(null)}
+              className="mt-4 font-mono text-sm text-terminal-muted underline underline-offset-4 hover:text-terminal-fg"
             >
-              Subscribe — US$28/month
-            </button>
-            <button
-              type="button"
-              onClick={signOut}
-              className="rounded border border-terminal-border px-4 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
-            >
-              Sign out
+              Cancel
             </button>
           </div>
-          {error && (
-            <p role="alert" className="mt-3 font-mono text-sm text-terminal-critical">
-              {error}
+        ) : (
+          <div className="mt-8 rounded border border-terminal-border bg-terminal-surface p-6">
+            <p className="font-mono text-sm text-terminal-fg">
+              Welcome, {user.email}. Whole-website scans need an active subscription.
             </p>
-          )}
-        </div>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={subscribe}
+                className="rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
+              >
+                Subscribe — US$28/month
+              </button>
+              <button
+                type="button"
+                onClick={signOut}
+                className="rounded border border-terminal-border px-4 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
+              >
+                Sign out
+              </button>
+            </div>
+            {error && (
+              <p role="alert" className="mt-3 font-mono text-sm text-terminal-critical">
+                {error}
+              </p>
+            )}
+          </div>
+        )
       ) : (
         <div className="mt-8">
           <div className="mb-4 flex items-center justify-between gap-4 rounded border border-terminal-pass bg-terminal-surface p-4">

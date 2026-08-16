@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@stripe/react-stripe-js':
+        specifier: ^6.8.1
+        version: 6.8.1(@stripe/stripe-js@9.13.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@stripe/stripe-js':
+        specifier: ^9.13.0
+        version: 9.13.0
       accessibility-checker:
         specifier: ^4.0.30
         version: 4.0.30(proxy-agent@8.0.2)
@@ -974,6 +980,17 @@ packages:
 
   '@rushstack/eslint-patch@1.16.1':
     resolution: {integrity: sha512-TvZbIpeKqGQQ7X0zSCvPH9riMSFQFSggnfBjFZ1mEoILW+UuXCKwOoPcgjMwiUtRqFZ8jWhPJc4um14vC6I4ag==}
+
+  '@stripe/react-stripe-js@6.8.1':
+    resolution: {integrity: sha512-Wzy7KCF8lM819x8rVFSKUr2ofITdX1c/49ceJprJzGhPzHb3fhrcAoEmNQwV5UYRci7YY1joyG8oz3So3JAMRg==}
+    peerDependencies:
+      '@stripe/stripe-js': '>=9.5.0 <10.0.0'
+      react: '>=16.8.0 <20.0.0'
+      react-dom: '>=16.8.0 <20.0.0'
+
+  '@stripe/stripe-js@9.13.0':
+    resolution: {integrity: sha512-/0c72BUgzzVkVTlsw5uBn8x3waTdVJ/PZGfQ6jY1eu6K7olUPf4d9lgDPA9/0sIdsR8j7o3QIG8fOCO6ItcL7A==}
+    engines: {node: '>=12.16'}
 
   '@surrealdb/cbor@2.0.0-alpha.4':
     resolution: {integrity: sha512-l/hNZ3ZCOJq8rzwx1y5ZV/8b2bYCWdhGqRVY33Pu50NAHyAW5qLsMn3ZBkZow77mAKwNCsbDsRGnyYEuU95mjw==}
@@ -3682,6 +3699,15 @@ snapshots:
   '@rtsao/scc@1.1.0': {}
 
   '@rushstack/eslint-patch@1.16.1': {}
+
+  '@stripe/react-stripe-js@6.8.1(@stripe/stripe-js@9.13.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@stripe/stripe-js': 9.13.0
+      prop-types: 15.8.1
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+
+  '@stripe/stripe-js@9.13.0': {}
 
   '@surrealdb/cbor@2.0.0-alpha.4': {}
 
