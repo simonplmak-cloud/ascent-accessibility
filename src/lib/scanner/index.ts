@@ -157,6 +157,14 @@ export async function scanPage(
     if (!axe) throw new Error("axe-core failed to load");
     const raw = await axe.run(document, { runOnly: { type: "tag", values: runTags } });
 
+    // Only rule id + tags are consumed from passes/incomplete (mapRuleSummary);
+    // drop their node trees in-page so they never cross the CDP boundary.
+    const slim = {
+      violations: raw.violations,
+      passes: (raw.passes ?? []).map((p) => ({ id: p.id, tags: p.tags })),
+      incomplete: (raw.incomplete ?? []).map((p) => ({ id: p.id, tags: p.tags })),
+    };
+
     const has = (sel: string): boolean => !!document.querySelector(sel);
     const features = {
       hasContent: (document.body?.textContent ?? "").trim().length > 0,
@@ -187,7 +195,7 @@ export async function scanPage(
       hasInteractive: has("a[href], button, input, select, textarea, [role='button']"),
       hasTimeLimit: has("meta[http-equiv='refresh' i]"),
     };
-    return { raw, features };
+    return { raw: slim, features };
   }, tags)) as { raw: RawAxeResult; features: PageFeatures };
 
   return {
