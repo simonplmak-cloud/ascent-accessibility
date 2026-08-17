@@ -1,0 +1,16 @@
+[Unit]
+Description=wcag-score assessment worker (polls SurrealDB, scans via Browserless)
+After=network-online.target browserless.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/wcag-score
+EnvironmentFile=/opt/wcag-score/.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node /opt/wcag-score/dist/worker.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
