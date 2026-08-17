@@ -5,6 +5,12 @@ import { SiteFooter } from "@/components/site-footer";
 import { CookieBanner } from "@/components/cookie-banner";
 import { getSessionUser } from "@/server/auth";
 import { subscriptionRepository } from "@/db/repository";
+import { THEME_STORAGE_KEY } from "@/lib/theme";
+
+// Runs before first paint to apply the stored theme and avoid a flash of the
+// wrong theme. The server renders `<html class="dark">` (dark default); this
+// removes the class when the user chose light.
+const THEME_INIT_SCRIPT = `(function(){try{if(localStorage.getItem("${THEME_STORAGE_KEY}")==="light"){document.documentElement.classList.remove("dark");}}catch(e){}})();`;
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://wcag-score.ascent.partners";
@@ -105,7 +111,10 @@ export default async function RootLayout({
   );
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       {body}
     </html>
   );

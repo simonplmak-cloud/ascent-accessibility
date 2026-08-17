@@ -2,13 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Theme tokens. Light values live on :root; dark values override them when
+ * `<html class="dark">` (the default). Every `terminal.*` Tailwind color is
+ * `rgb(var(--t-*) / <alpha-value>)`, so both themes adapt without touching
+ * component markup. Values are space-separated RGB triplets.
+ */
 :root {
+  --t-bg: 255 255 255;
+  --t-surface: 246 248 250;
+  --t-border: 208 215 222;
+  --t-fg: 31 35 40;
+  --t-muted: 89 99 110;
+  --t-critical: 209 36 47;
+  --t-serious: 188 76 0;
+  --t-moderate: 154 103 0;
+  --t-minor: 89 99 110;
+  --t-pass: 26 127 55;
+  --t-partial: 154 103 0;
+  --t-fail: 209 36 47;
+  color-scheme: light;
+}
+
+html.dark {
+  --t-bg: 11 15 20;
+  --t-surface: 17 24 32;
+  --t-border: 42 53 66;
+  --t-fg: 230 237 243;
+  --t-muted: 157 167 176;
+  --t-critical: 255 123 114;
+  --t-serious: 255 166 87;
+  --t-moderate: 227 179 65;
+  --t-minor: 157 167 176;
+  --t-pass: 63 185 80;
+  --t-partial: 227 179 65;
+  --t-fail: 255 123 114;
   color-scheme: dark;
 }
 
 body {
-  background-color: #0b0f14;
-  color: #e6edf3;
+  background-color: rgb(var(--t-bg));
+  color: rgb(var(--t-fg));
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
@@ -18,8 +52,8 @@ body {
   top: 0;
   z-index: 50;
   padding: 0.5rem 1rem;
-  background: #e6edf3;
-  color: #0b0f14;
+  background: rgb(var(--t-fg));
+  color: rgb(var(--t-bg));
   font-size: 0.875rem;
   border-radius: 0 0 0.25rem 0;
 }
@@ -30,7 +64,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid #ffa657;
+  outline: 2px solid rgb(var(--t-serious));
   outline-offset: 2px;
 }
 
@@ -91,7 +125,10 @@ html[data-text-size="xlarge"] {
 
 /* Respect users who need maximum contrast. */
 @media (prefers-contrast: more) {
-  body {
+  html.dark body {
     color: #ffffff;
+  }
+  html:not(.dark) body {
+    color: #000000;
   }
 }

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TextSizeControl } from "@/components/text-size-control";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 
@@ -87,6 +88,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
             ))}
           </ul>
           <TextSizeControl />
+          <ThemeToggle />
           {authState.signedIn ? (
             <Button variant="outline" onClick={signOut} disabled={signingOut}>
               {signingOut ? "Signing out…" : "Sign out"}
@@ -149,6 +151,10 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
             <li className="flex items-center justify-between px-4 py-3">
               <span className="font-mono text-sm text-terminal-muted">Text size</span>
               <TextSizeControl />
+            </li>
+            <li className="flex items-center justify-between px-4 py-3">
+              <span className="font-mono text-sm text-terminal-muted">Theme</span>
+              <ThemeToggle />
             </li>
             <li className="p-4">
               {authState.signedIn ? (
