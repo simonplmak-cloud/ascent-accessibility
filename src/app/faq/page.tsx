@@ -1,5 +1,7 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { InlineLink } from "@/components/ui/inline-link";
 
 export const metadata: Metadata = {
   title: "Frequently asked questions",
@@ -39,12 +41,15 @@ const faqs = [
 
 export default function FaqPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Frequently asked questions</h1>
+    <PageShell>
+      <PageHeading>Frequently asked questions</PageHeading>
 
       <div className="mt-8 space-y-6">
         {faqs.map((faq) => (
-          <section key={faq.q} className="rounded border border-terminal-border bg-terminal-surface p-4">
+          <section
+            key={faq.q}
+            className="rounded border border-terminal-border bg-terminal-surface p-4"
+          >
             <h2 className="font-mono text-base font-semibold text-terminal-fg">{faq.q}</h2>
             <p className="mt-2 font-mono text-sm leading-6 text-terminal-muted">{faq.a}</p>
           </section>
@@ -52,12 +57,8 @@ export default function FaqPage() {
       </div>
 
       <p className="mt-8 font-mono text-sm text-terminal-muted">
-        Something else?{" "}
-        <Link href="/contact" className="underline underline-offset-4 hover:text-terminal-fg">
-          Get in touch
-        </Link>
-        .
+        Something else? <InlineLink href="/contact">Get in touch</InlineLink>.
       </p>
-    </div>
+    </PageShell>
   );
 }

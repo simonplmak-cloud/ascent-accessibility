@@ -1,5 +1,7 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { InlineLink } from "@/components/ui/inline-link";
 
 export const metadata: Metadata = {
   title: "About",
@@ -9,10 +11,8 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">
-        About Ascent Partners Foundation
-      </h1>
+    <PageShell>
+      <PageHeading>About Ascent Partners Foundation</PageHeading>
 
       <p className="mt-6 font-mono leading-7 text-terminal-fg">
         Ascent Partners Foundation is a Hong Kong registered charity, established in 2017, that
@@ -60,10 +60,8 @@ export default function AboutPage() {
         in joining us. Please say hello.
       </p>
       <p className="mt-4 font-mono text-sm text-terminal-fg">
-        <Link href="/contact" className="underline underline-offset-4 hover:text-terminal-serious">
-          Get in touch
-        </Link>
+        <InlineLink href="/contact">Get in touch</InlineLink>
       </p>
-    </div>
+    </PageShell>
   );
 }

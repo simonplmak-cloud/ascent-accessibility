@@ -1,5 +1,8 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { MutedText } from "@/components/ui/text";
+import { InlineLink } from "@/components/ui/inline-link";
 import { LegalNote } from "@/components/legal/legal-note";
 
 export const metadata: Metadata = {
@@ -8,25 +11,32 @@ export const metadata: Metadata = {
     "Ascent Accessibility's service commitment — availability target, support hours, and response expectations for subscribers.",
 };
 
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <>
+      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">{title}</h2>
+      <p className="mt-3 font-mono leading-7 text-terminal-muted">{children}</p>
+    </>
+  );
+}
+
 export default function SlaPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Service commitment</h1>
-      <p className="mt-4 font-mono leading-7 text-terminal-muted">
+    <PageShell>
+      <PageHeading>Service commitment</PageHeading>
+      <MutedText className="mt-4">
         We are a small non-profit team, not a large software vendor. This page describes the
         level of service we aim to provide to subscribers — it is a commitment in spirit, not
         a contractual uptime guarantee.
-      </p>
+      </MutedText>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Availability</h2>
-      <p className="mt-3 font-mono leading-7 text-terminal-muted">
+      <Section title="Availability">
         We aim for high availability and monitor the assessment worker continuously. Scans
         run in a queue, so during busy periods a whole-website scan may wait before it
         starts. We do not commit to a specific uptime percentage.
-      </p>
+      </Section>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Support</h2>
-      <p className="mt-3 font-mono leading-7 text-terminal-muted">
+      <Section title="Support">
         Support is by email at{" "}
         <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4 hover:text-terminal-fg">
           contact@ascent-partners.com
@@ -34,25 +44,20 @@ export default function SlaPage() {
         , generally during Hong Kong business hours (HKT). We aim to acknowledge reports of
         outages or billing problems within one business day. We cannot offer a guaranteed
         response-time or 24/7 coverage.
-      </p>
+      </Section>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Maintenance</h2>
-      <p className="mt-3 font-mono leading-7 text-terminal-muted">
+      <Section title="Maintenance">
         We may take the service offline briefly to deploy fixes and improvements. We do not
         typically announce maintenance windows in advance.
-      </p>
+      </Section>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">What we ask of you</h2>
-      <p className="mt-3 font-mono leading-7 text-terminal-muted">
+      <Section title="What we ask of you">
         Scans are intended for sites you own or are authorised to assess. Please keep your
         account and payment details current, and use the service in line with our{" "}
-        <Link href="/terms" className="underline underline-offset-4 hover:text-terminal-fg">
-          terms of service
-        </Link>
-        .
-      </p>
+        <InlineLink href="/terms">terms of service</InlineLink>.
+      </Section>
 
       <LegalNote label="service commitment" />
-    </div>
+    </PageShell>
   );
 }

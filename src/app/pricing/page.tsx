@@ -1,5 +1,10 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { MutedText } from "@/components/ui/text";
+import { Card } from "@/components/ui/card";
+import { InlineLink } from "@/components/ui/inline-link";
+import { ButtonLink } from "@/components/ui/button-link";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -26,87 +31,64 @@ const paid = [
   "Your scan history, saved across visits",
 ];
 
+function FeatureList({ items }: { items: string[] }) {
+  return (
+    <ul className="mt-4 space-y-2 font-mono text-sm text-terminal-muted">
+      {items.map((item) => (
+        <li key={item} className="flex gap-2">
+          <span aria-hidden="true" className="text-terminal-pass">✓</span>
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function PricingPage() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Pricing</h1>
-      <p className="mt-4 font-mono leading-7 text-terminal-muted">
+    <PageShell width="4xl">
+      <PageHeading>Pricing</PageHeading>
+      <MutedText className="mt-4">
         One free tier, one simple subscription. No per-scan fees, no contracts — cancel
         any time from the billing portal.
-      </p>
+      </MutedText>
 
       <div className="mt-10 grid gap-6 md:grid-cols-2">
-        <section
-          aria-labelledby="free-heading"
-          className="rounded border border-terminal-border bg-terminal-surface p-6"
-        >
-          <h2 id="free-heading" className="font-mono text-xl font-semibold text-terminal-fg">
-            Free
-          </h2>
+        <Card className="p-6">
+          <h2 className="font-mono text-xl font-semibold text-terminal-fg">Free</h2>
           <p className="mt-1 font-mono text-3xl font-bold text-terminal-fg">
             US$0
             <span className="text-base font-normal text-terminal-muted"> / forever</span>
           </p>
-          <ul className="mt-4 space-y-2 font-mono text-sm text-terminal-muted">
-            {free.map((item) => (
-              <li key={item} className="flex gap-2">
-                <span aria-hidden="true" className="text-terminal-pass">✓</span>
-                {item}
-              </li>
-            ))}
-          </ul>
-          <Link
-            href="/assess"
-            className="mt-6 inline-block rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
-          >
+          <FeatureList items={free} />
+          <ButtonLink href="/assess" className="mt-6 inline-block">
             Assess a page for free
-          </Link>
-        </section>
+          </ButtonLink>
+        </Card>
 
-        <section
-          aria-labelledby="paid-heading"
-          className="rounded border border-terminal-pass bg-terminal-surface p-6"
-        >
-          <h2 id="paid-heading" className="font-mono text-xl font-semibold text-terminal-fg">
-            Whole-website
-          </h2>
+        <Card className="border-terminal-pass p-6">
+          <h2 className="font-mono text-xl font-semibold text-terminal-fg">Whole-website</h2>
           <p className="mt-1 font-mono text-3xl font-bold text-terminal-fg">
             US$28
             <span className="text-base font-normal text-terminal-muted"> / month</span>
           </p>
-          <ul className="mt-4 space-y-2 font-mono text-sm text-terminal-muted">
-            {paid.map((item) => (
-              <li key={item} className="flex gap-2">
-                <span aria-hidden="true" className="text-terminal-pass">✓</span>
-                {item}
-              </li>
-            ))}
-          </ul>
-          <Link
-            href="/site"
-            className="mt-6 inline-block rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
-          >
+          <FeatureList items={paid} />
+          <ButtonLink href="/site" className="mt-6 inline-block">
             Subscribe
-          </Link>
-        </section>
+          </ButtonLink>
+        </Card>
       </div>
 
       <p className="mt-8 font-mono text-sm text-terminal-muted">
         Billing is handled by Stripe. Prices are in US dollars and may be subject to local
         taxes. See our{" "}
-        <Link href="/terms" className="underline underline-offset-4 hover:text-terminal-fg">
-          terms of service
-        </Link>
+        <InlineLink href="/terms">terms of service</InlineLink>
         ,{" "}
-        <Link href="/refund" className="underline underline-offset-4 hover:text-terminal-fg">
-          refund policy
-        </Link>
+        <InlineLink href="/refund">refund policy</InlineLink>
         , and{" "}
-        <Link href="/sla" className="underline underline-offset-4 hover:text-terminal-fg">
-          service commitment
-        </Link>
+        <InlineLink href="/sla">service commitment</InlineLink>
         .
       </p>
-    </div>
+    </PageShell>
   );
 }
