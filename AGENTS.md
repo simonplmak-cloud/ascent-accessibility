@@ -9,7 +9,7 @@ Split, DB-as-queue deployment. No background work on Vercel:
 - **Vercel** (Next.js App Router) = marketing site + API only. `POST /api/v1/assessments` inserts a `queued` record into SurrealDB and returns `202`. It does not crawl or scan.
 - **SurrealDB** = the job store. `assessment.status` (`queued → running → completed/failed`) *is* the queue.
 - **Fly.io worker** (`src/worker/index.ts`, compiled Node container) polls SurrealDB every 5s, runs `runAssessment` (sitemap → crawl → scan → score → persist), appends a live log, and recovers stale `running` records. Machine is `shared-cpu-2x:4096MB`.
-- **Self-hosted Chromium** in the worker (Browserless removed). `scanner-factory.ts` uses `chromium.launch()` by default; `BROWSERLESS_TOKEN` (if set) is a fallback to `connectOverCDP`. Installed via `playwright install --with-deps chromium` in the Dockerfile.
+- **Browserless (self-hosted on a separate Fly app)** = the headless Chrome. `scanner-factory.ts` connects via `chromium.connectOverCDP(BROWSERLESS_URL?token=BROWSERLESS_TOKEN)`; if `BROWSERLESS_TOKEN` is unset it falls back to `chromium.launch()` (local dev only). The browser runs in the `wcag-score-browserless` app (config in `browserless/fly.toml`, image `ghcr.io/browserless/chromium`) so it stays warm across worker deploys and never OOM-kills the worker. Note: the app binds `HOST=0.0.0.0` and the worker reaches it via the public `wss://wcag-score-browserless.fly.dev` — Fly's 6PN `.internal` binding did not route.
 
 **Auth** is SurrealDB native (record access), not Clerk. `src/server/auth.ts` `getSessionUser()`/`getUserId()` return the user's **email** (used as `ownerId`/`userId`). `SESSION_COOKIE` (httpOnly JWT) for sessions; `ANON_COOKIE` gives anonymous visitors their own history. The root `layout.tsx` is async and resolves the role (signed-in / subscriber) for the role-aware header.
 
@@ -46,6 +46,7 @@ Verification order: `check` → `test` → `build`. Run a single test with `npx 
 ### Deployment
 - **Vercel** auto-deploys from GitHub `main` (push = deploy). Custom domain `wcag-score.ascent.partners`.
 - **Fly.io worker** is manual: `flyctl deploy` (add `--remote-only` to build on Fly's builders instead of local Docker). Secrets via `fly secrets set`. `FLY_API_TOKEN` lives in `~/.env.opencode` — it contains a **literal comma** (`FlyV1 fm2_…,fm2_…`); don't "fix" that.
+- **Browserless** (`wcag-score-browserless`) deploys via `flyctl deploy -c browserless/fly.toml` (image-based, no build). Shared secret `TOKEN` must match the worker's `BROWSERLESS_TOKEN`.
 - **SurrealDB cloud** namespace `wcag-score`, database `main`. Credentials are in Fly/Vercel secrets — never commit. (`~/.env.opencode` still points at the stale `valuation` namespace; use Fly/Vercel secrets or the gitignored project `.env`.)
 
 ## Frontend conventions
