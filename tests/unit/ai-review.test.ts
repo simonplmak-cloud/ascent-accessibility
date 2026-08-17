@@ -113,7 +113,7 @@ describe("applyAiVerdicts", () => {
     expect(result.findings).toHaveLength(1);
     expect(result.findings[0]).toMatchObject({
       wcagSc: ["2.4.4"],
-      impact: "moderate",
+      impact: "serious",
       sources: [{ tool: "ai" }],
     });
   });
