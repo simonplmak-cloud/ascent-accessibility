@@ -1,18 +1,69 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SiteHeader, type HeaderAuthState } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { getSessionUser } from "@/server/auth";
 import { subscriptionRepository } from "@/db/repository";
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://wcag-score.ascent.partners";
+
+const SITE_TITLE = "Ascent Accessibility — Free WCAG Assessment by Ascent Partners Foundation";
+const SITE_DESCRIPTION =
+  "A free tool by Ascent Partners Foundation. Assess your website against WCAG 2.2 AA and get a score, evidence-backed findings, and remediation guidance.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Ascent Accessibility — Free WCAG Assessment by Ascent Partners Foundation",
+    default: SITE_TITLE,
     template: "%s — Ascent Accessibility",
   },
+  description: SITE_DESCRIPTION,
+  applicationName: "Ascent Accessibility",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
+  openGraph: {
+    title: "Ascent Accessibility — Free WCAG Assessment",
+    description: SITE_DESCRIPTION,
+    url: "/",
+    siteName: "Ascent Accessibility",
+    type: "website",
+    images: [
+      {
+        url: "/images/apf-logo.png",
+        width: 222,
+        height: 87,
+        alt: "Ascent Partners Foundation",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Ascent Accessibility — Free WCAG Assessment",
+    description: SITE_DESCRIPTION,
+  },
+  manifest: "/manifest.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b0f14",
+  width: "device-width",
+  initialScale: 1,
+};
+
+// Structured data so search engines recognise the charity behind the tool.
+const ORGANIZATION_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Ascent Partners Foundation",
+  legalName: "Ascent Partners Foundation Limited",
+  url: "https://www.ascent.partners",
+  email: "contact@ascent-partners.com",
+  foundingDate: "2017",
   description:
-    "A free tool by Ascent Partners Foundation. Assess your website against WCAG 2.2 AA and get a score, evidence-backed findings, and remediation guidance.",
-  icons: { icon: "/favicon.png" },
+    "A Hong Kong registered charity connecting leaders with the tools to turn sustainability into action.",
 };
 
 // Resolves the header's role (signed-in / subscriber) without ever breaking the
@@ -36,6 +87,10 @@ export default async function RootLayout({
 
   const body = (
     <body className="min-h-screen bg-terminal-bg text-terminal-fg antialiased">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
+      />
       <a href="#main" className="skip-link">
         Skip to main content
       </a>
