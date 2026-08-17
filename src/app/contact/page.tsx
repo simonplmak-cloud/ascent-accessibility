@@ -17,8 +17,8 @@ export default function ContactPage() {
       <address className="mt-6 not-italic font-mono text-terminal-fg">
         <p>
           Email:{" "}
-          <a href="mailto:hello@ascent.partners" className="underline underline-offset-4">
-            hello@ascent.partners
+          <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4">
+            contact@ascent-partners.com
           </a>
         </p>
         <p className="mt-2">

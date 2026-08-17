@@ -35,8 +35,8 @@ export default function AccessibilityStatementPage() {
       <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Report a problem</h2>
       <p className="mt-3 font-mono leading-7 text-terminal-muted">
         Email{" "}
-        <a href="mailto:hello@ascent.partners" className="underline underline-offset-4 hover:text-terminal-fg">
-          hello@ascent.partners
+        <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4 hover:text-terminal-fg">
+          contact@ascent-partners.com
         </a>{" "}
         and describe what you were trying to do and what happened. We aim to respond within
         a few business days.

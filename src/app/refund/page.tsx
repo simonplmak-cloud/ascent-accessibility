@@ -41,8 +41,8 @@ export default function RefundPage() {
       <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Contact</h2>
       <p className="mt-3 font-mono leading-7 text-terminal-muted">
         Refund requests:{" "}
-        <a href="mailto:hello@ascent.partners" className="underline underline-offset-4 hover:text-terminal-fg">
-          hello@ascent.partners
+        <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4 hover:text-terminal-fg">
+          contact@ascent-partners.com
         </a>
         .
       </p>
