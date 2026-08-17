@@ -80,7 +80,8 @@ function asScannerPage(page: Page): ScannerPage {
     evaluate: (pageFn, arg) =>
       page.evaluate(pageFn as unknown as (a: unknown) => unknown, arg as unknown),
     screenshot: (options) => page.screenshot(options),
-    screenshotElement: (selector) => page.locator(selector).first().screenshot(),
+    screenshotElement: (selector) =>
+      page.locator(selector).first().screenshot({ timeout: 5000 }),
   };
 }
 
