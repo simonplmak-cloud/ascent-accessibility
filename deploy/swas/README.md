@@ -36,8 +36,40 @@ cd /opt/wcag-score && ./deploy.sh        # git pull + pnpm worker:build + system
 git pull && pnpm install --frozen-lockfile && pnpm worker:build && systemctl restart wcag-score-worker
 ```
 
-Note: the repo is private — `git pull` needs a credential. Use the GitHub PAT /
-`gh auth token` (a deploy key or a stored `.git-credentials` is cleaner long-term).
+Note: the repo is private — `git pull` needs a credential. `provision.sh` writes a
+PAT to `/root/.git-credentials`; for manual deploys use a deploy key or
+`.git-credentials`.
+
+## Build a new box from GitHub
+
+`deploy/swas/provision.sh` turns a fresh Ubuntu 22.04 box into a running
+worker + Browserless, pulling everything from GitHub. The only inputs are the
+secrets (passed as env vars — never committed):
+
+```bash
+# on the new box, as root:
+git clone https://github.com/simonplmak-cloud/wcag-score.git /tmp/wcag-score
+cd /tmp/wcag-score
+SURREAL_URL=... SURREAL_USERNAME=... SURREAL_PASSWORD=... GITHUB_TOKEN=... \
+  deploy/swas/provision.sh
+```
+
+It installs Node 20 / pnpm 10 / Docker, clones the repo, builds `dist/worker.js`,
+generates a `BROWSERLESS_TOKEN` if unset, writes `.env`, installs both systemd
+units, pulls the Browserless image, and starts everything. Idempotent.
+
+Gotchas it encodes for you:
+- The worker `.env` is read by systemd `EnvironmentFile`, which does **not**
+  strip quotes — values must be unquoted and free of `$`/spaces/`#`.
+- `browserless.service` sources the same `.env`, so the container token and the
+  worker's `BROWSERLESS_TOKEN` can never drift.
+- The systemd units are installed from the freshly-cloned repo
+  (`deploy/swas/*.service`), not from wherever the script was run.
+
+**Secrets you must supply (not in git):** `SURREAL_URL` +
+`SURREAL_USERNAME`/`SURREAL_PASSWORD` (or `SURREAL_TOKEN`) + `SURREAL_NAMESPACE`
++ `SURREAL_DATABASE`, and a `GITHUB_TOKEN` (PAT with repo read). The live values
+are in `/opt/wcag-score/.env` on the current box — copy them before tearing it down.
 
 ## Cut-over (done)
 
