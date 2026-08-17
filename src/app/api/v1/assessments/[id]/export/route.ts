@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { assessmentRepository } from "@/db/repository";
-import { exportReport } from "@/lib/export";
+import { exportReport, type ReportComparison } from "@/lib/export";
 import { exportFormatSchema } from "@/server/validation";
 
 export async function GET(
@@ -27,6 +27,7 @@ export async function GET(
   }
 
   const findings = await assessmentRepository.findFindings(id);
+  const comparison = await assessmentRepository.findComparison<ReportComparison>(id);
   const result = await exportReport(
     {
       url: assessment.url,
@@ -34,6 +35,8 @@ export async function GET(
       score: assessment.score ?? 0,
       passBand: assessment.passBand ?? "fail",
       pagesScanned: assessment.pagesScanned,
+      generatedAt: assessment.updatedAt,
+      comparison: comparison ?? undefined,
       findings: findings.map((f) => ({
         ruleId: f.ruleId,
         impact: f.impact,
