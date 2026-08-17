@@ -8,8 +8,8 @@ Split, DB-as-queue deployment. No background work on Vercel:
 
 - **Vercel** (Next.js App Router) = marketing site + API only. `POST /api/v1/assessments` inserts a `queued` record into SurrealDB and returns `202`. It does not crawl or scan.
 - **SurrealDB** = the job store. `assessment.status` (`queued → running → completed/failed`) *is* the queue.
-- **Fly.io worker** (`src/worker/index.ts`, compiled Node container) polls SurrealDB every 5s, runs `runAssessment` (sitemap → crawl → scan → score → persist), appends a live log, and recovers stale `running` records. Machine is `shared-cpu-2x:4096MB`.
-- **Browserless (self-hosted on a separate Fly app)** = the headless Chrome. `scanner-factory.ts` connects via `chromium.connectOverCDP(BROWSERLESS_URL?token=BROWSERLESS_TOKEN)`; if `BROWSERLESS_TOKEN` is unset it falls back to `chromium.launch()` (local dev only). The browser runs in the `wcag-score-browserless` app (config in `browserless/fly.toml`, image `ghcr.io/browserless/chromium`) so it stays warm across worker deploys and never OOM-kills the worker. Note: the app binds `HOST=0.0.0.0` and the worker reaches it via the public `wss://wcag-score-browserless.fly.dev` — Fly's 6PN `.internal` binding did not route.
+- **Worker** (`src/worker/index.ts`, compiled Node container) runs on a **SWAS (Alibaba Cloud Simple Application Server) box in HK** (IP `47.243.145.140`), managed by systemd (`/opt/wcag-score`, unit `wcag-score-worker.service`). It polls SurrealDB every 1s, runs `runAssessment` (sitemap → crawl → scan → score → persist), appends a live log, and recovers stale `running` records.
+- **Browserless** = the headless Chrome, **co-located on the same SWAS box** (Docker container `browserless`, image `ghcr.io/browserless/chromium`, unit `browserless.service`, bound to `127.0.0.1:3000`). `scanner-factory.ts` connects via `chromium.connectOverCDP(BROWSERLESS_URL?token=BROWSERLESS_TOKEN)`; if `BROWSERLESS_TOKEN` is unset it falls back to `chromium.launch()` (local dev only). The browser stays warm across worker deploys.
 
 **Auth** is SurrealDB native (record access), not Clerk. `src/server/auth.ts` `getSessionUser()`/`getUserId()` return the user's **email** (used as `ownerId`/`userId`). `SESSION_COOKIE` (httpOnly JWT) for sessions; `ANON_COOKIE` gives anonymous visitors their own history. The root `layout.tsx` is async and resolves the role (signed-in / subscriber) for the role-aware header.
 
@@ -41,13 +41,13 @@ Verification order: `check` → `test` → `build`. Run a single test with `npx 
 - **Run the worker as `node dist/worker.js`, never `tsx`** (`tsx` hangs in Docker on `playwright-core`'s `chromium-bidi` subpath). The esbuild bundle **must** use `--packages=external`.
 - **Inject axe-core via `page.addInitScript`, never `addScriptTag`** (`addScriptTag` is blocked by target-site CSP; `addInitScript` runs at CDP level).
 - **A single bad page must never block the queue.** A page that hangs or crashes the browser previously stalled the whole worker (it awaits all claimed assessments). Now each page is wrapped in `WORKER_PAGE_TIMEOUT_MS` (default 180s); on timeout/crash/load-failure the worker closes + recreates the browser and skips that page (`src/lib/assessment/index.ts`). `appendLog` also touches `updatedAt` as a heartbeat so `recoverStaleRunning` (default 10 min) doesn't re-queue a scan that's still progressing.
-- Env: `WORKER_POLL_INTERVAL_MS`, `WORKER_BATCH_SIZE`, `WORKER_SCAN_CONCURRENCY` (fly.toml sets 3 to avoid browser OOM; code default 5), `WORKER_ASSESSMENT_CONCURRENCY`, `WORKER_STALE_RUNNING_MINUTES`, `WORKER_PAGE_TIMEOUT_MS`.
+- Env: `WORKER_POLL_INTERVAL_MS`, `WORKER_BATCH_SIZE`, `WORKER_SCAN_CONCURRENCY` (SWAS `.env` and `fly.toml` both set 2; code default 5), `WORKER_ASSESSMENT_CONCURRENCY`, `WORKER_STALE_RUNNING_MINUTES`, `WORKER_PAGE_TIMEOUT_MS`, `WORKER_BROWSER_POOL_SIZE`.
 
 ### Deployment
 - **Vercel** auto-deploys from GitHub `main` (push = deploy). Custom domain `wcag-score.ascent.partners`.
-- **Fly.io worker** is manual: `flyctl deploy` (add `--remote-only` to build on Fly's builders instead of local Docker). Secrets via `fly secrets set`. `FLY_API_TOKEN` lives in `~/.env.opencode` — it contains a **literal comma** (`FlyV1 fm2_…,fm2_…`); don't "fix" that.
-- **Browserless** (`wcag-score-browserless`) deploys via `flyctl deploy -c browserless/fly.toml` (image-based, no build). Shared secret `TOKEN` must match the worker's `BROWSERLESS_TOKEN`.
-- **SurrealDB cloud** namespace `wcag-score`, database `main`. Credentials are in Fly/Vercel secrets — never commit. (`~/.env.opencode` still points at the stale `valuation` namespace; use Fly/Vercel secrets or the gitignored project `.env`.)
+- **Worker + Browserless (SWAS HK)** — the worker and a co-located Browserless run on one Alibaba Cloud Simple Application Server (HK, IP `47.243.145.140`), managed by systemd. Deploy = SSH in, `git pull` + `pnpm worker:build` + `systemctl restart wcag-score-worker` (see `deploy/swas/deploy.sh`). Browserless is a Docker container (`browserless.service`) bound to `127.0.0.1:3000`. Env lives in `/opt/wcag-score/.env`.
+- **SurrealDB cloud** namespace `wcag-score`, database `main`. Credentials are in SWAS `/opt/wcag-score/.env` + Vercel secrets — never commit. (`~/.env.opencode` still points at the stale `valuation` namespace.)
+- *(Deprecated but kept in repo: `fly.toml` and `browserless/fly.toml` for the old Fly worker + Fly Browserless — both Fly apps are stopped.)*
 
 ## Frontend conventions
 

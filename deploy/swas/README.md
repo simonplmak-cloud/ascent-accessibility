@@ -1,90 +1,62 @@
-# SWAS (Alibaba Cloud Simple Application Server) migration
+# SWAS (Alibaba Cloud Simple Application Server) — worker + Browserless
 
-Run the assessment worker + a self-hosted Browserless on one Alibaba Cloud SWAS
-instance (HK region). Both are long-lived processes managed by systemd, so the
-browser stays warm and the worker survives reboots.
+**Status: LIVE.** The assessment worker + a co-located Browserless run on one
+Alibaba Cloud SWAS instance in HK, managed by systemd.
 
-Why this layout: the worker is light (no Chrome — Browserless owns it), and the
-two must be **co-located** because the worker↔Browserless CDP link is the
-latency-critical path. HK region also cuts latency to HK target sites
-(`dialogue-experience.hk` measured 4.6s from Singapore vs 1.3s from HK).
+| | |
+|---|---|
+| Instance ID | `e6613f06f3f6409081b2d9bd48828652` |
+| Public IP | `47.243.145.140` |
+| Region / plan | `cn-hongkong` · `swas.s.c2m4s50b1.linux` (2 vCPU / 4GB) |
+| Image | Ubuntu 22.04 |
+| SSH | key `~/.ssh/swas_hk_ed25519` (uploaded via the SWAS key-pair API), or root password (see `/tmp/opencode/swas.env`) |
 
-## Prerequisites
+Why co-located: the worker is light (no Chrome — Browserless owns it), and the
+two must be on the same box because the worker↔Browserless CDP link is the
+latency-critical path.
 
-- SWAS instance: **≥ 2 vCPU / 4 GB RAM**, HK region, Ubuntu 22.04+.
-- Root SSH access.
+## Layout (already deployed)
 
-## One-time setup (run as root on the SWAS box)
+- `/opt/wcag-score/` — the repo + built worker (`dist/worker.js`).
+- `/opt/wcag-score/.env` — SurrealDB + `BROWSERLESS_URL=ws://127.0.0.1:3000` + `BROWSERLESS_TOKEN` + `WORKER_*`.
+- `wcag-score-worker.service` — runs `node dist/worker.js` (systemd, `Restart=always`).
+- `browserless.service` — runs `ghcr.io/browserless/chromium` via Docker, bound to `127.0.0.1:3000`.
+
+## SSH in
 
 ```bash
-# Node 20 + pnpm + Docker
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt-get install -y nodejs docker.io
-npm install -g pnpm@10
-systemctl enable --now docker
-
-# Clone the repo
-mkdir -p /opt/wcag-score && cd /opt/wcag-score
-git clone https://github.com/simonplmak-cloud/wcag-score.git .
-pnpm install --frozen-lockfile
-pnpm worker:build   # -> dist/worker.js
+ssh -i ~/.ssh/swas_hk_ed25519 root@47.243.145.140
 ```
 
-## 1. Environment file — `/opt/wcag-score/.env`
+## Deploy (code changes)
 
 ```bash
-# SurrealDB (same as Fly/Vercel secrets)
-SURREAL_URL=...
-SURREAL_USERNAME=...
-SURREAL_PASSWORD=...
-SURREAL_NAMESPACE=wcag-score
-SURREAL_DATABASE=main
-
-# Browserless — co-located on this box
-BROWSERLESS_URL=ws://127.0.0.1:3000
-BROWSERLESS_TOKEN=<shared secret, must match browserless.service>
-
-# Worker tuning (optional)
-WORKER_POLL_INTERVAL_MS=1000
-WORKER_BATCH_SIZE=5
-WORKER_SCAN_CONCURRENCY=2
-WORKER_ASSESSMENT_CONCURRENCY=2
-WORKER_PAGE_TIMEOUT_MS=180000
+cd /opt/wcag-score && ./deploy.sh        # git pull + pnpm worker:build + systemctl restart
+# or manually:
+git pull && pnpm install --frozen-lockfile && pnpm worker:build && systemctl restart wcag-score-worker
 ```
 
-## 2. systemd units
+Note: the repo is private — `git pull` needs a credential. Use the GitHub PAT /
+`gh auth token` (a deploy key or a stored `.git-credentials` is cleaner long-term).
 
-Copy `wcag-score-worker.service` and `browserless.service` to
-`/etc/systemd/system/`, then:
+## Cut-over (done)
+
+The Fly worker + Fly Browserless apps are **stopped**. The SWAS worker is the only
+consumer of the SurrealDB queue. To revert, restart the Fly machines
+(`flyctl machines start … -a wcag-score-worker` / `-a wcag-score-browserless`).
+
+## Verify
 
 ```bash
-systemctl daemon-reload
-systemctl enable --now browserless
-systemctl enable --now wcag-score-worker
 systemctl status wcag-score-worker browserless
+journalctl -u wcag-score-worker -f        # worker logs
+docker logs browserless                   # browser logs
+curl "http://127.0.0.1:3000/pressure?token=<BROWSERLESS_TOKEN>"
 ```
 
-## 3. Deploy (code changes)
+## Provisioning gotchas (for creating/resizing another instance)
 
-Run `./deploy.sh` (or `systemctl restart wcag-score-worker` after rebuilding):
-
-```bash
-cd /opt/wcag-score && ./deploy.sh
-```
-
-## 4. Cut over
-
-The worker on SWAS polls the **same SurrealDB** as the Fly worker, so they'd
-race to claim assessments. Stop the Fly worker first:
-
-```bash
-flyctl machines stop 48ee716f3dd428 -a wcag-score-worker
-```
-
-(Do this only after the SWAS worker is confirmed healthy — see logs with
-`journalctl -u wcag-score-worker -f`.)
-
-## 5. Verify
-
-Run a scan and confirm it completes; the HK comparison should now show
-`dialogue-experience.hk` page loads at ~1.3s instead of ~4.6s.
+See the `alibaba-cloud` skill (`~/.config/opencode/skills/alibaba-cloud/SKILL.md`)
+for the CLI quirks: international account → `--region ap-southeast-1`, SWAS product
+is `swas-open` (install the plugin), kebab-case API names, `--biz-region-id`, and
+the `SYNC_PAYMENT_NOT_SUPPORT` = need cash balance (not just a card) gotcha.
