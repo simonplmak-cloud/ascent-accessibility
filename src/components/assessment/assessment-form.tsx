@@ -5,8 +5,7 @@ import { Report } from "./report";
 import { LogPanel } from "./log-panel";
 import type { AssessmentResult, LogEntry, StandardOption } from "./types";
 
-const MAX_POLLS = 300;
-const POLL_INTERVAL_MS = 3000;
+const STREAM_TIMEOUT_MS = 15 * 60 * 1000;
 
 export function AssessmentForm({
   standards,
@@ -44,28 +43,62 @@ export function AssessmentForm({
         return;
       }
 
-      await poll(createData.id, 0);
+      await stream(createData.id);
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   }
 
-  async function poll(id: string, attempt: number) {
-    if (attempt >= MAX_POLLS) {
+  async function stream(id: string) {
+    const timeout = setTimeout(() => {
       setError("The assessment is still running. Reload this page to check its status.");
       setLoading(false);
-      return;
-    }
-    const res = await fetch(`/api/v1/assessments/${id}`);
-    const data = await res.json();
-    if (data.log) setLog(data.log);
-    if (data.status === "completed" || data.status === "failed") {
-      setResult(data);
+    }, STREAM_TIMEOUT_MS);
+
+    try {
+      const res = await fetch(`/api/v1/assessments/${id}/stream`);
+      if (!res.ok || !res.body) {
+        throw new Error("stream unavailable");
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let newline: number;
+        while ((newline = buffer.indexOf("\n")) >= 0) {
+          const line = buffer.slice(0, newline).trim();
+          buffer = buffer.slice(newline + 1);
+          if (!line) continue;
+          let event: { type: string; entry?: LogEntry; status?: string; score?: number };
+          try {
+            event = JSON.parse(line);
+          } catch {
+            continue;
+          }
+          if (event.type === "log" && event.entry) {
+            setLog((prev) => [...prev, event.entry as LogEntry]);
+          } else if (event.type === "done") {
+            setResult(event as unknown as AssessmentResult);
+            setLoading(false);
+            return;
+          } else if (event.type === "notfound") {
+            setError("Assessment not found.");
+            setLoading(false);
+            return;
+          }
+          // "status" events are informational — the log already reflects progress
+        }
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
       setLoading(false);
-      return;
+    } finally {
+      clearTimeout(timeout);
     }
-    setTimeout(() => poll(id, attempt + 1), POLL_INTERVAL_MS);
   }
 
   return (

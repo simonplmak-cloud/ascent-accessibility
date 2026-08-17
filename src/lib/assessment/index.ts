@@ -187,6 +187,11 @@ export async function runAssessment(
 // recreate the browser so the hung operation is actually torn down.
 const PAGE_TIMEOUT_MS = Number(process.env.WORKER_PAGE_TIMEOUT_MS ?? 180_000);
 
+// The IBM Equal Access check adds 30–60s per page. It is off by default so a
+// page can be assessed in ~1–2s with axe-core alone; enable it explicitly if
+// the second-opinion comparison is wanted.
+const ENABLE_IBM_SCAN = process.env.ENABLE_IBM_SCAN === "true";
+
 class PageTimeoutError extends Error {
   constructor(label: string, ms: number) {
     super(`${label} timed out after ${ms}ms`);
@@ -236,7 +241,7 @@ async function scanAndConsolidate(
     });
     return flushChain;
   }
-  const flushTimer = setInterval(() => void flushLogs(), 3000);
+  const flushTimer = setInterval(() => void flushLogs(), 300);
 
   const workers = Array.from(
     { length: Math.min(concurrency, queue.length) },
@@ -289,27 +294,29 @@ async function scanAndConsolidate(
                   lighthouseFailed.set(audit.id, audit.weight);
                 }
 
-                try {
-                  logs.push({
-                    timestamp: new Date().toISOString(),
-                    level: "info",
-                    message: `running IBM Equal Access on ${url}`,
-                  });
-                  const ibm = await scanner.scanIbm(url);
-                  await attachIbmEvidence(ibm.findings, deps.evidenceStore, assessmentId, url);
-                  ibmFindings.push(...ibm.findings);
-                  ibmCounts.violation += ibm.counts.violation;
-                  ibmCounts.potentialViolation += ibm.counts.potentialViolation;
-                  ibmCounts.recommendation += ibm.counts.recommendation;
-                  ibmCounts.pass += ibm.counts.pass;
-                  ibmCounts.manual += ibm.counts.manual;
-                  logs.push({
-                    timestamp: new Date().toISOString(),
-                    level: "info",
-                    message: `IBM Equal Access: ${ibm.counts.violation} violation(s), ${ibm.counts.pass} pass(es) on ${url}`,
-                  });
-                } catch {
-                  /* IBM unavailable — continue with axe only */
+                if (ENABLE_IBM_SCAN) {
+                  try {
+                    logs.push({
+                      timestamp: new Date().toISOString(),
+                      level: "info",
+                      message: `running IBM Equal Access on ${url}`,
+                    });
+                    const ibm = await scanner.scanIbm(url);
+                    await attachIbmEvidence(ibm.findings, deps.evidenceStore, assessmentId, url);
+                    ibmFindings.push(...ibm.findings);
+                    ibmCounts.violation += ibm.counts.violation;
+                    ibmCounts.potentialViolation += ibm.counts.potentialViolation;
+                    ibmCounts.recommendation += ibm.counts.recommendation;
+                    ibmCounts.pass += ibm.counts.pass;
+                    ibmCounts.manual += ibm.counts.manual;
+                    logs.push({
+                      timestamp: new Date().toISOString(),
+                      level: "info",
+                      message: `IBM Equal Access: ${ibm.counts.violation} violation(s), ${ibm.counts.pass} pass(es) on ${url}`,
+                    });
+                  } catch {
+                    /* IBM unavailable — continue with axe only */
+                  }
                 }
               },
               PAGE_TIMEOUT_MS,

@@ -5,7 +5,7 @@ import { assessmentRepository, evidenceRepository } from "@/db/repository";
 import { createPageScanner } from "@/server/scanner-factory";
 import { logger } from "@/lib/observability/logger";
 
-const POLL_INTERVAL_MS = Number(process.env.WORKER_POLL_INTERVAL_MS ?? 5000);
+const POLL_INTERVAL_MS = Number(process.env.WORKER_POLL_INTERVAL_MS ?? 1000);
 const BATCH_SIZE = Number(process.env.WORKER_BATCH_SIZE ?? 5);
 const STALE_RUNNING_MINUTES = Number(process.env.WORKER_STALE_RUNNING_MINUTES ?? 10);
 const SCAN_CONCURRENCY = Number(process.env.WORKER_SCAN_CONCURRENCY ?? 5);
