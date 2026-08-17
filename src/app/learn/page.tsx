@@ -1,5 +1,8 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { MutedText } from "@/components/ui/text";
 
 export const metadata: Metadata = {
   title: "Learn",
@@ -32,12 +35,12 @@ const topics = [
 
 export default function LearnPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Learn</h1>
-      <p className="mt-4 font-mono text-terminal-muted">
+    <PageShell>
+      <PageHeading>Learn</PageHeading>
+      <MutedText className="mt-4">
         Plain-language guidance to understand WCAG 2.2, interpret your assessment results,
         and fix the issues you find.
-      </p>
+      </MutedText>
       <ul className="mt-8 space-y-4">
         {topics.map((topic) => (
           <li key={topic.href}>
@@ -55,6 +58,6 @@ export default function LearnPage() {
           </li>
         ))}
       </ul>
-    </div>
+    </PageShell>
   );
 }

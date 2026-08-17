@@ -1,3 +1,7 @@
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { MutedText } from "@/components/ui/text";
+
 const examples = [
   {
     title: "Button without an accessible name",
@@ -21,12 +25,12 @@ const examples = [
 
 export default function RemediationLearnPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Remediation examples</h1>
-      <p className="mt-4 font-mono text-terminal-muted">
+    <PageShell>
+      <PageHeading>Remediation examples</PageHeading>
+      <MutedText className="mt-4">
         Before/after fixes for common failures. Always verify the fix by keyboard and with a
         screen reader, not just visually.
-      </p>
+      </MutedText>
 
       <div className="mt-8 space-y-6">
         {examples.map((example) => (
@@ -40,6 +44,6 @@ export default function RemediationLearnPage() {
           </section>
         ))}
       </div>
-    </div>
+    </PageShell>
   );
 }

@@ -1,4 +1,6 @@
-import Link from "next/link";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { InlineLink } from "@/components/ui/inline-link";
 
 const readers = [
   { name: "NVDA", platform: "Windows · free", note: "the most widely used open-source screen reader" },
@@ -10,10 +12,8 @@ const readers = [
 
 export default function ScreenReadersPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">
-        Reading with a screen reader
-      </h1>
+    <PageShell>
+      <PageHeading>Reading with a screen reader</PageHeading>
       <p className="mt-4 font-mono leading-7 text-terminal-muted">
         A screen reader turns a page into speech or braille and lets a blind or low-vision
         person move around using a keyboard or touch gestures. The five most common ones are:
@@ -71,10 +71,8 @@ export default function ScreenReadersPage() {
       </p>
 
       <p className="mt-8 font-mono text-sm text-terminal-fg">
-        <Link href="/assess" className="underline underline-offset-4 hover:text-terminal-serious">
-          Try the assessment
-        </Link>
+        <InlineLink href="/assess">Try the assessment</InlineLink>
       </p>
-    </div>
+    </PageShell>
   );
 }

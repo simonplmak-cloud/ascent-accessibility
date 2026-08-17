@@ -1,9 +1,12 @@
-import Link from "next/link";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { MutedText } from "@/components/ui/text";
+import { InlineLink } from "@/components/ui/inline-link";
 
 export default function ResourcesPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Resources</h1>
+    <PageShell>
+      <PageHeading>Resources</PageHeading>
       <ul className="mt-6 list-disc space-y-3 pl-6 font-mono text-terminal-fg">
         <li>
           <a
@@ -36,17 +39,13 @@ export default function ResourcesPage() {
           </a>
         </li>
       </ul>
-      <p className="mt-6 font-mono text-terminal-muted">
+      <MutedText className="mt-6">
         Start with a self-assessment using our{" "}
-        <Link href="/assess" className="underline underline-offset-4 hover:text-terminal-fg">
-          accessibility tool
-        </Link>
+        <InlineLink href="/assess">accessibility tool</InlineLink>
         , or learn more in our{" "}
-        <Link href="/learn" className="underline underline-offset-4 hover:text-terminal-fg">
-          education section
-        </Link>
+        <InlineLink href="/learn">education section</InlineLink>
         .
-      </p>
-    </div>
+      </MutedText>
+    </PageShell>
   );
 }

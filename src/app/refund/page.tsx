@@ -1,5 +1,7 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { InlineLink } from "@/components/ui/inline-link";
 import { LegalNote } from "@/components/legal/legal-note";
 
 export const metadata: Metadata = {
@@ -8,46 +10,49 @@ export const metadata: Metadata = {
     "Cancelling or requesting a refund for an Ascent Accessibility subscription.",
 };
 
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <>
+      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">{title}</h2>
+      <p className="mt-3 font-mono leading-7 text-terminal-muted">{children}</p>
+    </>
+  );
+}
+
 export default function RefundPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Refund and cancellation</h1>
+    <PageShell>
+      <PageHeading>Refund and cancellation</PageHeading>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Cancelling</h2>
-      <p className="mt-3 font-mono leading-7 text-terminal-muted">
+      <Section title="Cancelling">
         You can cancel your subscription at any time from the{" "}
-        <Link href="/site" className="underline underline-offset-4 hover:text-terminal-fg">
-          billing portal
-        </Link>{" "}
+        <InlineLink href="/site">billing portal</InlineLink>{" "}
         (&ldquo;Manage subscription&rdquo;). Cancellation takes effect at the end of the
         current billing period — you keep whole-website and API access until then.
-      </p>
+      </Section>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Refunds</h2>
-      <p className="mt-3 font-mono leading-7 text-terminal-muted">
+      <Section title="Refunds">
         Subscriptions are billed in advance. If you cancel within 14 days of a charge and
         have not made substantial use of whole-website scans or the API, contact us for a
         refund of that charge. We assess refunds case-by-case and may decline requests after
         substantial use.
-      </p>
+      </Section>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Donations</h2>
-      <p className="mt-3 font-mono leading-7 text-terminal-muted">
+      <Section title="Donations">
         Donations are voluntary contributions to Ascent Partners Foundation and are
         generally non-refundable. If you believe a donation was made in error, contact us
         promptly and we will review it.
-      </p>
+      </Section>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Contact</h2>
-      <p className="mt-3 font-mono leading-7 text-terminal-muted">
+      <Section title="Contact">
         Refund requests:{" "}
         <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4 hover:text-terminal-fg">
           contact@ascent-partners.com
         </a>
         .
-      </p>
+      </Section>
 
       <LegalNote label="refund policy" />
-    </div>
+    </PageShell>
   );
 }

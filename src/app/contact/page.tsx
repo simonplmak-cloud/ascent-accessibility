@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { MutedText } from "@/components/ui/text";
+import { InlineLink } from "@/components/ui/inline-link";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -8,12 +12,12 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Contact us</h1>
-      <p className="mt-4 font-mono text-terminal-muted">
+    <PageShell>
+      <PageHeading>Contact us</PageHeading>
+      <MutedText className="mt-4">
         Want help improving your accessibility, or a deeper audit of your site? Get in
         touch.
-      </p>
+      </MutedText>
       <address className="mt-6 not-italic font-mono text-terminal-fg">
         <p>
           Email:{" "}
@@ -33,6 +37,6 @@ export default function ContactPage() {
           </a>
         </p>
       </address>
-    </div>
+    </PageShell>
   );
 }

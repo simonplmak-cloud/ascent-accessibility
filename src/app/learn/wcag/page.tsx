@@ -1,9 +1,11 @@
-import Link from "next/link";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { InlineLink } from "@/components/ui/inline-link";
 
 export default function WcagLearnPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">How WCAG 2.2 works</h1>
+    <PageShell>
+      <PageHeading>How WCAG 2.2 works</PageHeading>
 
       <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">
         The four principles (POUR)
@@ -38,11 +40,9 @@ export default function WcagLearnPage() {
         The level (A/AA/AAA) tells you how strict a criterion is. It is <em>not</em> the same
         as the impact of a specific violation. A Level A failure can be minor in practice,
         and a Level AA failure can block a user completely. See{" "}
-        <Link href="/learn/severity" className="underline underline-offset-4 hover:text-terminal-fg">
-          understanding severity
-        </Link>{" "}
+        <InlineLink href="/learn/severity">understanding severity</InlineLink>{" "}
         for how we grade impact.
       </p>
-    </div>
+    </PageShell>
   );
 }

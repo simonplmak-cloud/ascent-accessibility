@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { MutedText } from "@/components/ui/text";
+import { InlineLink } from "@/components/ui/inline-link";
 import {
   WCAG_SCS,
   principleName,
@@ -23,16 +26,14 @@ export default function StandardsPage() {
   const principles = [1, 2, 3, 4] as const;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">
-        WCAG 2.2 success criteria
-      </h1>
-      <p className="mt-4 font-mono leading-7 text-terminal-muted">
+    <PageShell width="4xl">
+      <PageHeading>WCAG 2.2 success criteria</PageHeading>
+      <MutedText className="mt-4">
         Every success criterion in WCAG 2.2, grouped by principle and conformance level.
         The number links to the W3C specification; &ldquo;Understanding&rdquo; links to the
         official explanatory document. This is the same catalogue the assessment tool
         scores against.
-      </p>
+      </MutedText>
 
       {principles.map((principle) => {
         const scs = WCAG_SCS.filter((sc) => sc.principle === principle);
@@ -86,11 +87,8 @@ export default function StandardsPage() {
           Web Content Accessibility Guidelines (WCAG) 2.2
         </a>{" "}
         by the W3C. Learn how the tool scores against these in{" "}
-        <Link href="/methodology" className="underline underline-offset-4 hover:text-terminal-fg">
-          our methodology
-        </Link>
-        .
+        <InlineLink href="/methodology">our methodology</InlineLink>.
       </p>
-    </div>
+    </PageShell>
   );
 }

@@ -1,3 +1,7 @@
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { MutedText } from "@/components/ui/text";
+
 const levels = [
   { level: "critical", color: "text-terminal-critical", description: "A core task or essential content is blocked, with no reasonable workaround." },
   { level: "serious", color: "text-terminal-serious", description: "A significant barrier or partial blockage — the task is possible but difficult." },
@@ -7,13 +11,13 @@ const levels = [
 
 export default function SeverityLearnPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Understanding severity</h1>
+    <PageShell>
+      <PageHeading>Understanding severity</PageHeading>
 
-      <p className="mt-4 font-mono text-terminal-muted">
+      <MutedText className="mt-4">
         Each finding is graded by its impact on real users. We use the same scale as the
         axe-core engine.
-      </p>
+      </MutedText>
 
       <ul className="mt-6 space-y-3">
         {levels.map((item) => (
@@ -41,6 +45,6 @@ export default function SeverityLearnPage() {
         critical −10, serious −5, moderate −2, minor −0.5, clamped at 0. A score of 90 or
         above is a pass, 70–89 is partial, and below 70 is a fail.
       </p>
-    </div>
+    </PageShell>
   );
 }

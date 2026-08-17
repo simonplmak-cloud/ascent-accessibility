@@ -1,5 +1,8 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
+import { MutedText } from "@/components/ui/text";
+import { InlineLink } from "@/components/ui/inline-link";
 
 export const metadata: Metadata = {
   title: "Accessibility statement",
@@ -9,12 +12,12 @@ export const metadata: Metadata = {
 
 export default function AccessibilityStatementPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Accessibility statement</h1>
-      <p className="mt-4 font-mono leading-7 text-terminal-muted">
+    <PageShell>
+      <PageHeading>Accessibility statement</PageHeading>
+      <MutedText className="mt-4">
         Ascent Partners Foundation is committed to making this site usable by everyone. We
         design it alongside screen-reader and keyboard users, not as an afterthought.
-      </p>
+      </MutedText>
 
       <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Our target</h2>
       <p className="mt-3 font-mono leading-7 text-terminal-muted">
@@ -43,10 +46,8 @@ export default function AccessibilityStatementPage() {
       </p>
 
       <p className="mt-8 font-mono text-sm text-terminal-fg">
-        <Link href="/contact" className="underline underline-offset-4 hover:text-terminal-serious">
-          Contact us
-        </Link>
+        <InlineLink href="/contact">Contact us</InlineLink>
       </p>
-    </div>
+    </PageShell>
   );
 }

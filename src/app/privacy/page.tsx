@@ -1,5 +1,6 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { PageShell } from "@/components/ui/page-shell";
+import { PageHeading } from "@/components/ui/page-heading";
 import { LegalNote } from "@/components/legal/legal-note";
 
 export const metadata: Metadata = {
@@ -10,8 +11,8 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Privacy policy</h1>
+    <PageShell>
+      <PageHeading>Privacy policy</PageHeading>
       <p className="mt-3 font-mono text-sm text-terminal-muted">Last updated: August 2026</p>
 
       <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">1. What we collect</h2>
@@ -53,6 +54,6 @@ export default function PrivacyPage() {
       </p>
 
       <LegalNote label="privacy policy" />
-    </div>
+    </PageShell>
   );
 }

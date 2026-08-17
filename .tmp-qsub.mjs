@@ -1,0 +1,12 @@
+import { Surreal } from "surrealdb";
+import fs from "node:fs";
+const lines = fs.readFileSync("/tmp/opencode/fly-surreal.txt", "utf8").trim().split("\n").map(l => l.trim());
+const [url, username, password, namespace, database] = lines;
+const db = new Surreal();
+await db.connect(url, { versionCheck: false });
+await db.signin({ namespace, username, password });
+await db.use({ namespace, database });
+const [subs] = await db.query("SELECT userId, status, stripeSubscriptionId, stripeCustomerId, updatedAt FROM subscription");
+const [users] = await db.query("SELECT email, name FROM user");
+console.log("SUBS:" + JSON.stringify(subs));
+console.log("USERS:" + JSON.stringify(users));
