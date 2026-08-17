@@ -2,7 +2,7 @@ import { runAssessment } from "@/lib/assessment";
 import { crawl } from "@/lib/crawler";
 import { getStandard } from "@/lib/standards/catalog";
 import { assessmentRepository, evidenceRepository } from "@/db/repository";
-import { createPageScanner } from "@/server/scanner-factory";
+import { createPageScanner, warmBrowserPool } from "@/server/scanner-factory";
 import { logger } from "@/lib/observability/logger";
 
 const POLL_INTERVAL_MS = Number(process.env.WORKER_POLL_INTERVAL_MS ?? 1000);
@@ -58,6 +58,8 @@ async function main() {
     { interval: POLL_INTERVAL_MS, concurrency: SCAN_CONCURRENCY, assessmentConcurrency: ASSESSMENT_CONCURRENCY },
     "assessment worker started",
   );
+  // Warm the browser pool in the background so the first scan isn't cold.
+  void warmBrowserPool();
   for (;;) {
     try {
       await recoverStaleRunning();

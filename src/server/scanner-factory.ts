@@ -82,6 +82,20 @@ function asScannerPage(page: Page): ScannerPage {
   };
 }
 
+// Pre-warm the browser pool at worker startup so the first scan after a restart
+// doesn't pay the cold Chromium launch cost.
+export async function warmBrowserPool(): Promise<void> {
+  await Promise.all(
+    Array.from({ length: MAX_POOL_SIZE }, async () => {
+      try {
+        idleBrowsers.push(await launchBrowser());
+      } catch {
+        /* ignore — the pool fills on demand */
+      }
+    }),
+  );
+}
+
 export async function createPageScanner(): Promise<PageScanner> {
   const browser = await acquireBrowser();
   const context = await browser.newContext();
