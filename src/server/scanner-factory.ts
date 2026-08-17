@@ -23,13 +23,15 @@ async function launchBrowser(): Promise<Browser> {
   }
   // Self-hosted Chromium (runs inside the container). These flags are required
   // for headless Chromium running as root in a Docker container. `--disable-gpu`
-  // cuts memory use and reduces OOM-kill crashes on heavy pages.
+  // and the V8 heap cap keep memory bounded so the box isn't OOM-killed (which
+  // would reboot the machine and force a cold start).
   return chromium.launch({
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
       "--disable-gpu",
+      "--js-flags=--max-old-space-size=512",
     ],
   });
 }
@@ -38,7 +40,7 @@ async function launchBrowser(): Promise<Browser> {
 // ~2-5s Chromium launch cost each time. Each scan still gets a fresh context
 // (cookies/storage don't leak between sites); the browser process lives on.
 const idleBrowsers: Browser[] = [];
-const MAX_POOL_SIZE = Number(process.env.WORKER_BROWSER_POOL_SIZE ?? 3);
+const MAX_POOL_SIZE = Number(process.env.WORKER_BROWSER_POOL_SIZE ?? 2);
 
 async function acquireBrowser(): Promise<Browser> {
   while (idleBrowsers.length > 0) {
