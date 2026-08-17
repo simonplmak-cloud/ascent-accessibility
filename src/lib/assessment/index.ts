@@ -53,10 +53,22 @@ export interface AssessmentRepositoryPort {
       partial: boolean;
     },
   ): Promise<void>;
+  finalize(
+    id: string,
+    input: {
+      score: number;
+      passBand: "pass" | "partial" | "fail";
+      pagesScanned: number;
+      partial: boolean;
+      findings: Finding[];
+      comparison: unknown;
+    },
+  ): Promise<void>;
   fail(id: string): Promise<void>;
   insertFindings(id: string, findings: Finding[]): Promise<void>;
   insertComparison(id: string, comparison: ComparisonData): Promise<void>;
   appendLog(id: string, entries: LogEntry[]): Promise<void>;
+  setLog(id: string, entries: LogEntry[]): Promise<void>;
 }
 
 export interface EvidenceStorePort {
@@ -108,10 +120,24 @@ export async function runAssessment(
 
   await deps.repository.setStatus(assessmentId, "running");
 
-  const log = (level: LogLevel, message: string): Promise<void> =>
-    deps.repository.appendLog(assessmentId, [
-      { timestamp: new Date().toISOString(), level, message },
-    ]);
+  // Buffered live log: entries accumulate in memory and are flushed (a full
+  // overwrite, no read) every 300ms — avoids a read+write round-trip per entry.
+  const logEntries: LogEntry[] = [];
+  let flushing = false;
+  const flushLogs = async (): Promise<void> => {
+    if (flushing || logEntries.length === 0) return;
+    flushing = true;
+    try {
+      await deps.repository.setLog(assessmentId, [...logEntries]);
+    } finally {
+      flushing = false;
+    }
+  };
+  const flushTimer = setInterval(() => void flushLogs(), 300);
+  const log = (level: LogLevel, message: string): Promise<void> => {
+    logEntries.push({ timestamp: new Date().toISOString(), level, message });
+    return Promise.resolve();
+  };
 
   try {
     const seed = new URL(assessment.url);
@@ -146,7 +172,7 @@ export async function runAssessment(
       partial = crawlResult.partial;
     }
 
-    const output = await scanAndConsolidate(urls, standard, deps, assessmentId);
+    const output = await scanAndConsolidate(urls, standard, deps, assessmentId, log);
 
     await log("info", "consolidating findings from axe-core, Lighthouse, and IBM Equal Access");
     await log(
@@ -174,19 +200,23 @@ export async function runAssessment(
     };
 
     await log("info", `storing findings and evidence (${output.findings.length} findings)`);
-    await deps.repository.insertFindings(assessmentId, output.findings);
-    await deps.repository.insertComparison(assessmentId, comparison);
-    await deps.repository.complete(assessmentId, {
+    await deps.repository.finalize(assessmentId, {
       score: score.score,
       passBand: score.passBand,
       pagesScanned,
       partial,
+      findings: output.findings,
+      comparison,
     });
     await log("info", "assessment complete");
+    await flushLogs();
   } catch (error) {
     // Transient error: re-throw so the worker can retry (retry-exhaustion
     // failure is handled by the worker route, not here).
     throw error;
+  } finally {
+    clearInterval(flushTimer);
+    await flushLogs();
   }
 }
 
@@ -229,6 +259,7 @@ async function scanAndConsolidate(
   standard: Standard,
   deps: AssessmentDeps,
   assessmentId: string,
+  log: (level: LogLevel, message: string) => void,
 ): Promise<ConsolidateOutput> {
   const axeFindings: ToolFinding[] = [];
   const ibmFindings: ToolFinding[] = [];
@@ -237,20 +268,8 @@ async function scanAndConsolidate(
   let features: PageFeatures = EMPTY_FEATURES;
   const lighthouseScores: number[] = [];
   const lighthouseFailed = new Map<string, number>();
-  const logs: LogEntry[] = [];
   const concurrency = Math.max(1, deps.concurrency ?? 4);
   const queue = [...urls];
-
-  let flushChain: Promise<void> = Promise.resolve();
-  function flushLogs(): Promise<void> {
-    flushChain = flushChain.then(async () => {
-      if (logs.length === 0) return;
-      const batch = logs.splice(0);
-      await deps.repository.appendLog(assessmentId, batch);
-    });
-    return flushChain;
-  }
-  const flushTimer = setInterval(() => void flushLogs(), 300);
 
   const workers = Array.from(
     { length: Math.min(concurrency, queue.length) },
@@ -262,17 +281,9 @@ async function scanAndConsolidate(
           try {
             await withTimeout(
               async () => {
-                logs.push({
-                  timestamp: new Date().toISOString(),
-                  level: "info",
-                  message: `scanning ${url} with axe-core`,
-                });
+                log("info", `scanning ${url} with axe-core`);
                 const scan = await scanner.scan(url, standard.axeTags);
-                logs.push({
-                  timestamp: new Date().toISOString(),
-                  level: "info",
-                  message: `axe-core: ${scan.violations.length} violation(s) on ${url}`,
-                });
+                log("info", `axe-core: ${scan.violations.length} violation(s) on ${url}`);
 
                 for (const pass of scan.passes) {
                   for (const sc of scsForTags(pass.tags)) passedScs.add(sc);
@@ -289,11 +300,7 @@ async function scanAndConsolidate(
                   assessmentId,
                 );
                 if (scan.violations.length > 0) {
-                  logs.push({
-                    timestamp: new Date().toISOString(),
-                    level: "info",
-                    message: `captured screenshot evidence for ${url}`,
-                  });
+                  log("info", `captured screenshot evidence for ${url}`);
                 }
                 axeFindings.push(...pageFindings);
 
@@ -305,11 +312,7 @@ async function scanAndConsolidate(
 
                 if (ENABLE_IBM_SCAN) {
                   try {
-                    logs.push({
-                      timestamp: new Date().toISOString(),
-                      level: "info",
-                      message: `running IBM Equal Access on ${url}`,
-                    });
+                    log("info", `running IBM Equal Access on ${url}`);
                     const ibm = await scanner.scanIbm(url);
                     await attachIbmEvidence(ibm.findings, deps.evidenceStore, assessmentId, url);
                     ibmFindings.push(...ibm.findings);
@@ -318,11 +321,7 @@ async function scanAndConsolidate(
                     ibmCounts.recommendation += ibm.counts.recommendation;
                     ibmCounts.pass += ibm.counts.pass;
                     ibmCounts.manual += ibm.counts.manual;
-                    logs.push({
-                      timestamp: new Date().toISOString(),
-                      level: "info",
-                      message: `IBM Equal Access: ${ibm.counts.violation} violation(s), ${ibm.counts.pass} pass(es) on ${url}`,
-                    });
+                    log("info", `IBM Equal Access: ${ibm.counts.violation} violation(s), ${ibm.counts.pass} pass(es) on ${url}`);
                   } catch {
                     /* IBM unavailable — continue with axe only */
                   }
@@ -343,11 +342,7 @@ async function scanAndConsolidate(
                 : error instanceof ScanFailedError
                   ? "failed to load"
                   : `errored (${error instanceof Error ? error.message : String(error)})`;
-            logs.push({
-              timestamp: new Date().toISOString(),
-              level: "warn",
-              message: `page scan ${reason} — restarting browser: ${url}`,
-            });
+            log("warn", `page scan ${reason} — restarting browser: ${url}`);
             try {
               await scanner.discard();
             } catch {
@@ -367,8 +362,6 @@ async function scanAndConsolidate(
   );
 
   await Promise.all(workers);
-  clearInterval(flushTimer);
-  await flushLogs();
 
   const findings = consolidateFindings(axeFindings, ibmFindings);
   const lighthouseScore =

@@ -28,6 +28,11 @@ function makeRepo(assessment: AssessmentRecord) {
       state.status = "completed";
       state.completed = input;
     },
+    async finalize(_id, input) {
+      state.status = "completed";
+      state.completed = input;
+      state.findings = input.findings;
+    },
     async fail() {
       state.status = "failed";
     },
@@ -36,6 +41,7 @@ function makeRepo(assessment: AssessmentRecord) {
     },
     async insertComparison() {},
     async appendLog() {},
+    async setLog() {},
   };
   return { repo, state };
 }

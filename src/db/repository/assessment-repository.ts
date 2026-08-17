@@ -85,6 +85,26 @@ export const assessmentRepository = {
     );
   },
 
+  // One UPDATE for the whole result — replaces insertFindings + insertComparison
+  // + complete (three round-trips) with a single write.
+  async finalize(
+    id: string,
+    input: CompleteAssessmentInput & { findings: Finding[]; comparison: unknown },
+  ): Promise<void> {
+    await query(
+      "UPDATE assessment SET status = 'completed', score = $score, passBand = $passBand, pagesScanned = $pagesScanned, partial = $partial, findings = $findings, comparison = $comparison, updatedAt = time::now() WHERE id = type::record($id)",
+      {
+        id,
+        score: input.score,
+        passBand: input.passBand,
+        pagesScanned: input.pagesScanned,
+        partial: input.partial,
+        findings: JSON.stringify(input.findings),
+        comparison: JSON.stringify(input.comparison),
+      },
+    );
+  },
+
   async fail(id: string): Promise<void> {
     await query(
       "UPDATE assessment SET status = 'failed', updatedAt = time::now() WHERE id = type::record($id)",
@@ -233,6 +253,16 @@ export const assessmentRepository = {
     await query(
       "UPDATE assessment SET log = $log, updatedAt = time::now() WHERE id = type::record($id)",
       { id, log: JSON.stringify(merged) },
+    );
+  },
+
+  // Overwrite the log in full (no read-modify-write). The worker keeps the full
+  // log in memory during a scan and flushes it periodically, so appendLog's
+  // read-then-append round-trip is unnecessary.
+  async setLog(id: string, entries: LogEntry[]): Promise<void> {
+    await query(
+      "UPDATE assessment SET log = $log, updatedAt = time::now() WHERE id = type::record($id)",
+      { id, log: JSON.stringify(entries.slice(-MAX_LOG_ENTRIES)) },
     );
   },
 };
