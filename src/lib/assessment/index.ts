@@ -116,34 +116,42 @@ export async function runAssessment(
   try {
     const seed = new URL(assessment.url);
     await log("info", `assessment started for ${assessment.url}`);
-    const crawlResult = await deps.crawlSite(seed, {
-      maxDepth: assessment.depth,
-      maxPages: assessment.pageCap,
-    });
 
-    for (const message of crawlResult.log ?? []) {
-      await log("info", message);
+    // Single-page scans (depth 0) skip the crawl entirely — there is nothing to
+    // discover, and the robots/sitemap/page fetches are pure overhead.
+    let urls: string[];
+    let pagesScanned: number;
+    let partial: boolean;
+    if (assessment.depth === 0) {
+      urls = [seed.href];
+      pagesScanned = 1;
+      partial = false;
+      await log("info", "single-page scan — scanning the URL directly");
+    } else {
+      const crawlResult = await deps.crawlSite(seed, {
+        maxDepth: assessment.depth,
+        maxPages: assessment.pageCap,
+      });
+      for (const message of crawlResult.log ?? []) {
+        await log("info", message);
+      }
+      if (crawlResult.urls.length === 0) {
+        await log("error", "no pages could be crawled");
+        await deps.repository.fail(assessmentId);
+        return;
+      }
+      await log("info", `crawl complete: ${crawlResult.urls.length} page(s) to scan`);
+      urls = crawlResult.urls;
+      pagesScanned = crawlResult.pagesScanned;
+      partial = crawlResult.partial;
     }
 
-    if (crawlResult.urls.length === 0) {
-      await log("error", "no pages could be crawled");
-      await deps.repository.fail(assessmentId);
-      return;
-    }
-
-    await log("info", `crawl complete: ${crawlResult.urls.length} page(s) to scan`);
-
-    const output = await scanAndConsolidate(
-      crawlResult.urls,
-      standard,
-      deps,
-      assessmentId,
-    );
+    const output = await scanAndConsolidate(urls, standard, deps, assessmentId);
 
     await log("info", "consolidating findings from axe-core, Lighthouse, and IBM Equal Access");
     await log(
       "info",
-      `scan complete: ${output.findings.length} consolidated finding(s) across ${crawlResult.urls.length} page(s)`,
+      `scan complete: ${output.findings.length} consolidated finding(s) across ${urls.length} page(s)`,
     );
 
     const score = computeScore(output.findings);
@@ -171,8 +179,8 @@ export async function runAssessment(
     await deps.repository.complete(assessmentId, {
       score: score.score,
       passBand: score.passBand,
-      pagesScanned: crawlResult.pagesScanned,
-      partial: crawlResult.partial,
+      pagesScanned,
+      partial,
     });
     await log("info", "assessment complete");
   } catch (error) {
