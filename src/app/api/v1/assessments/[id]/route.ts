@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { assessmentRepository } from "@/db/repository";
+import { assessmentIdSchema } from "@/server/validation";
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  if (!assessmentIdSchema.safeParse(id).success) {
+    return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
+  }
   const assessment = await assessmentRepository.findById(id);
   if (!assessment) {
     return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
@@ -38,6 +42,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  if (!assessmentIdSchema.safeParse(id).success) {
+    return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
+  }
   const deleted = await assessmentRepository.delete(id);
   if (!deleted) {
     return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });

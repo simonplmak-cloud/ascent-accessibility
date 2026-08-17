@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { assessmentRepository } from "@/db/repository";
 import { exportReport, type ReportComparison } from "@/lib/export";
-import { exportFormatSchema } from "@/server/validation";
+import { assessmentIdSchema, exportFormatSchema } from "@/server/validation";
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  if (!assessmentIdSchema.safeParse(id).success) {
+    return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
+  }
   const format = exportFormatSchema.safeParse(
     new URL(req.url).searchParams.get("format"),
   );
