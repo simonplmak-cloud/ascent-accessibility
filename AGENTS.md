@@ -46,13 +46,17 @@ Verification order: `check` → `test` → `build`. Run a single test with `npx 
 
 ### Deployment
 - **Vercel** auto-deploys from GitHub `main` (push = deploy). Custom domain `wcag-score.ascent.partners`.
-- **Worker + Browserless (SWAS HK)** — the worker and a co-located Browserless run on one Alibaba Cloud Simple Application Server (HK, IP `47.243.145.140`), managed by systemd. Deploy = SSH in, `git pull` + `pnpm worker:build` + `systemctl restart wcag-score-worker` (see `deploy/swas/deploy.sh`). Browserless is a Docker container (`browserless.service`) bound to `127.0.0.1:3000`. Env lives in `/opt/wcag-score/.env`.
+- **Worker + Browserless (SWAS HK)** — the worker and a co-located Browserless run on one Alibaba Cloud Simple Application Server (HK, IP `47.243.145.140`), managed by systemd. Code + units live in `deploy/swas/`:
+  - **Update** (already-provisioned box): SSH in, `git pull` + `pnpm worker:build` + `systemctl restart wcag-score-worker` (`deploy/swas/deploy.sh`).
+  - **Fresh box from GitHub**: `deploy/swas/provision.sh` (installs node/pnpm/docker, clones, builds, generates a `BROWSERLESS_TOKEN`, writes `.env`, installs both systemd units, pulls the image, starts). Only the secrets are inputs (env vars — never committed).
+  - **The worker `.env` must be UNQUOTED** — systemd `EnvironmentFile` doesn't strip quotes, and values must be free of `$`/spaces/`#` (this is why the live `/opt/wcag-score/.env` is unquoted). `browserless.service` sources the same `.env`, so the container token stays in sync with `BROWSERLESS_TOKEN`.
 - **SurrealDB cloud** namespace `wcag-score`, database `main`. Credentials are in SWAS `/opt/wcag-score/.env` + Vercel secrets — never commit. (`~/.env.opencode` still points at the stale `valuation` namespace.)
 - *(Deprecated but kept in repo: `fly.toml` and `browserless/fly.toml` for the old Fly worker + Fly Browserless — both Fly apps are stopped.)*
 
 ## Frontend conventions
 
 - **Terminal theme**: dark monospace from `tailwind.config.ts` (`terminal.*` colors, `mono` font) + `globals.css`. Never reintroduce light-theme `neutral-*` classes.
+- **Shared UI primitives in `src/components/ui/`** — `Button` (primary/outline/ghost) and `ButtonLink` (primary/outline), each with `sm/md/lg` sizes; plus `Card`, `PageShell`, `PageHeading`, `MutedText`, `InlineLink`. Every button, CTA, card, heading, and muted-text across the site is built on these — do **not** hand-roll `rounded bg-terminal-fg px-6 py-2 font-mono …` classes; use the primitive and pass one-off overrides via `className`.
 - **The site targets WCAG 2.2 AAA** (7:1 body contrast), stricter than the tool's AA default.
 - **Role-aware nav**: the header hides `History`/`Site scans`/`API access` from anonymous visitors (`API access` = subscribers only); the footer is content/legal links only.
 - **Report components** in `src/components/assessment/`; pure helpers (`sortFindings`, `severityCounts`, `impactColor`) in `severity.ts` are node-unit-testable — the JSX components are **not** unit-tested (no jsdom), covered by the E2E axe scan.
