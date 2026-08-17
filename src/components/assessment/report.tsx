@@ -23,14 +23,28 @@ export function Report({ result }: { result: AssessmentResult }) {
         <h2 id="report-heading" className="font-mono text-lg font-semibold text-terminal-fg">
           Assessment report
         </h2>
-        <button
-          type="button"
-          onClick={() => setLargePrint((value) => !value)}
-          aria-pressed={largePrint}
-          className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
-        >
-          {largePrint ? "Normal print" : "Large print"}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={`/api/v1/assessments/${result.id}/export?format=pdf`}
+            className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+          >
+            Download PDF
+          </a>
+          <a
+            href={`/api/v1/assessments/${result.id}/export?format=csv`}
+            className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+          >
+            Download CSV
+          </a>
+          <button
+            type="button"
+            onClick={() => setLargePrint((value) => !value)}
+            aria-pressed={largePrint}
+            className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+          >
+            {largePrint ? "Normal print" : "Large print"}
+          </button>
+        </div>
       </div>
 
       <p className="mt-4 font-mono leading-7 text-terminal-fg">
@@ -58,21 +72,6 @@ export function Report({ result }: { result: AssessmentResult }) {
         <ManualReviewChecklist conformance={result.comparison.conformance} />
       )}
       <ComparisonPanel result={result} />
-
-      <div className="mt-4 flex flex-wrap gap-3">
-        <a
-          href={`/api/v1/assessments/${result.id}/export?format=pdf`}
-          className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
-        >
-          Download PDF
-        </a>
-        <a
-          href={`/api/v1/assessments/${result.id}/export?format=csv`}
-          className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
-        >
-          Download CSV
-        </a>
-      </div>
 
       <div className="mt-8">
         <h2 className="font-mono text-base font-semibold text-terminal-fg">
