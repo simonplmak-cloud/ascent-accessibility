@@ -73,7 +73,8 @@ async function discardBrowser(browser: Browser): Promise<void> {
 
 function asScannerPage(page: Page): ScannerPage {
   return {
-    goto: (url, options) => page.goto(url, { timeout: options?.timeout }),
+    goto: (url, options) =>
+      page.goto(url, { timeout: options?.timeout, waitUntil: options?.waitUntil }),
     addInitScript: async (options) => {
       await page.addInitScript(options);
     },

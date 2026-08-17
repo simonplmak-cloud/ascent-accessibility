@@ -72,7 +72,13 @@ export interface ScreenshotOptions {
 }
 
 export interface ScannerPage {
-  goto(url: string, options?: { timeout?: number }): Promise<{ status(): number } | null>;
+  goto(
+    url: string,
+    options?: {
+      timeout?: number;
+      waitUntil?: "load" | "domcontentloaded" | "networkidle" | "commit";
+    },
+  ): Promise<{ status(): number } | null>;
   addInitScript(options: { path: string } | { content: string }): Promise<void>;
   evaluate(pageFn: (arg: string[]) => unknown, arg: string[]): Promise<unknown>;
   screenshot(options?: ScreenshotOptions): Promise<Buffer>;
@@ -130,7 +136,10 @@ export async function scanPage(
 ): Promise<ScanResult> {
   let response: { status(): number } | null;
   try {
-    response = await page.goto(url, { timeout: 45_000 });
+    // domcontentloaded is enough for axe-core (DOM + render-blocking CSS are
+    // ready); waiting for the full `load` event costs seconds on slow sites
+    // that stream images/scripts.
+    response = await page.goto(url, { timeout: 45_000, waitUntil: "domcontentloaded" });
   } catch (error) {
     throw new ScanFailedError(`Could not load ${url}: ${(error as Error).message}`);
   }
@@ -139,6 +148,9 @@ export async function scanPage(
   if (status !== undefined && (status < 200 || status >= 400)) {
     throw new ScanFailedError(`Could not load ${url}: HTTP ${status}`);
   }
+
+  // Give async scripts / lazy content a moment to render before axe runs.
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   const result = (await page.evaluate(async (runTags) => {
     const axe = (globalThis as { axe?: AxeRunner }).axe;

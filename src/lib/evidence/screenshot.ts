@@ -37,7 +37,8 @@ export async function captureEvidence(
   result: ScanResult,
   opts: { elementLimit?: number } = {},
 ): Promise<CapturedEvidence> {
-  const elementLimit = opts.elementLimit ?? 3;
+  const elementLimit =
+    opts.elementLimit ?? Number(process.env.EVIDENCE_ELEMENT_LIMIT ?? "1");
 
   const selectors = result.violations.flatMap((v) =>
     v.nodes.map((n) => n.target[0]).filter((t): t is string => Boolean(t)),
