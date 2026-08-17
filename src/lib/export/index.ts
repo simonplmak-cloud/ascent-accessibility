@@ -212,7 +212,7 @@ export function buildReportHtml(report: ReportData, logoUrl?: string): string {
     <div>
       ${escapeHtml(BRANDING.legalName)}<br>
       ${escapeHtml(BRANDING.charity)}<br>
-      ${escapeHtml(BRANDING.address)}
+      ${BRANDING.address.split("\n").map(escapeHtml).join("<br>")}
     </div>
     <div>
       <a href="${escapeHtml(BRANDING.websiteUrl)}">${escapeHtml(BRANDING.website)}</a><br>
