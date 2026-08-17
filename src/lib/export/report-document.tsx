@@ -8,8 +8,6 @@ import {
   StyleSheet,
   Svg,
   Path,
-  Rect,
-  G,
   Link,
   renderToBuffer,
 } from "@react-pdf/renderer";
@@ -42,7 +40,7 @@ const styles = StyleSheet.create({
   org: { fontSize: 18, fontWeight: 700, marginTop: 16 },
   sub: { fontSize: 10, color: "#59636e", marginTop: 4 },
   coverTitle: { fontSize: 22, fontWeight: 700, marginTop: 32, marginBottom: 20 },
-  coverMeta: { fontSize: 11, marginTop: 8, gap: 4 },
+  coverMeta: { fontSize: 11, marginTop: 8 },
   coverMetaRow: { fontSize: 11, marginTop: 2 },
   gauge: { marginTop: 28 },
   verdict: { fontSize: 14, fontWeight: 700, marginTop: 8 },
@@ -63,7 +61,7 @@ const styles = StyleSheet.create({
   // Severity tag
   sevTag: { fontSize: 8, color: "#ffffff", padding: 2, borderRadius: 2, fontWeight: 700, textTransform: "uppercase" },
   // Legend
-  legend: { flexDirection: "row", flexWrap: "wrap", marginTop: 6, gap: 10 },
+  legend: { flexDirection: "row", flexWrap: "wrap", marginTop: 6 },
   legendItem: { fontSize: 8, marginRight: 10 },
   // Footer
   pageNumber: { position: "absolute", bottom: 20, left: 0, right: 0, textAlign: "center", fontSize: 8, color: "#59636e" },
@@ -79,49 +77,46 @@ function ScoreGauge({ score, color }: { score: number; color: string }) {
   const d = "M 20 110 A 80 80 0 0 1 180 110";
 
   return (
-    <Svg width={260} height={150} viewBox="0 0 200 130">
-      <Path d={d} stroke="#e5e7eb" strokeWidth={16} fill="none" strokeLinecap="round" />
-      <Path
-        d={d}
-        stroke={color}
-        strokeWidth={16}
-        fill="none"
-        strokeLinecap="round"
-        strokeDasharray={`${dash.toFixed(1)} ${arcLength.toFixed(1)}`}
-      />
-      <Text x={100} y={95} fill={color} fontSize={40} fontWeight="bold" textAnchor="middle">
-        {clamped}
-      </Text>
-      <Text x={100} y={118} fill="#59636e" fontSize={11} textAnchor="middle">
-        out of 100
-      </Text>
-    </Svg>
+    <View style={{ alignItems: "center" }}>
+      <Svg width={240} height={120} viewBox="0 0 200 120">
+        <Path d={d} stroke="#e5e7eb" strokeWidth={16} fill="none" strokeLinecap="round" />
+        <Path
+          d={d}
+          stroke={color}
+          strokeWidth={16}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={`${dash.toFixed(1)} ${arcLength.toFixed(1)}`}
+        />
+      </Svg>
+      <Text style={{ fontSize: 28, fontWeight: 700, color }}>{clamped}</Text>
+      <Text style={{ fontSize: 10, color: "#59636e" }}>out of 100</Text>
+    </View>
   );
 }
 
 function SeverityBars({ counts }: { counts: SeverityCounts }) {
   const max = Math.max(1, ...SEVERITY_ORDER.map((s) => counts[s]));
-  const barMaxWidth = 240;
 
   return (
-    <Svg width={460} height={120} viewBox="0 0 460 120">
-      {SEVERITY_ORDER.map((sev, i) => {
+    <View>
+      {SEVERITY_ORDER.map((sev) => {
         const count = counts[sev];
-        const width = count === 0 ? 0 : Math.max(4, (count / max) * barMaxWidth);
-        const y = i * 30;
+        const pct = count === 0 ? 0 : Math.max(3, (count / max) * 100);
+        const color = severityColor(sev);
         return (
-          <G key={sev}>
-            <Text x={0} y={y + 12} fontSize={11} fill="#1f2328">
-              {sev}
-            </Text>
-            <Rect x={90} y={y} width={width} height={14} rx={3} fill={severityColor(sev)} />
-            <Text x={420} y={y + 12} fontSize={11} fill={severityColor(sev)} textAnchor="end" fontWeight="bold">
+          <View key={sev} style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+            <Text style={{ width: 70, fontSize: 9 }}>{sev}</Text>
+            <View style={{ flex: 1, height: 12, backgroundColor: "#e5e7eb", borderRadius: 3 }}>
+              <View style={{ width: `${pct}%`, height: 12, backgroundColor: color, borderRadius: 3 }} />
+            </View>
+            <Text style={{ width: 34, textAlign: "right", fontSize: 9, color, fontWeight: 700 }}>
               {String(count)}
             </Text>
-          </G>
+          </View>
         );
       })}
-    </Svg>
+    </View>
   );
 }
 
@@ -129,7 +124,6 @@ function ConformanceBar({ c }: { c: { passed: number; failed: number; notApplica
   const total = c.passed + c.failed + c.notApplicable + c.needsReview;
   if (total <= 0) return <Text style={styles.empty}>No conformance data.</Text>;
 
-  const width = 460;
   const segments = [
     { label: "Pass", value: c.passed, color: "#1a7f37" },
     { label: "Fail", value: c.failed, color: "#d1242f" },
@@ -137,19 +131,13 @@ function ConformanceBar({ c }: { c: { passed: number; failed: number; notApplica
     { label: "Needs review", value: c.needsReview, color: "#9a6700" },
   ].filter((s) => s.value > 0);
 
-  let x = 0;
-  const rects = segments.map((s, i) => {
-    const w = (s.value / total) * width;
-    const rect = <Rect key={i} x={x} y={0} width={w} height={22} fill={s.color} />;
-    x += w;
-    return rect;
-  });
-
   return (
     <View>
-      <Svg width={460} height={22} viewBox="0 0 460 22">
-        {rects}
-      </Svg>
+      <View style={{ flexDirection: "row", height: 18 }}>
+        {segments.map((s, i) => (
+          <View key={i} style={{ flex: s.value, backgroundColor: s.color }} />
+        ))}
+      </View>
       <View style={styles.legend}>
         {segments.map((s) => (
           <Text key={s.label} style={[styles.legendItem, { color: s.color === "#d0d7de" ? "#59636e" : s.color }]}>
