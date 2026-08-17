@@ -3,12 +3,14 @@ import { perceivableRules } from "./perceivable";
 import { operableRules } from "./operable";
 import { understandableRules } from "./understandable";
 import { robustRules } from "./robust";
+import { renderingRules } from "./rendering";
 
 export const ALL_RULES: Rule[] = [
   ...perceivableRules,
   ...operableRules,
   ...understandableRules,
   ...robustRules,
+  ...renderingRules,
 ];
 
 export function selectRules(tags: readonly string[]): Rule[] {
