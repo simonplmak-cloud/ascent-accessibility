@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SiteHeader, type HeaderAuthState } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { CookieBanner } from "@/components/cookie-banner";
 import { getSessionUser } from "@/server/auth";
 import { subscriptionRepository } from "@/db/repository";
 
@@ -32,19 +33,21 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/apf-logo.png",
-        width: 222,
-        height: 87,
-        alt: "Ascent Partners Foundation",
+        url: "/images/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Ascent Accessibility — Free WCAG assessments",
       },
     ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Ascent Accessibility — Free WCAG Assessment",
     description: SITE_DESCRIPTION,
+    images: ["/images/og-image.png"],
   },
   manifest: "/manifest.webmanifest",
+  alternates: { canonical: "/" },
 };
 
 export const viewport: Viewport = {
@@ -97,6 +100,7 @@ export default async function RootLayout({
       <SiteHeader authState={authState} />
       <main id="main">{children}</main>
       <SiteFooter />
+      <CookieBanner />
     </body>
   );
 

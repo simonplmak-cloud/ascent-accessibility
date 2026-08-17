@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   title: "WCAG 2.2 success criteria",
   description:
     "The complete WCAG 2.2 success criteria reference — every criterion grouped by principle and conformance level, with links to the specification and Understanding documents.",
+  alternates: { canonical: "/standards" },
 };
 
 const LEVEL_STYLE: Record<string, string> = {

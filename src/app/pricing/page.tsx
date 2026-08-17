@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Pricing",
   description:
     "Ascent Accessibility pricing — free single-page assessments and a US$28/month subscription for whole-website scans and API access.",
+  alternates: { canonical: "/pricing" },
 };
 
 const free = [

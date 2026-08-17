@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Accessibility statement",
   description:
     "Ascent Accessibility's commitment to accessibility — the standard we design to, and how to report a problem.",
+  alternates: { canonical: "/accessibility-statement" },
 };
 
 export default function AccessibilityStatementPage() {

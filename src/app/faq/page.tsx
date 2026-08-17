@@ -6,6 +6,7 @@ import { InlineLink } from "@/components/ui/inline-link";
 export const metadata: Metadata = {
   title: "Frequently asked questions",
   description: "Common questions about Ascent Accessibility — pricing, scanning, data, and limitations.",
+  alternates: { canonical: "/faq" },
 };
 
 const faqs = [

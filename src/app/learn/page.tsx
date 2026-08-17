@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Learn",
   description:
     "Guides on web accessibility, WCAG success criteria, and how to use screen readers.",
+  alternates: { canonical: "/learn" },
 };
 
 const topics = [

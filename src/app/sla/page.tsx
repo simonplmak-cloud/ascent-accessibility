@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Service commitment",
   description:
     "Ascent Accessibility's service commitment — availability target, support hours, and response expectations for subscribers.",
+  alternates: { canonical: "/sla" },
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

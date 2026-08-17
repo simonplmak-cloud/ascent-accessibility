@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Contact",
   description:
     "Contact Ascent Partners Foundation about the accessibility assessment tool.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {

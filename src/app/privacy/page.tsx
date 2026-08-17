@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Privacy policy",
   description:
     "How Ascent Accessibility handles personal data — what we collect, why, and how long we keep it.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Terms of service",
   description:
     "Terms of service for Ascent Accessibility, the free WCAG assessment tool by Ascent Partners Foundation.",
+  alternates: { canonical: "/terms" },
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

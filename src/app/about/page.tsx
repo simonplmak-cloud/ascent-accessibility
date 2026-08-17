@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "About",
   description:
     "Ascent Partners Foundation is a Hong Kong registered charity connecting leaders with the tools to turn sustainability into action.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

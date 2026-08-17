@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Methodology",
   description:
     "How Ascent Accessibility scores a website — crawling, axe-core scanning, IBM Equal Access comparison, and the scoring model.",
+  alternates: { canonical: "/methodology" },
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Refund and cancellation",
   description:
     "Cancelling or requesting a refund for an Ascent Accessibility subscription.",
+  alternates: { canonical: "/refund" },
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
