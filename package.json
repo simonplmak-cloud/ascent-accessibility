@@ -19,6 +19,7 @@
     "worker:build": "esbuild src/worker/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/worker.js --tsconfig=tsconfig.json --packages=external"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.6.1",
     "@stripe/react-stripe-js": "^6.8.1",
     "@stripe/stripe-js": "^9.13.0",
     "accessibility-checker": "^4.0.30",
