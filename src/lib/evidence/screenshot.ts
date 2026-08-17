@@ -44,7 +44,14 @@ export async function captureEvidence(
   );
   await highlightTargets(page, selectors);
 
-  const fullPage = await page.screenshot({ fullPage: true, type: "jpeg", quality: 70 });
+  // Full-page screenshots are slow on heavy pages (~35s) and can dominate a
+  // scan. Default to a fast viewport capture; opt into the complete-page
+  // evidence with EVIDENCE_FULLPAGE_SCREENSHOT=true.
+  const fullPage = await page.screenshot({
+    type: "jpeg",
+    quality: 70,
+    ...(process.env.EVIDENCE_FULLPAGE_SCREENSHOT === "true" ? { fullPage: true } : {}),
+  });
 
   const elements: ElementCapture[] = [];
   let count = 0;
