@@ -150,7 +150,7 @@ export async function scanPage(
   }
 
   // Give async scripts / lazy content a moment to render before axe runs.
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, Number(process.env.SCAN_SETTLE_MS ?? 300)));
 
   const result = (await page.evaluate(async (runTags) => {
     const axe = (globalThis as { axe?: AxeRunner }).axe;
