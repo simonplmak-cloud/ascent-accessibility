@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TextSizeControl } from "@/components/text-size-control";
+import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 
 export interface HeaderAuthState {
   signedIn: boolean;
@@ -86,28 +88,15 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
           </ul>
           <TextSizeControl />
           {authState.signedIn ? (
-            <button
-              type="button"
-              onClick={signOut}
-              disabled={signingOut}
-              className="rounded border border-terminal-border px-3 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
-            >
+            <Button variant="outline" onClick={signOut} disabled={signingOut}>
               {signingOut ? "Signing out…" : "Sign out"}
-            </button>
+            </Button>
           ) : (
-            <Link
-              href="/sign-in"
-              className="rounded border border-terminal-border px-3 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
-            >
+            <ButtonLink href="/sign-in" variant="outline">
               Sign in
-            </Link>
+            </ButtonLink>
           )}
-          <Link
-            href="/assess"
-            className="rounded bg-terminal-fg px-4 py-2 font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
-          >
-            Start assessment
-          </Link>
+          <ButtonLink href="/assess">Start assessment</ButtonLink>
         </nav>
 
         <button
@@ -163,35 +152,27 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
             </li>
             <li className="p-4">
               {authState.signedIn ? (
-                <button
-                  type="button"
+                <Button
+                  variant="outline"
+                  className="block w-full text-center"
                   onClick={() => {
                     setOpen(false);
                     void signOut();
                   }}
                   disabled={signingOut}
-                  className="block w-full rounded border border-terminal-border px-4 py-2 text-center font-mono text-sm font-medium text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
                 >
                   {signingOut ? "Signing out…" : "Sign out"}
-                </button>
+                </Button>
               ) : (
-                <Link
-                  href="/sign-in"
-                  onClick={() => setOpen(false)}
-                  className="block rounded border border-terminal-border px-4 py-2 text-center font-mono text-sm font-medium text-terminal-fg hover:bg-terminal-surface"
-                >
+                <ButtonLink href="/sign-in" variant="outline" className="block text-center" onClick={() => setOpen(false)}>
                   Sign in
-                </Link>
+                </ButtonLink>
               )}
             </li>
             <li className="p-4">
-              <Link
-                href="/assess"
-                onClick={() => setOpen(false)}
-                className="block rounded bg-terminal-fg px-4 py-2 text-center font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
-              >
+              <ButtonLink href="/assess" className="block text-center" onClick={() => setOpen(false)}>
                 Start assessment
-              </Link>
+              </ButtonLink>
             </li>
           </ul>
         </nav>

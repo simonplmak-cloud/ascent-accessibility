@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Report } from "./report";
 import { LogPanel } from "./log-panel";
+import { Button } from "@/components/ui/button";
 import type { AssessmentResult, LogEntry, StandardOption } from "./types";
 
 const STREAM_TIMEOUT_MS = 15 * 60 * 1000;
@@ -172,13 +173,9 @@ export function AssessmentForm({
             </p>
           )}
         </fieldset>
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded bg-terminal-fg px-6 py-2 font-mono text-terminal-bg hover:bg-terminal-serious disabled:opacity-50"
-        >
+        <Button type="submit" disabled={loading} className="self-start">
           {loading ? "Assessing…" : "Run assessment"}
-        </button>
+        </Button>
       </form>
 
       {error && (

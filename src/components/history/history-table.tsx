@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   filterByStatus,
   sortHistory,
@@ -148,24 +149,23 @@ export function HistoryTable({ items, busyIds, onReRun, onDelete }: HistoryTable
                       >
                         Open
                       </Link>
-                      <button
-                        type="button"
+                      <Button
+                        variant="ghost"
                         onClick={() => onReRun(item)}
                         disabled={busy}
                         aria-label={`Re-run assessment for ${item.url}`}
-                        className="text-terminal-fg underline-offset-4 hover:underline disabled:opacity-50"
                       >
                         Re-run
-                      </button>
-                      <button
-                        type="button"
+                      </Button>
+                      <Button
+                        variant="ghost"
                         onClick={() => onDelete(item)}
                         disabled={busy}
                         aria-label={`Delete assessment for ${item.url}`}
-                        className="text-terminal-critical underline-offset-4 hover:underline disabled:opacity-50"
+                        className="text-terminal-critical"
                       >
                         Delete
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>

@@ -9,6 +9,8 @@ import { FindingEvidence } from "./finding-evidence";
 import { Methodology } from "./methodology";
 import { LogPanel } from "./log-panel";
 import { buildReportSummary } from "@/lib/report-summary";
+import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 import type { AssessmentResult } from "./types";
 
 export function Report({ result }: { result: AssessmentResult }) {
@@ -24,26 +26,20 @@ export function Report({ result }: { result: AssessmentResult }) {
           Assessment report
         </h2>
         <div className="flex flex-wrap items-center gap-2">
-          <a
-            href={`/api/v1/assessments/${result.id}/export?format=pdf`}
-            className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
-          >
+          <ButtonLink href={`/api/v1/assessments/${result.id}/export?format=pdf`} variant="outline" size="sm">
             Download PDF
-          </a>
-          <a
-            href={`/api/v1/assessments/${result.id}/export?format=csv`}
-            className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
-          >
+          </ButtonLink>
+          <ButtonLink href={`/api/v1/assessments/${result.id}/export?format=csv`} variant="outline" size="sm">
             Download CSV
-          </a>
-          <button
-            type="button"
+          </ButtonLink>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setLargePrint((value) => !value)}
             aria-pressed={largePrint}
-            className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
           >
             {largePrint ? "Normal print" : "Large print"}
-          </button>
+          </Button>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import type { Finding } from "./types";
 import { severityCounts } from "./severity";
+import { Card } from "@/components/ui/card";
 
 export function ScoreSummary({
   score,
@@ -20,7 +21,7 @@ export function ScoreSummary({
         : "text-terminal-fail";
 
   return (
-    <div className="flex flex-col gap-3 rounded border border-terminal-border bg-terminal-surface p-4 sm:flex-row sm:items-center sm:gap-8">
+    <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-8">
       <div>
         <p className="font-mono text-xs uppercase text-terminal-muted">Score</p>
         <p className="font-mono text-5xl font-bold text-terminal-fg">
@@ -38,6 +39,6 @@ export function ScoreSummary({
         <span className="text-terminal-moderate">moderate {counts.moderate}</span>
         <span className="text-terminal-muted">minor {counts.minor}</span>
       </div>
-    </div>
+    </Card>
   );
 }

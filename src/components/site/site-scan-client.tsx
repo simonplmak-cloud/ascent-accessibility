@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AssessmentForm } from "@/components/assessment/assessment-form";
 import { EmbeddedCheckoutForm } from "@/components/checkout/embedded-checkout";
+import { Button } from "@/components/ui/button";
 import type { StandardOption } from "@/components/assessment/types";
 
 interface SessionUser {
@@ -146,20 +147,10 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
               Welcome, {user.email}. Whole-website scans need an active subscription.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={subscribe}
-                className="rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
-              >
-                Subscribe — US$28/month
-              </button>
-              <button
-                type="button"
-                onClick={signOut}
-                className="rounded border border-terminal-border px-4 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
-              >
+              <Button onClick={subscribe}>Subscribe — US$28/month</Button>
+              <Button variant="outline" onClick={signOut}>
                 Sign out
-              </button>
+              </Button>
             </div>
             {error && (
               <p role="alert" className="mt-3 font-mono text-sm text-terminal-critical">
@@ -175,20 +166,12 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
               Subscription active — whole-website scans unlocked.
             </p>
             <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={manageSubscription}
-                className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
-              >
+              <Button variant="outline" size="sm" onClick={manageSubscription}>
                 Manage subscription
-              </button>
-              <button
-                type="button"
-                onClick={signOut}
-                className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
-              >
+              </Button>
+              <Button variant="outline" size="sm" onClick={signOut}>
                 Sign out
-              </button>
+              </Button>
             </div>
           </div>
           {error && (

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export interface ApiKeySummary {
   id: string;
@@ -116,12 +117,9 @@ export function ApiKeysClient({ keys }: { keys: ApiKeySummary[] }) {
             className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-mono text-terminal-fg"
           />
         </div>
-        <button
-          type="submit"
-          className="rounded bg-terminal-fg px-6 py-2 font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
-        >
+        <Button type="submit" className="self-start">
           Create key
-        </button>
+        </Button>
       </form>
 
       <div className="mt-8">
@@ -153,15 +151,15 @@ export function ApiKeysClient({ keys }: { keys: ApiKeySummary[] }) {
                     </td>
                     <td className="px-3 py-2">
                       {key.status === "active" && (
-                        <button
-                          type="button"
+                        <Button
+                          variant="ghost"
                           onClick={() => revoke(key.id)}
                           disabled={busyIds.has(key.id)}
                           aria-label={`Revoke API key ${key.name}`}
-                          className="text-terminal-critical underline-offset-4 hover:underline disabled:opacity-50"
+                          className="text-terminal-critical"
                         >
                           Revoke
-                        </button>
+                        </Button>
                       )}
                     </td>
                   </tr>
