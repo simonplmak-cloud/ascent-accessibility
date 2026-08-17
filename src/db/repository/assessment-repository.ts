@@ -1,4 +1,4 @@
-import { getDb, query } from "../index";
+import { getDb, query, withDbRetry } from "../index";
 import type { Assessment, Finding, LogEntry, NewAssessment, PassBand } from "../schema";
 
 export interface CompleteAssessmentInput {
@@ -185,22 +185,24 @@ export const assessmentRepository = {
   // LIMIT subquery is not honored, so the LIMIT is evaluated via LET first).
   // Concurrent workers cannot claim the same assessment.
   async claimNext(limit = 5): Promise<AssessmentSummary[]> {
-    const db = await getDb();
-    const results = (await db
-      .query(
-        `BEGIN TRANSACTION;
-         LET $ids = (SELECT VALUE id FROM assessment WHERE status = 'queued' ORDER BY createdAt ASC LIMIT $limit);
-         UPDATE assessment SET status = 'running', updatedAt = time::now() WHERE id IN $ids RETURN AFTER;
-         COMMIT TRANSACTION;`,
-        { limit },
-      )
-      .json()
-      .collect()) as unknown[];
+    return withDbRetry(async () => {
+      const db = await getDb();
+      const results = (await db
+        .query(
+          `BEGIN TRANSACTION;
+           LET $ids = (SELECT VALUE id FROM assessment WHERE status = 'queued' ORDER BY createdAt ASC LIMIT $limit);
+           UPDATE assessment SET status = 'running', updatedAt = time::now() WHERE id IN $ids RETURN AFTER;
+           COMMIT TRANSACTION;`,
+          { limit },
+        )
+        .json()
+        .collect()) as unknown[];
 
-    const claimed = results.find(
-      (r): r is Array<Record<string, unknown>> => Array.isArray(r) && r.length > 0,
-    );
-    return (claimed ?? []).map(mapSummary);
+      const claimed = results.find(
+        (r): r is Array<Record<string, unknown>> => Array.isArray(r) && r.length > 0,
+      );
+      return (claimed ?? []).map(mapSummary);
+    });
   },
 
   async countQueued(): Promise<number> {

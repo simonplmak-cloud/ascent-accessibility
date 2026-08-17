@@ -54,11 +54,50 @@ export async function getDb(): Promise<Surreal> {
   return globalThis.__surreal;
 }
 
+// Close and forget the cached connection so the next getDb() re-signs in.
+export async function resetDb(): Promise<void> {
+  const db = globalThis.__surreal;
+  globalThis.__surreal = undefined;
+  if (db) {
+    try {
+      await db.close();
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+// SurrealDB namespace signin tokens expire. The long-lived worker connection
+// then silently falls back to "anonymous" and every query fails with
+// "Anonymous access not allowed", stalling the queue. Detect that and
+// re-authenticate once before giving up.
+function isAuthError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const message = String((error as { message?: string }).message ?? "");
+  return /anonymous access not allowed|not enough permissions|authentication failed|unauthorized/i.test(
+    message,
+  );
+}
+
+export async function withDbRetry<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (isAuthError(error)) {
+      await resetDb();
+      return await operation();
+    }
+    throw error;
+  }
+}
+
 export async function query<T>(
   statement: string,
   bindings?: Record<string, unknown>,
 ): Promise<T[]> {
-  const db = await getDb();
-  const results = await db.query(statement, bindings).json().collect();
-  return ((results as unknown[])[0] as T[] | undefined) ?? [];
+  return withDbRetry(async () => {
+    const db = await getDb();
+    const results = await db.query(statement, bindings).json().collect();
+    return ((results as unknown[])[0] as T[] | undefined) ?? [];
+  });
 }
