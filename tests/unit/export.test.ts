@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildCsv,
-  buildReportHtml,
-  exportReport,
-  type ReportData,
-} from "@/lib/export";
+import { buildReportHtml, exportReport, type ReportData } from "@/lib/export";
 
 const report: ReportData = {
   url: "https://example.com/",
@@ -20,6 +15,8 @@ const report: ReportData = {
       pageUrl: "https://example.com/about",
       elementCount: 3,
       recommendation: "Increase text contrast to at least 4.5:1.",
+      wcagSc: ["1.4.3"],
+      scTitle: "Contrast (Minimum)",
     },
     {
       ruleId: "image-alt",
@@ -28,51 +25,62 @@ const report: ReportData = {
       pageUrl: "https://example.com/",
       elementCount: 1,
       recommendation: 'Add alt="..." to images.',
+      wcagSc: ["1.1.1"],
+      scTitle: "Non-text Content",
     },
   ],
 };
 
-describe("buildCsv (AC-11)", () => {
-  it("emits a header and one row per finding", () => {
-    const csv = buildCsv(report);
-    const lines = csv.trim().split("\n");
-    expect(lines[0]).toBe(
-      "ruleId,impact,wcagSc,scTitle,sources,confidence,pageUrl,elementCount,description,recommendation",
-    );
-    expect(lines).toHaveLength(3);
-    expect(lines[1]).toContain("color-contrast");
-  });
-
-  it("escapes commas and quotes in field values", () => {
-    const csv = buildCsv({
-      ...report,
-      findings: [
-        {
-          ruleId: "image-alt",
-          impact: "moderate",
-          description: 'Has a "comma, here"',
-          pageUrl: "https://example.com/",
-          elementCount: 1,
-          recommendation: "Fix it.",
-        },
-      ],
-    });
-    expect(csv).toContain('"Has a ""comma, here"""');
-  });
-
-  it("emits only the header when there are no findings", () => {
-    const csv = buildCsv({ ...report, findings: [] });
-    expect(csv.trim().split("\n")).toHaveLength(1);
-  });
-});
-
-describe("buildReportHtml (AC-10)", () => {
-  it("includes the score, pass band, and finding details", () => {
+describe("buildReportHtml (professional report)", () => {
+  it("includes the cover, table of contents, and all core sections", () => {
     const html = buildReportHtml(report);
-    expect(html).toContain("87 / 100");
-    expect(html).toContain("partial");
+    expect(html).toContain("Web Accessibility Assessment Report");
+    expect(html).toContain("Table of contents");
+    expect(html).toContain("Executive summary");
+    expect(html).toContain("Methodology");
+    expect(html).toContain("WCAG conformance");
+    expect(html).toContain("Severity distribution");
+    expect(html).toContain("Findings");
+    expect(html).toContain("Remediation recommendations");
+  });
+
+  it("shows the score and the result verdict", () => {
+    const html = buildReportHtml(report);
+    expect(html).toContain("score 87 / 100");
+    expect(html).toContain("Result: partial");
+  });
+
+  it("groups findings by severity with WCAG SC and recommendation", () => {
+    const html = buildReportHtml(report);
+    expect(html).toContain("Serious (1)");
+    expect(html).toContain("Moderate (1)");
     expect(html).toContain("color-contrast");
-    expect(html).toContain("https://example.com/about");
+    expect(html).toContain("1.4.3");
+    expect(html).toContain("Increase text contrast to at least 4.5:1.");
+  });
+
+  it("includes an affected-success-criteria table from findings", () => {
+    const html = buildReportHtml({ ...report, comparison: { conformance: conformanceFixture() } });
+    expect(html).toContain("Affected success criteria");
+    expect(html).toContain("1.4.3");
+    expect(html).toContain("Contrast (Minimum)");
+  });
+
+  it("includes the cross-tool comparison section only when comparison data exists", () => {
+    expect(buildReportHtml(report)).not.toContain("Cross-tool comparison");
+
+    const html = buildReportHtml({
+      ...report,
+      comparison: { lighthouse: { score: 79 }, conformance: conformanceFixture() },
+    });
+    expect(html).toContain("Cross-tool comparison");
+    expect(html).toContain("Lighthouse (comparable)");
+  });
+
+  it("renders empty-findings state without error", () => {
+    const html = buildReportHtml({ ...report, findings: [] });
+    expect(html).toContain("No automated findings detected");
+    expect(html).not.toContain("Serious (");
   });
 
   it("escapes HTML in user-controlled fields", () => {
@@ -95,18 +103,12 @@ describe("buildReportHtml (AC-10)", () => {
 });
 
 describe("exportReport", () => {
-  it("returns CSV with the right content type (AC-11)", async () => {
-    const result = await exportReport(report, "csv");
-    expect(result.contentType).toBe("text/csv");
-    expect(result.body.toString()).toContain("ruleId,impact");
-  });
-
-  it("returns PDF bytes using the injected renderer (AC-10)", async () => {
+  it("returns PDF bytes using the injected renderer", async () => {
     const result = await exportReport(report, "pdf", {
       render: async (html) => Buffer.from(html),
     });
     expect(result.contentType).toBe("application/pdf");
-    expect(result.body.toString()).toContain("87 / 100");
+    expect(result.body.toString()).toContain("Web Accessibility Assessment Report");
   });
 
   it("rejects an unsupported format", async () => {
@@ -115,3 +117,15 @@ describe("exportReport", () => {
     );
   });
 });
+
+function conformanceFixture() {
+  return {
+    total: 50,
+    passed: 40,
+    failed: 3,
+    notApplicable: 5,
+    needsReview: 2,
+    coverage: 80,
+    levelAttained: "AA",
+  };
+}

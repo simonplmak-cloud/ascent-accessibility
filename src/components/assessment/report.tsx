@@ -29,9 +29,6 @@ export function Report({ result }: { result: AssessmentResult }) {
           <ButtonLink href={`/api/v1/assessments/${result.id}/export?format=pdf`} variant="outline" size="sm">
             Download PDF
           </ButtonLink>
-          <ButtonLink href={`/api/v1/assessments/${result.id}/export?format=csv`} variant="outline" size="sm">
-            Download CSV
-          </ButtonLink>
           <Button
             variant="outline"
             size="sm"

@@ -13,4 +13,4 @@ export const apiKeyCreateSchema = z.object({
   rateLimit: z.number().int().min(1).max(1000).optional(),
 });
 
-export const exportFormatSchema = z.enum(["pdf", "csv"]);
+export const exportFormatSchema = z.enum(["pdf"]);
