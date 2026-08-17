@@ -34,10 +34,20 @@ export const subscriptionRepository = {
     stripeCustomerId: string,
     stripeSubscriptionId: string,
   ): Promise<void> {
-    await query(
-      "UPSERT subscription CONTENT { userId: $userId, status: 'active', stripeCustomerId: $stripeCustomerId, stripeSubscriptionId: $stripeSubscriptionId, updatedAt: time::now() }",
-      { userId, stripeCustomerId, stripeSubscriptionId },
-    );
+    // Upsert by userId (the unique key) — update the existing row rather than
+    // creating a duplicate. The `subscription_user_idx` unique index backs this.
+    const existing = await this.findByUser(userId);
+    if (existing) {
+      await query(
+        "UPDATE type::record($id) SET status = 'active', stripeCustomerId = $stripeCustomerId, stripeSubscriptionId = $stripeSubscriptionId, updatedAt = time::now()",
+        { id: existing.id, stripeCustomerId, stripeSubscriptionId },
+      );
+    } else {
+      await query(
+        "CREATE subscription SET userId = $userId, status = 'active', stripeCustomerId = $stripeCustomerId, stripeSubscriptionId = $stripeSubscriptionId, updatedAt = time::now()",
+        { userId, stripeCustomerId, stripeSubscriptionId },
+      );
+    }
   },
 
   async deactivateByStripeSub(stripeSubscriptionId: string): Promise<void> {
