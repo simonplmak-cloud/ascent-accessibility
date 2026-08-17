@@ -7,13 +7,16 @@ import {
   PaymentElement,
   useCheckoutElements,
 } from "@stripe/react-stripe-js/checkout";
+import { useTheme } from "@/lib/use-theme";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "");
 
-// Dark-mode appearance matching the site's terminal theme (tailwind terminal.*).
-// The `night` theme gives a dark base; the variables pin each surface to the
-// exact palette so text/contrast stay WCAG-compliant on the dark background.
-const appearance: Appearance = {
+const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+
+// Dark appearance matching the terminal theme. `night` gives a dark base; the
+// variables pin each surface to the exact palette so text/contrast stay
+// WCAG-compliant on the dark background.
+const darkAppearance: Appearance = {
   theme: "night",
   variables: {
     colorPrimary: "#3fb950",
@@ -27,7 +30,27 @@ const appearance: Appearance = {
     buttonColorText: "#0b0f14",
     accessibleColorOnColorPrimary: "#0b0f14",
     inputColorBorder: "#2a3542",
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+    fontFamily: MONO,
+    borderRadius: "4px",
+  },
+};
+
+// Light appearance matching the site's light theme (GitHub Primer values, AAA).
+const lightAppearance: Appearance = {
+  theme: "stripe",
+  variables: {
+    colorPrimary: "#1a7f37",
+    colorBackground: "#ffffff",
+    colorText: "#1f2328",
+    colorTextSecondary: "#59636e",
+    colorDanger: "#d1242f",
+    colorSuccess: "#1a7f37",
+    colorWarning: "#bc4c00",
+    buttonColorBackground: "#1a7f37",
+    buttonColorText: "#ffffff",
+    accessibleColorOnColorPrimary: "#ffffff",
+    inputColorBorder: "#d0d7de",
+    fontFamily: MONO,
     borderRadius: "4px",
   },
 };
@@ -87,8 +110,12 @@ export function EmbeddedCheckoutForm({
   clientSecret: string;
   submitLabel: string;
 }) {
+  const { theme } = useTheme();
+  const appearance = theme === "dark" ? darkAppearance : lightAppearance;
+
   return (
     <CheckoutElementsProvider
+      key={theme}
       stripe={stripePromise}
       options={{ clientSecret, elementsOptions: { appearance } }}
     >

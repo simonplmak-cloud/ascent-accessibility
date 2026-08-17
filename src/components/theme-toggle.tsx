@@ -1,31 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { readTheme, writeTheme, type Theme } from "@/lib/theme";
+import { useTheme } from "@/lib/use-theme";
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("dark");
-
-  useEffect(() => {
-    try {
-      setTheme(readTheme(window.localStorage));
-    } catch {
-      setTheme("dark");
-    }
-  }, []);
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark";
 
   function toggle() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    document.documentElement.classList.toggle("dark", next === "dark");
-    try {
-      writeTheme(window.localStorage, next);
-    } catch {
-      // Preference just won't persist; the toggle still works for this session.
-    }
+    setTheme(isDark ? "light" : "dark");
   }
-
-  const isDark = theme === "dark";
 
   return (
     <button
