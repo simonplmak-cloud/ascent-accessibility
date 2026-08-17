@@ -12,6 +12,7 @@ export interface PageScanner {
   captureEvidence: (result: ScanResult) => Promise<CapturedEvidence>;
   scanIbm: (url: string) => Promise<IbmScanOutput>;
   close: () => Promise<void>;
+  discard: () => Promise<void>;
 }
 
 async function launchBrowser(): Promise<Browser> {
@@ -33,6 +34,41 @@ async function launchBrowser(): Promise<Browser> {
   });
 }
 
+// A pool of idle browsers reused across assessments, so a scan doesn't pay the
+// ~2-5s Chromium launch cost each time. Each scan still gets a fresh context
+// (cookies/storage don't leak between sites); the browser process lives on.
+const idleBrowsers: Browser[] = [];
+const MAX_POOL_SIZE = Number(process.env.WORKER_BROWSER_POOL_SIZE ?? 3);
+
+async function acquireBrowser(): Promise<Browser> {
+  while (idleBrowsers.length > 0) {
+    const browser = idleBrowsers.pop()!;
+    if (browser.isConnected()) return browser;
+    try {
+      await browser.close();
+    } catch {
+      /* ignore */
+    }
+  }
+  return launchBrowser();
+}
+
+function releaseBrowser(browser: Browser): void {
+  if (idleBrowsers.length < MAX_POOL_SIZE && browser.isConnected()) {
+    idleBrowsers.push(browser);
+  } else {
+    void browser.close().catch(() => {});
+  }
+}
+
+async function discardBrowser(browser: Browser): Promise<void> {
+  try {
+    await browser.close();
+  } catch {
+    /* ignore */
+  }
+}
+
 function asScannerPage(page: Page): ScannerPage {
   return {
     goto: (url, options) => page.goto(url, { timeout: options?.timeout }),
@@ -46,26 +82,41 @@ function asScannerPage(page: Page): ScannerPage {
   };
 }
 
-// One browser per scanner worker. The browser is reused across the pages that
-// worker scans, then closed when the worker finishes — so browser lifetime is
-// bounded to one assessment and memory doesn't accumulate across assessments.
 export async function createPageScanner(): Promise<PageScanner> {
-  const browser = await launchBrowser();
-  const page = await browser.newPage();
+  const browser = await acquireBrowser();
+  const context = await browser.newContext();
+  const page = await context.newPage();
   // Inject axe-core before navigation (addInitScript runs via CDP and is not
   // blocked by the target page's Content-Security-Policy).
   await page.addInitScript({ path: axePath });
   const scannerPage = asScannerPage(page);
+  let disposed = false;
+
   return {
     scan: (url: string, tags: string[]) => scanPage(url, tags, scannerPage),
     captureEvidence: (result: ScanResult) => captureEvidence(scannerPage, result),
     scanIbm: (url: string) => runIbmScan(page, url),
+    // Normal completion: close the context and return the browser to the pool.
     close: async () => {
+      if (disposed) return;
+      disposed = true;
       try {
-        await browser.close();
+        await context.close();
       } catch {
         /* ignore */
       }
+      releaseBrowser(browser);
+    },
+    // Crash/timeout: tear the browser down entirely — don't pool a broken one.
+    discard: async () => {
+      if (disposed) return;
+      disposed = true;
+      try {
+        await context.close();
+      } catch {
+        /* ignore */
+      }
+      await discardBrowser(browser);
     },
   };
 }

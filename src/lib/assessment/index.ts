@@ -68,6 +68,7 @@ export interface PageScanner {
   captureEvidence: (result: ScanResult) => Promise<CapturedEvidence>;
   scanIbm: (url: string) => Promise<IbmScanOutput>;
   close: () => Promise<void>;
+  discard: () => Promise<void>;
 }
 
 export interface AssessmentDeps {
@@ -340,7 +341,7 @@ async function scanAndConsolidate(
               message: `page scan ${reason} — restarting browser: ${url}`,
             });
             try {
-              await scanner.close();
+              await scanner.discard();
             } catch {
               /* ignore */
             }

@@ -99,6 +99,7 @@ const createScanner = async () => ({
     findings: [],
   }),
   close: async () => {},
+  discard: async () => {},
 });
 
 const evidenceStore = { put: async () => ({ id: "evidence:1" }) };
