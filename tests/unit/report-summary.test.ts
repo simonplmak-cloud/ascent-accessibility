@@ -39,8 +39,7 @@ function result(overrides: Partial<AssessmentResult> = {}): AssessmentResult {
     log: [],
     findings: [],
     comparison: {
-      lighthouse: { score: 100, failedAudits: [] },
-      ibm: { violation: 0, potentialViolation: 0, recommendation: 0, pass: 0, manual: 0 },
+      audit: { score: 100, failedAudits: [] },
       conformance: conformance([]),
     },
     ...overrides,

@@ -6,7 +6,7 @@ export type ApiKeyStatus = "active" | "revoked";
 export type FindingConfidence = "confirmed" | "single-source";
 
 export interface FindingSource {
-  tool: "axe" | "lighthouse" | "ibm";
+  tool: "engine" | "ai";
   ruleId: string;
   impact: string;
   message: string;

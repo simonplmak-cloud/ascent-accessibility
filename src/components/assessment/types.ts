@@ -1,5 +1,5 @@
 export interface FindingSource {
-  tool: "axe" | "lighthouse" | "ibm";
+  tool: "engine" | "ai";
   ruleId: string;
   impact: string;
   message: string;
@@ -54,15 +54,30 @@ export interface Conformance {
 }
 
 export interface ComparisonData {
-  lighthouse: { score: number; failedAudits: Array<{ id: string; weight: number }> };
-  ibm: {
-    violation: number;
-    potentialViolation: number;
-    recommendation: number;
-    pass: number;
-    manual: number;
+  audit?: {
+    score: number;
+    failedAudits: Array<{ id: string; weight: number }>;
+    signals?: {
+      accessibility?: number;
+      performance?: number;
+      seo?: number;
+      bestPractices?: number;
+      pwa?: number;
+    };
+    auditVersion?: string;
   };
   conformance?: Conformance;
+  ai?: {
+    model: string;
+    verdicts: Array<{
+      sc: string;
+      verdict: "pass" | "fail" | "needs-review";
+      confidence: number;
+      reasoning: string;
+      evidenceId?: string | null;
+    }>;
+    budget: { calls: number; images: number };
+  };
 }
 
 export interface AssessmentResult {

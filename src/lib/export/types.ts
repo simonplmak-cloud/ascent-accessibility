@@ -14,14 +14,7 @@ export interface ReportFinding {
 }
 
 export interface ReportComparison {
-  lighthouse?: { score: number };
-  ibm?: {
-    violation: number;
-    potentialViolation: number;
-    recommendation: number;
-    pass: number;
-    manual: number;
-  };
+  audit?: { score: number };
   conformance?: {
     total: number;
     passed: number;

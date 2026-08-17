@@ -16,7 +16,7 @@ const faqs = [
   },
   {
     q: "What does the subscription unlock?",
-    a: "Whole-website scans (full sitemap and link crawl), the conformance table, IBM Equal Access comparison, PDF/CSV export, API access, and saved history.",
+    a: "Whole-website scans (full sitemap and link crawl), the conformance table, site audit signals, PDF export, API access, and saved history.",
   },
   {
     q: "How long does a scan take?",

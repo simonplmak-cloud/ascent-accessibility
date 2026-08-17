@@ -243,7 +243,7 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
         <View id="methodology" style={styles.section}>
           <Text style={styles.h2}>2. Methodology</Text>
           <Text>
-            Automated testing engines: axe-core, IBM Equal Access, and a Lighthouse-comparable score.
+            Automated testing by the Ascent Access accessibility engine, with a companion site audit and AI-assisted review.
           </Text>
           <Text style={{ marginTop: 4 }}>
             This is an automated baseline. Automated tools detect a subset of WCAG issues; full conformance requires manual review (keyboard operation, screen readers, and contrast inspection).
@@ -338,27 +338,19 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
 
         {comparison ? (
           <View id="comparison" style={styles.section}>
-            <Text style={styles.h2}>7. Cross-tool comparison</Text>
+            <Text style={styles.h2}>7. Ascent Access analysis</Text>
             <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>Tool</Text>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>Signal</Text>
               <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>Result</Text>
             </View>
             <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, { flex: 1 }]}>Ascent Accessibility</Text>
+              <Text style={[styles.tableCell, { flex: 1 }]}>Accessibility score</Text>
               <Text style={[styles.tableCell, { flex: 1 }]}>{report.score} / 100</Text>
             </View>
-            {comparison.lighthouse !== undefined ? (
+            {comparison.audit !== undefined ? (
               <View style={styles.tableRow}>
-                <Text style={[styles.tableCell, { flex: 1 }]}>Lighthouse (comparable)</Text>
-                <Text style={[styles.tableCell, { flex: 1 }]}>{comparison.lighthouse.score} / 100</Text>
-              </View>
-            ) : null}
-            {comparison.ibm ? (
-              <View style={styles.tableRow}>
-                <Text style={[styles.tableCell, { flex: 1 }]}>IBM Equal Access</Text>
-                <Text style={[styles.tableCell, { flex: 1 }]}>
-                  {comparison.ibm.violation} violations · {comparison.ibm.potentialViolation} needs review · {comparison.ibm.recommendation} recommendations
-                </Text>
+                <Text style={[styles.tableCell, { flex: 1 }]}>Site audit accessibility</Text>
+                <Text style={[styles.tableCell, { flex: 1 }]}>{comparison.audit.score} / 100</Text>
               </View>
             ) : null}
           </View>

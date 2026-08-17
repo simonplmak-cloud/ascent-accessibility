@@ -26,7 +26,7 @@ const paid = [
   "Everything in the free tier",
   "Whole-website scans — full sitemap and link crawl",
   "Conformance table across all applicable success criteria",
-  "IBM Equal Access comparison on every page",
+  "Site audit signals on every page",
   "Downloadable PDF and CSV reports",
   "API access for programmatic assessments",
   "Your scan history, saved across visits",

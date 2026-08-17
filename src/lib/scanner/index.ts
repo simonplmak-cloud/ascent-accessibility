@@ -1,33 +1,34 @@
 import type { Impact } from "@/lib/scoring";
 import type { PageFeatures } from "@/lib/standards/sc-applicability";
 
-export interface AxeNode {
+export interface ScanNode {
   html: string;
   target: string[];
   failureSummary: string;
 }
 
-export interface AxeViolation {
+export interface ScanViolation {
   id: string;
   impact: Impact;
   description: string;
   help: string;
   helpUrl: string;
   tags: string[];
-  nodes: AxeNode[];
+  nodes: ScanNode[];
   nodeCount: number;
 }
 
-export interface AxeRuleSummary {
+export interface RuleSummary {
   id: string;
   tags: string[];
+  nodes?: ScanNode[];
 }
 
 export interface ScanResult {
   url: string;
-  violations: AxeViolation[];
-  passes: AxeRuleSummary[];
-  incomplete: AxeRuleSummary[];
+  violations: ScanViolation[];
+  passes: RuleSummary[];
+  incomplete: RuleSummary[];
   features: PageFeatures;
 }
 
@@ -57,9 +58,10 @@ export interface RawViolation {
 export interface RawRule {
   id: string;
   tags?: string[];
+  nodes?: RawNode[];
 }
 
-export interface RawAxeResult {
+export interface RawScanResult {
   violations: RawViolation[];
   passes?: RawRule[];
   incomplete?: RawRule[];
@@ -97,7 +99,7 @@ export function normalizeImpact(impact: string | null): Impact {
   }
 }
 
-function mapNode(node: RawNode): AxeNode {
+function mapNode(node: RawNode): ScanNode {
   return {
     html: node.html ?? "",
     target: node.target ?? [],
@@ -105,11 +107,11 @@ function mapNode(node: RawNode): AxeNode {
   };
 }
 
-function mapRuleSummary(rule: RawRule): AxeRuleSummary {
-  return { id: rule.id, tags: rule.tags ?? [] };
+export function mapRuleSummary(rule: RawRule): RuleSummary {
+  return { id: rule.id, tags: rule.tags ?? [], nodes: (rule.nodes ?? []).map(mapNode) };
 }
 
-export function mapViolations(raw: RawAxeResult): AxeViolation[] {
+export function mapViolations(raw: RawScanResult): ScanViolation[] {
   return raw.violations.map((violation) => ({
     id: violation.id,
     impact: normalizeImpact(violation.impact),
@@ -120,89 +122,4 @@ export function mapViolations(raw: RawAxeResult): AxeViolation[] {
     nodes: (violation.nodes ?? []).map(mapNode),
     nodeCount: violation.nodes?.length ?? 0,
   }));
-}
-
-interface AxeRunner {
-  run(
-    context: unknown,
-    options: { runOnly: { type: "tag"; values: string[] } },
-  ): Promise<RawAxeResult>;
-}
-
-export async function scanPage(
-  url: string,
-  tags: string[],
-  page: ScannerPage,
-): Promise<ScanResult> {
-  let response: { status(): number } | null;
-  try {
-    // domcontentloaded is enough for axe-core (DOM + render-blocking CSS are
-    // ready); waiting for the full `load` event costs seconds on slow sites
-    // that stream images/scripts.
-    response = await page.goto(url, { timeout: 45_000, waitUntil: "domcontentloaded" });
-  } catch (error) {
-    throw new ScanFailedError(`Could not load ${url}: ${(error as Error).message}`);
-  }
-
-  const status = response?.status();
-  if (status !== undefined && (status < 200 || status >= 400)) {
-    throw new ScanFailedError(`Could not load ${url}: HTTP ${status}`);
-  }
-
-  // Give async scripts / lazy content a moment to render before axe runs.
-  await new Promise((resolve) => setTimeout(resolve, Number(process.env.SCAN_SETTLE_MS ?? 300)));
-
-  const result = (await page.evaluate(async (runTags) => {
-    const axe = (globalThis as { axe?: AxeRunner }).axe;
-    if (!axe) throw new Error("axe-core failed to load");
-    const raw = await axe.run(document, { runOnly: { type: "tag", values: runTags } });
-
-    // Only rule id + tags are consumed from passes/incomplete (mapRuleSummary);
-    // drop their node trees in-page so they never cross the CDP boundary.
-    const slim = {
-      violations: raw.violations,
-      passes: (raw.passes ?? []).map((p) => ({ id: p.id, tags: p.tags })),
-      incomplete: (raw.incomplete ?? []).map((p) => ({ id: p.id, tags: p.tags })),
-    };
-
-    const has = (sel: string): boolean => !!document.querySelector(sel);
-    const features = {
-      hasContent: (document.body?.textContent ?? "").trim().length > 0,
-      hasVideo: has("video"),
-      hasAudio: has("audio"),
-      hasVideoCaptions: has("video track[kind='captions'], video track[kind='subtitles']"),
-      hasAudioDescription: has("video track[kind='descriptions']"),
-      hasForms: has("form, input, select, textarea"),
-      hasTables: has("table"),
-      hasIframes: has("iframe"),
-      hasMetaRefresh: has("meta[http-equiv='refresh' i]"),
-      hasMarquee: has("marquee, blink"),
-      hasAccesskey: has("[accesskey]"),
-      hasPositiveTabindex: Array.from(document.querySelectorAll("[tabindex]")).some(
-        (el) => parseInt(el.getAttribute("tabindex") || "0", 10) > 0,
-      ),
-      hasDragHandlers: has("[draggable='true'], [ondrop], [ondragstart], [ondragover]"),
-      hasTouchHandlers: has("[ontouchstart], [ontouchmove], [ontouchend], [ongesturestart]"),
-      hasImages: has("img, svg"),
-      hasBackgroundImages: has("[style*='background-image'], [style*='background:url']"),
-      hasAnimatedContent: has("[style*='animation'], [style*='transition'], marquee"),
-      hasAutoplay: has("video[autoplay], audio[autoplay]"),
-      hasLiveContent: has("[aria-live]"),
-      hasLinks: has("a[href]"),
-      hasHeadings: has("h1,h2,h3,h4,h5,h6"),
-      hasLandmarks: has("main, nav, header, footer, [role='main']"),
-      hasLang: !!document.documentElement.lang,
-      hasInteractive: has("a[href], button, input, select, textarea, [role='button']"),
-      hasTimeLimit: has("meta[http-equiv='refresh' i]"),
-    };
-    return { raw: slim, features };
-  }, tags)) as { raw: RawAxeResult; features: PageFeatures };
-
-  return {
-    url,
-    violations: mapViolations(result.raw),
-    passes: (result.raw.passes ?? []).map(mapRuleSummary),
-    incomplete: (result.raw.incomplete ?? []).map(mapRuleSummary),
-    features: result.features,
-  };
 }

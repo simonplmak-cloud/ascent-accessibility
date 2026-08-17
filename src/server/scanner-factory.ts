@@ -1,16 +1,14 @@
-import { createRequire } from "node:module";
 import { chromium, type Browser, type Page } from "playwright";
-import { scanPage, type ScannerPage, type ScanResult } from "@/lib/scanner";
+import { type ScannerPage, type ScanResult } from "@/lib/scanner";
 import { captureEvidence, type CapturedEvidence } from "@/lib/evidence/screenshot";
-import { runIbmScan, type IbmScanOutput } from "@/lib/comparison/ibm";
-
-const require = createRequire(import.meta.url);
-const axePath = require.resolve("axe-core/axe.min.js");
+import { runEngine } from "@/lib/engine/runner";
+import { ALL_RULES } from "@/lib/engine/rules";
+import { buildEngineSource } from "@/lib/engine/registry";
 
 export interface PageScanner {
   scan: (url: string, tags: string[]) => Promise<ScanResult>;
   captureEvidence: (result: ScanResult) => Promise<CapturedEvidence>;
-  scanIbm: (url: string) => Promise<IbmScanOutput>;
+  screenshotPage: () => Promise<Buffer>;
   close: () => Promise<void>;
   discard: () => Promise<void>;
 }
@@ -104,16 +102,16 @@ export async function createPageScanner(): Promise<PageScanner> {
   const browser = await acquireBrowser();
   const context = await browser.newContext();
   const page = await context.newPage();
-  // Inject axe-core before navigation (addInitScript runs via CDP and is not
-  // blocked by the target page's Content-Security-Policy).
-  await page.addInitScript({ path: axePath });
+  // Inject the Ascent Access engine before navigation (addInitScript runs via
+  // CDP and is not blocked by the target page's Content-Security-Policy).
+  await page.addInitScript({ content: buildEngineSource(ALL_RULES) });
   const scannerPage = asScannerPage(page);
   let disposed = false;
 
   return {
-    scan: (url: string, tags: string[]) => scanPage(url, tags, scannerPage),
+    scan: (url: string, tags: string[]) => runEngine(url, tags, scannerPage),
     captureEvidence: (result: ScanResult) => captureEvidence(scannerPage, result),
-    scanIbm: (url: string) => runIbmScan(page, url),
+    screenshotPage: () => page.screenshot({ type: "jpeg", quality: 60 }),
     // Normal completion: close the context and return the browser to the pool.
     close: async () => {
       if (disposed) return;

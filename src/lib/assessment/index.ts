@@ -3,12 +3,11 @@ import { type CrawlOptions, type CrawlResult } from "@/lib/crawler";
 import { ScanFailedError, type ScanResult } from "@/lib/scanner";
 import type { CapturedEvidence } from "@/lib/evidence/screenshot";
 import {
-  axeViolationsToFindings,
+  violationsToFindings,
   consolidateFindings,
   type ToolFinding,
 } from "@/lib/comparison/consolidate";
-import type { IbmScanOutput } from "@/lib/comparison/ibm";
-import { computeLighthouseScore } from "@/lib/standards/lighthouse-audits";
+import type { SiteAuditReport } from "@/lib/comparison/site-audit";
 import { scsForTags } from "@/lib/standards/wcag-sc";
 import {
   EMPTY_FEATURES,
@@ -16,6 +15,8 @@ import {
   type PageFeatures,
 } from "@/lib/standards/sc-applicability";
 import type { Standard } from "@/lib/standards/catalog";
+import type { AiBudget, AiReview, VisionModel } from "@/lib/ai-review/types";
+import { applyAiVerdicts, runTriage } from "@/lib/ai-review/triage";
 import type { Finding, LogEntry, LogLevel, NewEvidence } from "@/db/schema";
 
 export interface AssessmentRecord {
@@ -27,18 +28,10 @@ export interface AssessmentRecord {
   pageCap: number;
 }
 
-export interface IbmCounts {
-  violation: number;
-  potentialViolation: number;
-  recommendation: number;
-  pass: number;
-  manual: number;
-}
-
 export interface ComparisonData {
-  lighthouse: { score: number; failedAudits: Array<{ id: string; weight: number }> };
-  ibm: IbmCounts;
+  audit?: SiteAuditReport;
   conformance: ConformanceResult;
+  ai?: { model: string; verdicts: AiReview[]; budget: AiBudget };
 }
 
 export interface AssessmentRepositoryPort {
@@ -78,7 +71,7 @@ export interface EvidenceStorePort {
 export interface PageScanner {
   scan: (url: string, tags: string[]) => Promise<ScanResult>;
   captureEvidence: (result: ScanResult) => Promise<CapturedEvidence>;
-  scanIbm: (url: string) => Promise<IbmScanOutput>;
+  screenshotPage: () => Promise<Buffer>;
   close: () => Promise<void>;
   discard: () => Promise<void>;
 }
@@ -89,15 +82,18 @@ export interface AssessmentDeps {
   createScanner: () => Promise<PageScanner>;
   resolveStandard: (id: string) => Standard | undefined;
   evidenceStore: EvidenceStorePort;
+  siteAudit?: (url: string) => Promise<SiteAuditReport>;
+  visionModel?: VisionModel;
   concurrency?: number;
 }
 
 interface ConsolidateOutput {
   findings: Finding[];
-  lighthouse: ComparisonData["lighthouse"];
-  ibm: IbmCounts;
+  audit: SiteAuditReport | undefined;
   passedScs: Set<string>;
   features: PageFeatures;
+  aiScreenshot: Buffer | null;
+  incompleteContext: string[];
 }
 
 export async function runAssessment(
@@ -174,19 +170,52 @@ export async function runAssessment(
 
     const output = await scanAndConsolidate(urls, standard, deps, assessmentId, log);
 
-    await log("info", "consolidating findings from axe-core, Lighthouse, and IBM Equal Access");
     await log(
       "info",
-      `scan complete: ${output.findings.length} consolidated finding(s) across ${urls.length} page(s)`,
+      `scan complete: ${output.findings.length} finding(s) across ${urls.length} page(s)`,
     );
 
-    const score = computeScore(output.findings);
-    const conformance = computeConformance(
-      output.findings,
-      output.passedScs,
+    let findings = output.findings;
+    let passedScs = output.passedScs;
+    const aiBudget: AiBudget = { calls: 0, images: 0 };
+    const aiVerdicts: AiReview[] = [];
+
+    let conformance = computeConformance(
+      findings,
+      passedScs,
       output.features,
       standard.level ?? "AA",
     );
+
+    if (ENABLE_AI_REVIEW && deps.visionModel && output.aiScreenshot) {
+      const unresolved = conformance.rows
+        .filter((row) => row.result === "needs-review")
+        .map((row) => row.num);
+      if (unresolved.length > 0) {
+        const triage = await runTriage({
+          model: deps.visionModel,
+          image: output.aiScreenshot,
+          unresolvedScs: unresolved,
+          incompleteContext: output.incompleteContext,
+          threshold: Number(process.env.AI_REVIEW_CONFIDENCE_THRESHOLD ?? 0.8),
+        });
+        aiBudget.calls += triage.budget.calls;
+        aiBudget.images += triage.budget.images;
+        aiVerdicts.push(...triage.reviews);
+        const applied = applyAiVerdicts(findings, passedScs, triage.reviews, seed.href);
+        findings = applied.findings;
+        passedScs = applied.passedScs;
+        conformance = computeConformance(
+          findings,
+          passedScs,
+          output.features,
+          standard.level ?? "AA",
+        );
+      }
+    }
+
+    const score = computeScore(findings);
+
     await log(
       "info",
       `WCAG conformance: ${conformance.passed} pass / ${conformance.failed} fail / ${conformance.notApplicable} not applicable / ${conformance.needsReview} needs review (${conformance.coverage}% machine-tested)`,
@@ -194,18 +223,21 @@ export async function runAssessment(
     await log("info", `score: ${score.score}/100 (${score.passBand})`);
 
     const comparison: ComparisonData = {
-      lighthouse: output.lighthouse,
-      ibm: output.ibm,
+      audit: output.audit,
       conformance,
+      ai:
+        ENABLE_AI_REVIEW && deps.visionModel
+          ? { model: AI_REVIEW_MODEL, verdicts: aiVerdicts, budget: aiBudget }
+          : undefined,
     };
 
-    await log("info", `storing findings and evidence (${output.findings.length} findings)`);
+    await log("info", `storing findings and evidence (${findings.length} findings)`);
     await deps.repository.finalize(assessmentId, {
       score: score.score,
       passBand: score.passBand,
       pagesScanned,
       partial,
-      findings: output.findings,
+      findings,
       comparison,
     });
     await log("info", "assessment complete");
@@ -220,16 +252,14 @@ export async function runAssessment(
   }
 }
 
-// Per-page scan timeout. `page.goto` already has a 45s timeout, but
-// `page.evaluate` (axe-core run) and `scanIbm` have none — a pathological page
-// can hang a worker forever and block the whole queue. On timeout we close and
-// recreate the browser so the hung operation is actually torn down.
+// Per-page scan timeout. A pathological page can hang a worker forever and
+// block the whole queue. On timeout we close and recreate the browser so the
+// hung operation is actually torn down.
 const PAGE_TIMEOUT_MS = Number(process.env.WORKER_PAGE_TIMEOUT_MS ?? 180_000);
 
-// The IBM Equal Access check adds 30–60s per page. It is off by default so a
-// page can be assessed in ~1–2s with axe-core alone; enable it explicitly if
-// the second-opinion comparison is wanted.
-const ENABLE_IBM_SCAN = process.env.ENABLE_IBM_SCAN === "true";
+// Qwen-VL needs-review triage (off by default — adds a vision call per assessment).
+const ENABLE_AI_REVIEW = process.env.ENABLE_AI_REVIEW === "true";
+const AI_REVIEW_MODEL = process.env.AI_REVIEW_MODEL ?? "qwen3-vl-plus";
 
 class PageTimeoutError extends Error {
   constructor(label: string, ms: number) {
@@ -261,13 +291,15 @@ async function scanAndConsolidate(
   assessmentId: string,
   log: (level: LogLevel, message: string) => void,
 ): Promise<ConsolidateOutput> {
-  const axeFindings: ToolFinding[] = [];
-  const ibmFindings: ToolFinding[] = [];
-  const ibmCounts = { violation: 0, potentialViolation: 0, recommendation: 0, pass: 0, manual: 0 };
+  const engineFindings: ToolFinding[] = [];
   const passedScs = new Set<string>();
   let features: PageFeatures = EMPTY_FEATURES;
-  const lighthouseScores: number[] = [];
-  const lighthouseFailed = new Map<string, number>();
+  const signalSums = new Map<string, number>();
+  const failedAudits = new Map<string, number>();
+  let auditRuns = 0;
+  let auditVersion: string | undefined;
+  let aiScreenshot: Buffer | null = null;
+  const incompleteContext: string[] = [];
   const concurrency = Math.max(1, deps.concurrency ?? 4);
   const queue = [...urls];
 
@@ -281,16 +313,16 @@ async function scanAndConsolidate(
           try {
             await withTimeout(
               async () => {
-                log("info", `scanning ${url} with axe-core`);
-                const scan = await scanner.scan(url, standard.axeTags);
-                log("info", `axe-core: ${scan.violations.length} violation(s) on ${url}`);
+                log("info", `scanning ${url} with the Ascent Access engine`);
+                const scan = await scanner.scan(url, standard.tags);
+                log("info", `engine: ${scan.violations.length} violation(s) on ${url}`);
 
                 for (const pass of scan.passes) {
                   for (const sc of scsForTags(pass.tags)) passedScs.add(sc);
                 }
                 features = mergeFeatures(features, scan.features);
 
-                const pageFindings = axeViolationsToFindings(url, scan.violations);
+                const pageFindings = violationsToFindings(url, scan.violations);
                 await captureAndAttachEvidence(
                   url,
                   scan,
@@ -302,28 +334,41 @@ async function scanAndConsolidate(
                 if (scan.violations.length > 0) {
                   log("info", `captured screenshot evidence for ${url}`);
                 }
-                axeFindings.push(...pageFindings);
+                engineFindings.push(...pageFindings);
 
-                const lighthouse = computeLighthouseScore(scan.violations.map((v) => v.id));
-                lighthouseScores.push(lighthouse.score);
-                for (const audit of lighthouse.failedAudits) {
-                  lighthouseFailed.set(audit.id, audit.weight);
+                for (const inc of scan.incomplete) {
+                  for (const node of inc.nodes ?? []) {
+                    if (node.failureSummary) {
+                      incompleteContext.push(`${inc.id}: ${node.failureSummary}`);
+                    }
+                  }
                 }
 
-                if (ENABLE_IBM_SCAN) {
+                if (deps.siteAudit) {
                   try {
-                    log("info", `running IBM Equal Access on ${url}`);
-                    const ibm = await scanner.scanIbm(url);
-                    await attachIbmEvidence(ibm.findings, deps.evidenceStore, assessmentId, url);
-                    ibmFindings.push(...ibm.findings);
-                    ibmCounts.violation += ibm.counts.violation;
-                    ibmCounts.potentialViolation += ibm.counts.potentialViolation;
-                    ibmCounts.recommendation += ibm.counts.recommendation;
-                    ibmCounts.pass += ibm.counts.pass;
-                    ibmCounts.manual += ibm.counts.manual;
-                    log("info", `IBM Equal Access: ${ibm.counts.violation} violation(s), ${ibm.counts.pass} pass(es) on ${url}`);
+                    const audit = await deps.siteAudit(url);
+                    if (audit.signals) {
+                      for (const [key, value] of Object.entries(audit.signals)) {
+                        if (typeof value === "number") {
+                          signalSums.set(key, (signalSums.get(key) ?? 0) + value);
+                        }
+                      }
+                      auditRuns += 1;
+                    }
+                    for (const failed of audit.failedAudits) {
+                      failedAudits.set(failed.id, failed.weight);
+                    }
+                    if (audit.auditVersion) auditVersion = audit.auditVersion;
                   } catch {
-                    /* IBM unavailable — continue with axe only */
+                    /* site audit unavailable — continue with the engine alone */
+                  }
+                }
+
+                if (!aiScreenshot) {
+                  try {
+                    aiScreenshot = await scanner.screenshotPage();
+                  } catch {
+                    /* AI screenshot optional — triage degrades to needs-review */
                   }
                 }
               },
@@ -333,9 +378,7 @@ async function scanAndConsolidate(
           } catch (error) {
             // A single bad page (browser crash, scan timeout, or load failure)
             // must not fail the whole assessment — restart the browser and
-            // continue with the next page. This is what previously left
-            // assessments "running" forever (a crash re-threw, and the stale
-            // record was re-queued in an endless retry loop).
+            // continue with the next page.
             const reason =
               error instanceof PageTimeoutError
                 ? "timed out"
@@ -363,18 +406,36 @@ async function scanAndConsolidate(
 
   await Promise.all(workers);
 
-  const findings = consolidateFindings(axeFindings, ibmFindings);
-  const lighthouseScore =
-    lighthouseScores.length === 0
-      ? 100
-      : Math.round(lighthouseScores.reduce((a, b) => a + b, 0) / lighthouseScores.length);
+  const findings = consolidateFindings(engineFindings);
+
+  const avgSignal = (key: string): number | undefined => {
+    const sum = signalSums.get(key);
+    return sum === undefined ? undefined : Math.round(sum / auditRuns);
+  };
+
+  const audit: SiteAuditReport | undefined =
+    auditRuns > 0
+      ? {
+          score: avgSignal("accessibility") ?? 100,
+          failedAudits: [...failedAudits.entries()].map(([id, weight]) => ({ id, weight })),
+          signals: {
+            accessibility: avgSignal("accessibility"),
+            performance: avgSignal("performance"),
+            seo: avgSignal("seo"),
+            bestPractices: avgSignal("bestPractices"),
+            pwa: avgSignal("pwa"),
+          },
+          auditVersion,
+        }
+      : undefined;
 
   return {
     findings,
-    lighthouse: { score: lighthouseScore, failedAudits: [...lighthouseFailed.entries()].map(([id, weight]) => ({ id, weight })) },
-    ibm: ibmCounts,
+    audit,
     passedScs,
     features,
+    aiScreenshot,
+    incompleteContext,
   };
 }
 
@@ -429,32 +490,6 @@ async function captureAndAttachEvidence(
     for (let i = 0; i < finding.nodes.length; i++) {
       const id = elementIds.get(`${finding.ruleId}:${i}`) ?? fullPageId;
       if (id) finding.nodes[i]!.evidenceId = id;
-    }
-  }
-}
-
-async function attachIbmEvidence(
-  findings: ToolFinding[],
-  evidenceStore: EvidenceStorePort,
-  assessmentId: string,
-  pageUrl: string,
-): Promise<void> {
-  for (const finding of findings) {
-    for (const node of finding.nodes) {
-      if (!node.screenshot) continue;
-      try {
-        const ev = await evidenceStore.put({
-          assessmentId,
-          pageUrl,
-          kind: "element",
-          image: node.screenshot.toString("base64"),
-          mime: "image/png",
-        });
-        node.evidenceId = ev.id;
-      } catch {
-        /* skip on failure */
-      }
-      node.screenshot = undefined;
     }
   }
 }

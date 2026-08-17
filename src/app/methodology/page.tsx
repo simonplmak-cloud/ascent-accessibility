@@ -7,7 +7,7 @@ import { InlineLink } from "@/components/ui/inline-link";
 export const metadata: Metadata = {
   title: "Methodology",
   description:
-    "How Ascent Accessibility scores a website — crawling, axe-core scanning, IBM Equal Access comparison, and the scoring model.",
+    "How Ascent Accessibility scores a website — crawling, the Ascent Access engine, site audit signals, and the scoring model.",
   alternates: { canonical: "/methodology" },
 };
 
@@ -37,10 +37,12 @@ export default function MethodologyPage() {
       </Section>
 
       <Section title="2. Scanning">
-        Each page is scanned with axe-core, an open-source accessibility engine, against the
-        rules for the standard you selected. axe-core detects only issues that can be
-        identified automatically — roughly 30–50% of WCAG criteria. We also run the IBM
-        Equal Access checker on each page and merge its findings as a second opinion.
+        Each page is scanned with the Ascent Access accessibility engine — an in-house,
+        clean-room WCAG rule engine — against the rules for the standard you selected.
+        Automated rules detect only issues that can be identified automatically, roughly
+        30–50% of WCAG criteria. A companion site audit measures performance, SEO, and
+        best-practice signals, and an optional AI-assisted review narrows the items that
+        require manual judgement.
       </Section>
 
       <Section title="3. Scoring">

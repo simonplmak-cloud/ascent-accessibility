@@ -3,6 +3,8 @@ import { crawl } from "@/lib/crawler";
 import { getStandard } from "@/lib/standards/catalog";
 import { assessmentRepository, evidenceRepository } from "@/db/repository";
 import { createPageScanner, warmBrowserPool } from "@/server/scanner-factory";
+import { runSiteAudit } from "@/lib/comparison/site-audit";
+import { QwenVisionClient } from "@/lib/ai-review/qwen";
 import { logger } from "@/lib/observability/logger";
 
 const POLL_INTERVAL_MS = Number(process.env.WORKER_POLL_INTERVAL_MS ?? 1000);
@@ -40,6 +42,8 @@ async function processQueued() {
               return { id: evidence.id };
             },
           },
+          siteAudit: (url) => runSiteAudit(url),
+          visionModel: new QwenVisionClient(),
           concurrency: SCAN_CONCURRENCY,
         });
         logger.info({ assessmentId: assessment.id }, "assessment completed");

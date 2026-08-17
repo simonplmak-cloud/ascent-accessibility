@@ -113,8 +113,8 @@ export function understandingUrl(sc: WcagSc): string {
   return `https://www.w3.org/WAI/WCAG22/Understanding/${sc.slug}.html`;
 }
 
-// Maps an axe-core rule tag like "wcag143" to SC number "1.4.3".
-export function scFromAxeTag(tag: string): string | null {
+// Maps a rule tag like "wcag143" to SC number "1.4.3".
+export function scFromTag(tag: string): string | null {
   const match = /^wcag(\d{3,4})$/.exec(tag);
   const digits = match?.[1];
   if (!digits) return null;
@@ -124,7 +124,7 @@ export function scFromAxeTag(tag: string): string | null {
 export function scsForTags(tags: readonly string[]): string[] {
   const out = new Set<string>();
   for (const tag of tags) {
-    const sc = scFromAxeTag(tag);
+    const sc = scFromTag(tag);
     if (sc && getSc(sc)) out.add(sc);
   }
   return [...out];
