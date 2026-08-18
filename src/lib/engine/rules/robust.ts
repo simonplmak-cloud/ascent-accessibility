@@ -18,7 +18,7 @@ export const robustRules: Rule[] = [
     id: "button-name",
     description: "Ensures buttons have discernible text",
     help: "Buttons must have an accessible name",
-    impact: "serious",
+    impact: "critical",
     tags: ["wcag2a", "wcag412"],
     wcagSc: ["4.1.2"],
     matcher: "button",

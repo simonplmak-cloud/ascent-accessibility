@@ -43,7 +43,7 @@ export const understandableRules: Rule[] = [
     id: "label",
     description: "Ensures every form element has a label",
     help: "Form elements must have labels",
-    impact: "serious",
+    impact: "critical",
     tags: ["wcag2a", "wcag332"],
     wcagSc: ["3.3.2"],
     matcher: "input:not([type='hidden']):not([type='submit']):not([type='button']):not([type='reset']), select, textarea",

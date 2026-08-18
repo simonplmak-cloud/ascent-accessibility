@@ -5,7 +5,7 @@ export const perceivableRules: Rule[] = [
     id: "image-alt",
     description: "Ensures <img> elements have alternate text or a decorative role",
     help: "Images must have alternate text",
-    impact: "serious",
+    impact: "critical",
     tags: ["wcag2a", "wcag111"],
     wcagSc: ["1.1.1"],
     matcher: "img",
