@@ -8,12 +8,17 @@ export const operableRules: Rule[] = [
     impact: "serious",
     tags: ["wcag2a", "wcag242"],
     wcagSc: ["2.4.2"],
-    selector: null,
-    check: () => {
-      const title = document.querySelector("title");
-      if (title && (title.textContent || "").trim()) return { result: "pass" };
-      return { result: "fail", failureSummary: "document has no non-empty title" };
-    },
+    matcher: null,
+    extract: () => ({ title: document.querySelector("title")?.textContent?.trim() ?? "" }),
+    checks: [
+      {
+        id: "title-non-empty",
+        evaluate: (f) =>
+          f.title
+            ? { result: "pass" }
+            : { result: "fail", failureSummary: "document has no non-empty title" },
+      },
+    ],
   },
   {
     id: "link-name",
@@ -22,21 +27,29 @@ export const operableRules: Rule[] = [
     impact: "serious",
     tags: ["wcag2a", "wcag244"],
     wcagSc: ["2.4.4"],
-    selector: "a[href]",
-    check: (el) => {
-      const aria = el.getAttribute("aria-label");
-      if (aria && aria.trim()) return { result: "pass" };
-      const labelledby = el.getAttribute("aria-labelledby");
-      if (labelledby && document.getElementById(labelledby.trim())) return { result: "pass" };
-      if ((el.textContent || "").trim()) return { result: "pass" };
-      const title = el.getAttribute("title");
-      if (title && title.trim()) return { result: "pass" };
-      const img = el.querySelector("img, svg");
-      if (img && img.getAttribute("alt") && img.getAttribute("alt")!.trim()) {
-        return { result: "pass" };
-      }
-      return { result: "fail", failureSummary: "link has no discernible text" };
-    },
+    matcher: "a[href]",
+    extract: (el) => ({
+      aria: el.getAttribute("aria-label"),
+      labelledbyText: el.getAttribute("aria-labelledby")
+        ? (document.getElementById(el.getAttribute("aria-labelledby")!.trim())?.textContent ?? "").trim()
+        : "",
+      text: (el.textContent || "").trim(),
+      title: el.getAttribute("title"),
+      imgAlt: el.querySelector("img, svg")?.getAttribute("alt") ?? "",
+    }),
+    checks: [
+      {
+        id: "link-name",
+        evaluate: (f) => {
+          if ((f.aria as string)?.trim()) return { result: "pass" };
+          if (f.labelledbyText) return { result: "pass" };
+          if (f.text) return { result: "pass" };
+          if ((f.title as string)?.trim()) return { result: "pass" };
+          if ((f.imgAlt as string)?.trim()) return { result: "pass" };
+          return { result: "fail", failureSummary: "link has no discernible text" };
+        },
+      },
+    ],
   },
   {
     id: "skip-link",
@@ -45,15 +58,20 @@ export const operableRules: Rule[] = [
     impact: "moderate",
     tags: ["wcag2a", "wcag241"],
     wcagSc: ["2.4.1"],
-    selector: null,
-    check: () => {
-      const landmark = document.querySelector("main, [role='main']");
-      const skip = document.querySelector("a[href^='#']");
-      if (!landmark && !skip) {
-        return { result: "fail", failureSummary: "no skip link or main landmark to bypass repeated blocks" };
-      }
-      return { result: "pass" };
-    },
+    matcher: null,
+    extract: () => ({
+      hasMain: !!document.querySelector("main, [role='main']"),
+      hasSkip: !!document.querySelector("a[href^='#']"),
+    }),
+    checks: [
+      {
+        id: "bypass-mechanism",
+        evaluate: (f) =>
+          f.hasMain || f.hasSkip
+            ? { result: "pass" }
+            : { result: "fail", failureSummary: "no skip link or main landmark to bypass repeated blocks" },
+      },
+    ],
   },
   {
     id: "tabindex",
@@ -62,14 +80,17 @@ export const operableRules: Rule[] = [
     impact: "serious",
     tags: ["wcag2a", "wcag243"],
     wcagSc: ["2.4.3"],
-    selector: "[tabindex]",
-    check: (el) => {
-      const value = parseInt(el.getAttribute("tabindex") || "0", 10);
-      if (value > 0) {
-        return { result: "fail", failureSummary: `tabindex=${value} disrupts natural focus order` };
-      }
-      return { result: "pass" };
-    },
+    matcher: "[tabindex]",
+    extract: (el) => ({ tabindex: parseInt(el.getAttribute("tabindex") || "0", 10) }),
+    checks: [
+      {
+        id: "tabindex-not-positive",
+        evaluate: (f) =>
+          (f.tabindex as number) > 0
+            ? { result: "fail", failureSummary: `tabindex=${f.tabindex} disrupts natural focus order` }
+            : { result: "pass" },
+      },
+    ],
   },
   {
     id: "focus-visible",
@@ -78,8 +99,8 @@ export const operableRules: Rule[] = [
     impact: "serious",
     tags: ["wcag2aa", "wcag247"],
     wcagSc: ["2.4.7"],
-    selector: null,
-    check: () => {
+    matcher: null,
+    extract: () => {
       let suppressed = false;
       let hasFocusVisibleAlt = false;
       try {
@@ -100,16 +121,22 @@ export const operableRules: Rule[] = [
             }
           }
         }
+        return { suppressed, hasFocusVisibleAlt };
       } catch {
-        return { result: "incomplete", failureSummary: "could not inspect stylesheets" };
+        return { suppressed: null, hasFocusVisibleAlt: null };
       }
-      if (suppressed && !hasFocusVisibleAlt) {
-        return {
-          result: "fail",
-          failureSummary: "focus outline suppressed without a :focus-visible alternative",
-        };
-      }
-      return { result: "pass" };
     },
+    checks: [
+      {
+        id: "focus-indicator",
+        evaluate: (f) => {
+          if (f.suppressed === null) return { result: "incomplete", failureSummary: "could not inspect stylesheets" };
+          if (f.suppressed && !f.hasFocusVisibleAlt) {
+            return { result: "fail", failureSummary: "focus outline suppressed without a :focus-visible alternative" };
+          }
+          return { result: "pass" };
+        },
+      },
+    ],
   },
 ];

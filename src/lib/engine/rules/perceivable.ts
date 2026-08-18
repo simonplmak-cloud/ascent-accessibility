@@ -3,21 +3,23 @@ import type { Rule } from "../types";
 export const perceivableRules: Rule[] = [
   {
     id: "image-alt",
-    description: "Ensures <img> elements have alternate text or a role of none or presentation",
+    description: "Ensures <img> elements have alternate text or a decorative role",
     help: "Images must have alternate text",
     impact: "serious",
     tags: ["wcag2a", "wcag111"],
     wcagSc: ["1.1.1"],
-    selector: "img",
-    check: (el) => {
-      const alt = el.getAttribute("alt");
-      if (alt === null) {
-        const role = el.getAttribute("role");
-        if (role === "presentation" || role === "none") return { result: "pass" };
-        return { result: "fail", failureSummary: "img element has no alt attribute" };
-      }
-      return { result: "pass" };
-    },
+    matcher: "img",
+    extract: (el) => ({ alt: el.getAttribute("alt"), role: el.getAttribute("role") }),
+    checks: [
+      {
+        id: "alt-present-or-decorative",
+        evaluate: (f) => {
+          if (f.alt !== null) return { result: "pass" };
+          if (f.role === "presentation" || f.role === "none") return { result: "pass" };
+          return { result: "fail", failureSummary: "img element has no alt attribute" };
+        },
+      },
+    ],
   },
   {
     id: "input-image-alt",
@@ -26,14 +28,18 @@ export const perceivableRules: Rule[] = [
     impact: "serious",
     tags: ["wcag2a", "wcag111"],
     wcagSc: ["1.1.1"],
-    selector: "input[type='image']",
-    check: (el) => {
-      const alt = el.getAttribute("alt");
-      if (alt && alt.trim()) return { result: "pass" };
-      const aria = el.getAttribute("aria-label");
-      if (aria && aria.trim()) return { result: "pass" };
-      return { result: "fail", failureSummary: "input[type=image] has no text alternative" };
-    },
+    matcher: "input[type='image']",
+    extract: (el) => ({ alt: el.getAttribute("alt"), aria: el.getAttribute("aria-label") }),
+    checks: [
+      {
+        id: "image-button-name",
+        evaluate: (f) => {
+          if ((f.alt as string)?.trim()) return { result: "pass" };
+          if ((f.aria as string)?.trim()) return { result: "pass" };
+          return { result: "fail", failureSummary: "input[type=image] has no text alternative" };
+        },
+      },
+    ],
   },
   {
     id: "object-alt",
@@ -42,15 +48,23 @@ export const perceivableRules: Rule[] = [
     impact: "serious",
     tags: ["wcag2a", "wcag111"],
     wcagSc: ["1.1.1"],
-    selector: "object",
-    check: (el) => {
-      if ((el.textContent || "").trim()) return { result: "pass" };
-      const aria = el.getAttribute("aria-label");
-      if (aria && aria.trim()) return { result: "pass" };
-      const title = el.getAttribute("title");
-      if (title && title.trim()) return { result: "pass" };
-      return { result: "fail", failureSummary: "object element has no text alternative" };
-    },
+    matcher: "object",
+    extract: (el) => ({
+      text: (el.textContent || "").trim(),
+      aria: el.getAttribute("aria-label"),
+      title: el.getAttribute("title"),
+    }),
+    checks: [
+      {
+        id: "object-text-alternative",
+        evaluate: (f) => {
+          if (f.text) return { result: "pass" };
+          if ((f.aria as string)?.trim()) return { result: "pass" };
+          if ((f.title as string)?.trim()) return { result: "pass" };
+          return { result: "fail", failureSummary: "object element has no text alternative" };
+        },
+      },
+    ],
   },
   {
     id: "svg-img-alt",
@@ -59,20 +73,28 @@ export const perceivableRules: Rule[] = [
     impact: "serious",
     tags: ["wcag2a", "wcag111"],
     wcagSc: ["1.1.1"],
-    selector: "svg",
-    check: (el) => {
-      const role = el.getAttribute("role");
-      if (role !== "img" && role !== "graphics-document" && role !== "graphics-symbol") {
-        return { result: "pass" };
-      }
-      const aria = el.getAttribute("aria-label");
-      if (aria && aria.trim()) return { result: "pass" };
-      const labelledby = el.getAttribute("aria-labelledby");
-      if (labelledby) return { result: "pass" };
-      const title = el.querySelector("title");
-      if (title && (title.textContent || "").trim()) return { result: "pass" };
-      return { result: "fail", failureSummary: "svg with img role has no accessible name" };
-    },
+    matcher: "svg",
+    extract: (el) => ({
+      role: el.getAttribute("role"),
+      aria: el.getAttribute("aria-label"),
+      labelledby: el.getAttribute("aria-labelledby"),
+      title: el.querySelector("title")?.textContent?.trim() ?? "",
+    }),
+    checks: [
+      {
+        id: "svg-img-name",
+        evaluate: (f) => {
+          const role = f.role as string | null;
+          if (role !== "img" && role !== "graphics-document" && role !== "graphics-symbol") {
+            return { result: "pass" };
+          }
+          if ((f.aria as string)?.trim()) return { result: "pass" };
+          if (f.labelledby) return { result: "pass" };
+          if (f.title) return { result: "pass" };
+          return { result: "fail", failureSummary: "svg with img role has no accessible name" };
+        },
+      },
+    ],
   },
   {
     id: "video-caption",
@@ -81,12 +103,17 @@ export const perceivableRules: Rule[] = [
     impact: "serious",
     tags: ["wcag2a", "wcag122"],
     wcagSc: ["1.2.2"],
-    selector: "video",
-    check: (el) => {
-      const track = el.querySelector("track[kind='captions'], track[kind='subtitles']");
-      if (track) return { result: "pass" };
-      return { result: "fail", failureSummary: "video element has no captions track" };
-    },
+    matcher: "video",
+    extract: (el) => ({ hasTrack: !!el.querySelector("track[kind='captions'], track[kind='subtitles']") }),
+    checks: [
+      {
+        id: "captions-track",
+        evaluate: (f) =>
+          f.hasTrack
+            ? { result: "pass" }
+            : { result: "fail", failureSummary: "video element has no captions track" },
+      },
+    ],
   },
   {
     id: "list",
@@ -95,18 +122,25 @@ export const perceivableRules: Rule[] = [
     impact: "moderate",
     tags: ["wcag2a", "wcag131"],
     wcagSc: ["1.3.1"],
-    selector: "ul, ol",
-    check: (el) => {
-      const children = Array.from(el.children).filter(
-        (c) => c.tagName !== "SCRIPT" && c.tagName !== "TEMPLATE",
-      );
-      if (children.length === 0) return { result: "pass" };
-      const invalid = children.filter((c) => c.tagName !== "LI");
-      if (invalid.length > 0) {
-        return { result: "fail", failureSummary: "list contains non-li children" };
-      }
-      return { result: "pass" };
-    },
+    matcher: "ul, ol",
+    extract: (el) => ({
+      children: Array.from(el.children)
+        .filter((c) => c.tagName !== "SCRIPT" && c.tagName !== "TEMPLATE")
+        .map((c) => c.tagName),
+    }),
+    checks: [
+      {
+        id: "list-only-li-children",
+        evaluate: (f) => {
+          const children = f.children as string[];
+          if (children.length === 0) return { result: "pass" };
+          const invalid = children.filter((t) => t !== "LI");
+          return invalid.length > 0
+            ? { result: "fail", failureSummary: "list contains non-li children" }
+            : { result: "pass" };
+        },
+      },
+    ],
   },
   {
     id: "listitem",
@@ -115,16 +149,23 @@ export const perceivableRules: Rule[] = [
     impact: "moderate",
     tags: ["wcag2a", "wcag131"],
     wcagSc: ["1.3.1"],
-    selector: "li",
-    check: (el) => {
-      const parent = el.parentElement;
-      if (parent && (parent.tagName === "UL" || parent.tagName === "OL")) {
-        return { result: "pass" };
-      }
-      const role = parent?.getAttribute("role");
-      if (role === "list" || role === "listbox" || role === "menu") return { result: "pass" };
-      return { result: "fail", failureSummary: "li element is not inside a list" };
-    },
+    matcher: "li",
+    extract: (el) => ({
+      parentTag: el.parentElement?.tagName.toLowerCase() ?? null,
+      parentRole: el.parentElement?.getAttribute("role") ?? null,
+    }),
+    checks: [
+      {
+        id: "listitem-in-list",
+        evaluate: (f) => {
+          const tag = f.parentTag as string | null;
+          if (tag === "ul" || tag === "ol") return { result: "pass" };
+          const role = f.parentRole as string | null;
+          if (role === "list" || role === "listbox" || role === "menu") return { result: "pass" };
+          return { result: "fail", failureSummary: "li element is not inside a list" };
+        },
+      },
+    ],
   },
   {
     id: "dlitem",
@@ -133,12 +174,17 @@ export const perceivableRules: Rule[] = [
     impact: "moderate",
     tags: ["wcag2a", "wcag131"],
     wcagSc: ["1.3.1"],
-    selector: "dt, dd",
-    check: (el) => {
-      const parent = el.parentElement;
-      if (parent && parent.tagName === "DL") return { result: "pass" };
-      return { result: "fail", failureSummary: "dt/dd element is not inside a dl" };
-    },
+    matcher: "dt, dd",
+    extract: (el) => ({ parentTag: el.parentElement?.tagName.toLowerCase() ?? null }),
+    checks: [
+      {
+        id: "dlitem-in-dl",
+        evaluate: (f) =>
+          f.parentTag === "dl"
+            ? { result: "pass" }
+            : { result: "fail", failureSummary: "dt/dd element is not inside a dl" },
+      },
+    ],
   },
   {
     id: "definition-list",
@@ -147,18 +193,25 @@ export const perceivableRules: Rule[] = [
     impact: "moderate",
     tags: ["wcag2a", "wcag131"],
     wcagSc: ["1.3.1"],
-    selector: "dl",
-    check: (el) => {
-      const children = Array.from(el.children).filter(
-        (c) => c.tagName !== "SCRIPT" && c.tagName !== "TEMPLATE",
-      );
-      if (children.length === 0) return { result: "pass" };
-      const valid = children.filter((c) => c.tagName === "DT" || c.tagName === "DD" || c.tagName === "DIV");
-      if (valid.length !== children.length) {
-        return { result: "fail", failureSummary: "dl contains invalid children" };
-      }
-      return { result: "pass" };
-    },
+    matcher: "dl",
+    extract: (el) => ({
+      children: Array.from(el.children)
+        .filter((c) => c.tagName !== "SCRIPT" && c.tagName !== "TEMPLATE")
+        .map((c) => c.tagName),
+    }),
+    checks: [
+      {
+        id: "dl-valid-children",
+        evaluate: (f) => {
+          const children = f.children as string[];
+          if (children.length === 0) return { result: "pass" };
+          const valid = ["DT", "DD", "DIV"];
+          return children.some((t) => !valid.includes(t))
+            ? { result: "fail", failureSummary: "dl contains invalid children" }
+            : { result: "pass" };
+        },
+      },
+    ],
   },
   {
     id: "region",
@@ -167,14 +220,21 @@ export const perceivableRules: Rule[] = [
     impact: "moderate",
     tags: ["wcag2aa", "wcag131"],
     wcagSc: ["1.3.1"],
-    selector: null,
-    check: () => {
-      const landmark = document.querySelector(
+    matcher: null,
+    extract: () => ({
+      hasLandmark: !!document.querySelector(
         "main, nav, header, footer, aside, [role='main'], [role='navigation'], [role='banner'], [role='contentinfo'], [role='complementary'], [role='region']",
-      );
-      if (!landmark) return { result: "fail", failureSummary: "no landmark regions found" };
-      return { result: "pass" };
-    },
+      ),
+    }),
+    checks: [
+      {
+        id: "landmark-present",
+        evaluate: (f) =>
+          f.hasLandmark
+            ? { result: "pass" }
+            : { result: "fail", failureSummary: "no landmark regions found" },
+      },
+    ],
   },
   {
     id: "landmark-unique",
@@ -183,25 +243,32 @@ export const perceivableRules: Rule[] = [
     impact: "moderate",
     tags: ["wcag2aa", "wcag131"],
     wcagSc: ["1.3.1"],
-    selector: null,
-    check: () => {
-      const roles = new Map<string, number>();
-      const els = document.querySelectorAll("header, footer, nav, main, aside, [role]");
-      for (const el of Array.from(els)) {
+    matcher: null,
+    extract: () => {
+      const seen = new Map<string, number>();
+      for (const el of Array.from(document.querySelectorAll("header, footer, nav, main, aside, [role]"))) {
         const role = el.getAttribute("role") || el.tagName.toLowerCase();
         if (["banner", "contentinfo", "navigation", "main", "complementary", "region", "header", "footer", "nav", "aside"].includes(role)) {
           const label = el.getAttribute("aria-label") || el.getAttribute("aria-labelledby") || "";
-          const key = role + "|" + label;
-          roles.set(key, (roles.get(key) || 0) + 1);
+          const key = `${role}|${label}`;
+          seen.set(key, (seen.get(key) ?? 0) + 1);
         }
       }
-      for (const [key, count] of roles) {
-        if (count > 1 && key.split("|")[1] === "") {
-          return { result: "fail", failureSummary: "duplicate unlabelled landmark: " + key.split("|")[0] };
-        }
+      let duplicate = "";
+      for (const [key, count] of seen) {
+        if (count > 1 && key.split("|")[1] === "") duplicate = key.split("|")[0]!;
       }
-      return { result: "pass" };
+      return { duplicate };
     },
+    checks: [
+      {
+        id: "landmark-unique-label",
+        evaluate: (f) =>
+          f.duplicate
+            ? { result: "fail", failureSummary: `duplicate unlabelled landmark: ${f.duplicate}` }
+            : { result: "pass" },
+      },
+    ],
   },
   {
     id: "heading-order",
@@ -210,19 +277,27 @@ export const perceivableRules: Rule[] = [
     impact: "moderate",
     tags: ["wcag2aa", "wcag131"],
     wcagSc: ["1.3.1"],
-    selector: null,
-    check: () => {
-      const headings = Array.from(document.querySelectorAll("h1,h2,h3,h4,h5,h6"));
-      let prev = 0;
-      for (const h of headings) {
-        const level = parseInt(h.tagName.charAt(1), 10);
-        if (level - prev > 1) {
-          return { result: "fail", failureSummary: `heading order skips from h${prev} to h${level}` };
-        }
-        if (level > prev) prev = level;
-      }
-      return { result: "pass" };
-    },
+    matcher: null,
+    extract: () => ({
+      levels: Array.from(document.querySelectorAll("h1,h2,h3,h4,h5,h6")).map((h) =>
+        parseInt(h.tagName.charAt(1), 10),
+      ),
+    }),
+    checks: [
+      {
+        id: "heading-order-no-skip",
+        evaluate: (f) => {
+          let prev = 0;
+          for (const level of f.levels as number[]) {
+            if (level - prev > 1) {
+              return { result: "fail", failureSummary: `heading order skips from h${prev} to h${level}` };
+            }
+            if (level > prev) prev = level;
+          }
+          return { result: "pass" };
+        },
+      },
+    ],
   },
   {
     id: "empty-heading",
@@ -231,11 +306,15 @@ export const perceivableRules: Rule[] = [
     impact: "minor",
     tags: ["wcag2aa", "wcag246"],
     wcagSc: ["2.4.6"],
-    selector: "h1, h2, h3, h4, h5, h6",
-    check: (el) => {
-      if ((el.textContent || "").trim()) return { result: "pass" };
-      return { result: "fail", failureSummary: "heading element is empty" };
-    },
+    matcher: "h1, h2, h3, h4, h5, h6",
+    extract: (el) => ({ text: (el.textContent || "").trim() }),
+    checks: [
+      {
+        id: "heading-non-empty",
+        evaluate: (f) =>
+          f.text ? { result: "pass" } : { result: "fail", failureSummary: "heading element is empty" },
+      },
+    ],
   },
   {
     id: "meta-viewport",
@@ -244,17 +323,23 @@ export const perceivableRules: Rule[] = [
     impact: "serious",
     tags: ["wcag2aa", "wcag144"],
     wcagSc: ["1.4.4"],
-    selector: "meta[name='viewport']",
-    check: (el) => {
-      const content = el.getAttribute("content") || "";
-      if (/user-scalable\s*=\s*no/i.test(content)) {
-        return { result: "fail", failureSummary: "user-scalable=no disables zoom" };
-      }
-      const max = /maximum-scale\s*=\s*([\d.]+)/i.exec(content);
-      if (max && parseFloat(max[1]!) < 2) {
-        return { result: "fail", failureSummary: "maximum-scale less than 2 disables zoom" };
-      }
-      return { result: "pass" };
-    },
+    matcher: "meta[name='viewport']",
+    extract: (el) => ({ content: el.getAttribute("content") || "" }),
+    checks: [
+      {
+        id: "zoom-not-disabled",
+        evaluate: (f) => {
+          const content = f.content as string;
+          if (/user-scalable\s*=\s*no/i.test(content)) {
+            return { result: "fail", failureSummary: "user-scalable=no disables zoom" };
+          }
+          const max = /maximum-scale\s*=\s*([\d.]+)/i.exec(content);
+          if (max && parseFloat(max[1]!) < 2) {
+            return { result: "fail", failureSummary: "maximum-scale less than 2 disables zoom" };
+          }
+          return { result: "pass" };
+        },
+      },
+    ],
   },
 ];

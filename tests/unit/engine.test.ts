@@ -52,7 +52,8 @@ describe("engine rules registry", () => {
     const source = buildEngineSource(ALL_RULES);
     expect(source).toContain("window.__apfEngine");
     expect(source).toContain("image-alt");
-    expect(source).toContain("check:");
+    expect(source).toContain("evaluate:");
+    expect(source).toContain("extract:");
   });
 });
 

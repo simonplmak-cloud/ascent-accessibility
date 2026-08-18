@@ -1,7 +1,8 @@
 import type { Rule } from "./types";
 
-// In-page rule evaluation source. Rules are self-contained (they only reference
-// browser globals), so `check.toString()` inlines them safely into this script.
+// In-page rule evaluation source. Rules are self-contained (extract uses only
+// browser globals; checks are pure over facts), so `.toString()` inlines them
+// safely into this script.
 const FEATURES_SOURCE = `
 var __apfHas = function (doc, sel) {
   try { return !!doc.querySelector(sel); } catch (e) { return false; }
@@ -45,9 +46,11 @@ export function buildEngineSource(rules: Rule[]): string {
       (rule) =>
         `{id:${JSON.stringify(rule.id)},impact:${JSON.stringify(rule.impact)},description:${JSON.stringify(
           rule.description,
-        )},help:${JSON.stringify(rule.help)},tags:${JSON.stringify(rule.tags)},selector:${JSON.stringify(
-          rule.selector,
-        )},check:${rule.check.toString()}}`,
+        )},help:${JSON.stringify(rule.help)},tags:${JSON.stringify(rule.tags)},matcher:${JSON.stringify(
+          rule.matcher,
+        )},extract:${rule.extract.toString()},checks:[${rule.checks
+          .map((c) => `{id:${JSON.stringify(c.id)},evaluate:${c.evaluate.toString()}}`)
+          .join(",")}]}`,
     )
     .join(",");
 
@@ -67,16 +70,23 @@ window.__apfEngine = {
       if (!matched) continue;
       var nodes;
       try {
-        nodes = r.selector ? Array.prototype.slice.call(document.querySelectorAll(r.selector)) : [document.documentElement];
+        nodes = r.matcher ? Array.prototype.slice.call(document.querySelectorAll(r.matcher)) : [document.documentElement];
       } catch (e) { continue; }
       if (nodes.length === 0) continue;
       var fails = [], incs = [];
       for (var m = 0; m < nodes.length; m++) {
-        var out;
-        try { out = r.check(nodes[m]); } catch (e) { out = { result: "incomplete", failureSummary: "check errored" }; }
-        var nodeData = { target: [r.selector || "html"], html: __apfSlice(nodes[m].outerHTML || ""), failureSummary: out.failureSummary || "" };
-        if (out.result === "fail") fails.push(nodeData);
-        else if (out.result === "incomplete") incs.push(nodeData);
+        var facts;
+        try { facts = r.extract(nodes[m]); } catch (e) { facts = {}; }
+        var allPass = true, anyIncomplete = false, failSummary = "";
+        for (var c = 0; c < r.checks.length; c++) {
+          var out;
+          try { out = r.checks[c].evaluate(facts); } catch (e) { out = { result: "incomplete", failureSummary: "check errored" }; }
+          if (out.result === "fail") { allPass = false; failSummary = out.failureSummary || failSummary; break; }
+          if (out.result === "incomplete") anyIncomplete = true;
+        }
+        var nodeData = { target: [r.matcher || "html"], html: __apfSlice(nodes[m].outerHTML || ""), failureSummary: failSummary };
+        if (!allPass) fails.push(nodeData);
+        else if (anyIncomplete) incs.push(nodeData);
       }
       if (fails.length > 0) violations.push({ id: r.id, impact: r.impact, description: r.description, help: r.help, tags: r.tags, nodes: fails });
       else if (incs.length > 0) incomplete.push({ id: r.id, tags: r.tags, nodes: incs });
