@@ -1,15 +1,16 @@
 export type HistoryStatus = "queued" | "running" | "completed" | "failed";
 export type HistoryStatusFilter = "all" | HistoryStatus;
-export type HistorySortKey = "createdAt" | "score";
+export type HistorySortKey = "createdAt" | "conformance";
 export type SortDirection = "asc" | "desc";
+
+export type ConformanceOutcome = "conforms" | "does-not-conform" | "undetermined";
 
 export interface HistoryItem {
   id: string;
   url: string;
   standard: string;
   status: HistoryStatus;
-  score: number | null;
-  passBand: string | null;
+  conformance: ConformanceOutcome | null;
   pagesScanned: number;
   partial: boolean;
   createdAt: string;
@@ -19,6 +20,23 @@ export interface HistoryItem {
 export interface UrlGroup {
   url: string;
   scans: HistoryItem[];
+}
+
+const OUTCOME_RANK: Record<ConformanceOutcome, number> = {
+  conforms: 0,
+  "does-not-conform": 1,
+  undetermined: 2,
+};
+
+export function outcomeLabel(outcome: ConformanceOutcome | null | undefined): string {
+  if (outcome === "conforms") return "Conforms";
+  if (outcome === "does-not-conform") return "Does not conform";
+  if (outcome === "undetermined") return "Not yet evaluated";
+  return "—";
+}
+
+export function outcomeRank(outcome: ConformanceOutcome | null | undefined): number {
+  return outcome == null ? 99 : (OUTCOME_RANK[outcome] ?? 3);
 }
 
 export function filterByStatus(
@@ -43,14 +61,12 @@ function compare(
   key: HistorySortKey,
   direction: SortDirection,
 ): number {
-  if (key === "score") {
-    const sa = a.score;
-    const sb = b.score;
-    if (sa == null && sb == null) return 0;
-    if (sa == null) return 1; // null scores always sort last
-    if (sb == null) return -1;
-    const diff = sa - sb;
-    return direction === "desc" ? -diff : diff;
+  if (key === "conformance") {
+    if (a.conformance == null && b.conformance == null) return 0;
+    if (a.conformance == null) return 1; // null outcomes always sort last
+    if (b.conformance == null) return -1;
+    const diff = outcomeRank(a.conformance) - outcomeRank(b.conformance);
+    return direction === "desc" ? diff : -diff;
   }
   const diff = Date.parse(a.createdAt) - Date.parse(b.createdAt);
   return direction === "desc" ? -diff : diff;
@@ -59,7 +75,7 @@ function compare(
 export function groupByUrl(items: HistoryItem[]): UrlGroup[] {
   const byUrl = new Map<string, HistoryItem[]>();
   for (const item of items) {
-    if (item.status !== "completed" || item.score == null) continue;
+    if (item.status !== "completed" || item.conformance == null) continue;
     const scans = byUrl.get(item.url) ?? [];
     scans.push(item);
     byUrl.set(item.url, scans);

@@ -1,6 +1,6 @@
 "use client";
 
-import { groupByUrl, type HistoryItem } from "@/lib/history";
+import { groupByUrl, outcomeLabel, outcomeRank, type HistoryItem } from "@/lib/history";
 
 function formatShort(iso: string): string {
   const date = new Date(iso);
@@ -13,6 +13,14 @@ function formatShort(iso: string): string {
   }).format(date);
 }
 
+function deltaIndicator(current: HistoryItem, previous?: HistoryItem): string | null {
+  if (!previous || previous.conformance == null || current.conformance == null) return null;
+  const diff = outcomeRank(previous.conformance) - outcomeRank(current.conformance);
+  if (diff > 0) return "↑";
+  if (diff < 0) return "↓";
+  return "→";
+}
+
 export function ScoreComparison({ items }: { items: HistoryItem[] }) {
   const groups = groupByUrl(items);
   if (groups.length === 0) return null;
@@ -20,7 +28,7 @@ export function ScoreComparison({ items }: { items: HistoryItem[] }) {
   return (
     <section aria-labelledby="comparison-heading" className="mt-8">
       <h2 id="comparison-heading" className="font-mono text-lg font-semibold text-terminal-fg">
-        Score comparison
+        Conformance trend
       </h2>
       <div className="mt-4 grid gap-4">
         {groups.map((group) => (
@@ -33,9 +41,7 @@ export function ScoreComparison({ items }: { items: HistoryItem[] }) {
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {group.scans.map((scan, i) => {
-                const prevScan = i > 0 ? group.scans[i - 1] : undefined;
-                const prev = prevScan?.score ?? null;
-                const delta = prev != null && scan.score != null ? scan.score - prev : null;
+                const indicator = deltaIndicator(scan, group.scans[i - 1]);
                 return (
                   <div
                     key={scan.id}
@@ -44,17 +50,20 @@ export function ScoreComparison({ items }: { items: HistoryItem[] }) {
                     <div className="font-mono text-xs text-terminal-muted">
                       {formatShort(scan.createdAt)}
                     </div>
-                    <div className="font-mono text-xl font-semibold text-terminal-fg">
-                      {scan.score}
+                    <div className="font-mono text-sm font-semibold text-terminal-fg">
+                      {outcomeLabel(scan.conformance)}
                     </div>
-                    {delta != null && (
+                    {indicator && (
                       <div
                         className={`font-mono text-xs ${
-                          delta >= 0 ? "text-terminal-pass" : "text-terminal-fail"
+                          indicator === "↑"
+                            ? "text-terminal-pass"
+                            : indicator === "↓"
+                              ? "text-terminal-fail"
+                              : "text-terminal-muted"
                         }`}
                       >
-                        {delta >= 0 ? "+" : ""}
-                        {delta}
+                        {indicator}
                       </div>
                     )}
                   </div>

@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   filterByStatus,
   groupByUrl,
+  outcomeLabel,
   sortHistory,
+  type ConformanceOutcome,
   type HistoryItem,
 } from "@/lib/history";
 
@@ -12,8 +14,7 @@ function item(overrides: Partial<HistoryItem> = {}): HistoryItem {
     url: "https://example.com",
     standard: "WCAG 2.2 AA",
     status: "completed",
-    score: 80,
-    passBand: "pass",
+    conformance: "does-not-conform",
     pagesScanned: 10,
     partial: false,
     createdAt: "2026-01-01T00:00:00Z",
@@ -21,6 +22,15 @@ function item(overrides: Partial<HistoryItem> = {}): HistoryItem {
     ...overrides,
   };
 }
+
+describe("outcomeLabel", () => {
+  it("maps outcomes to display labels", () => {
+    expect(outcomeLabel("conforms")).toBe("Conforms");
+    expect(outcomeLabel("does-not-conform")).toBe("Does not conform");
+    expect(outcomeLabel("undetermined")).toBe("Not yet evaluated");
+    expect(outcomeLabel(null)).toBe("—");
+  });
+});
 
 describe("filterByStatus", () => {
   const items = [
@@ -46,9 +56,9 @@ describe("filterByStatus", () => {
 
 describe("sortHistory", () => {
   const items = [
-    item({ id: "a", createdAt: "2026-01-03T00:00:00Z", score: 50 }),
-    item({ id: "b", createdAt: "2026-01-01T00:00:00Z", score: 90 }),
-    item({ id: "c", createdAt: "2026-01-02T00:00:00Z", score: 70 }),
+    item({ id: "a", createdAt: "2026-01-03T00:00:00Z", conformance: "does-not-conform" }),
+    item({ id: "b", createdAt: "2026-01-01T00:00:00Z", conformance: "conforms" }),
+    item({ id: "c", createdAt: "2026-01-02T00:00:00Z", conformance: "undetermined" }),
   ];
 
   it("sorts by date descending (newest first)", () => {
@@ -59,16 +69,16 @@ describe("sortHistory", () => {
     expect(sortHistory(items, "createdAt", "asc").map((i) => i.id)).toEqual(["b", "c", "a"]);
   });
 
-  it("sorts by score descending", () => {
-    expect(sortHistory(items, "score", "desc").map((i) => i.id)).toEqual(["b", "c", "a"]);
+  it("sorts by conformance descending (best outcome first)", () => {
+    expect(sortHistory(items, "conformance", "desc").map((i) => i.id)).toEqual(["b", "a", "c"]);
   });
 
-  it("sorts null scores last when ascending", () => {
+  it("sorts null outcomes last when ascending", () => {
     const withNull = [
       ...items,
-      item({ id: "n", createdAt: "2026-01-04T00:00:00Z", score: null }),
+      item({ id: "n", createdAt: "2026-01-04T00:00:00Z", conformance: null }),
     ];
-    const ids = sortHistory(withNull, "score", "asc").map((i) => i.id);
+    const ids = sortHistory(withNull, "conformance", "asc").map((i) => i.id);
     expect(ids[ids.length - 1]).toBe("n");
   });
 });
@@ -76,17 +86,21 @@ describe("sortHistory", () => {
 describe("groupByUrl", () => {
   it("groups completed scans per URL, ascending by date, excluding non-completed", () => {
     const items = [
-      item({ id: "a", url: "https://x.com", createdAt: "2026-02-01T00:00:00Z", score: 60 }),
-      item({ id: "b", url: "https://x.com", createdAt: "2026-01-01T00:00:00Z", score: 40 }),
-      item({ id: "c", url: "https://x.com", createdAt: "2026-03-01T00:00:00Z", score: 80 }),
+      item({ id: "a", url: "https://x.com", createdAt: "2026-02-01T00:00:00Z", conformance: "conforms" }),
+      item({ id: "b", url: "https://x.com", createdAt: "2026-01-01T00:00:00Z", conformance: "does-not-conform" }),
+      item({ id: "c", url: "https://x.com", createdAt: "2026-03-01T00:00:00Z", conformance: "undetermined" }),
       item({ id: "d", url: "https://x.com", createdAt: "2026-01-01T00:00:00Z", status: "failed" }),
-      item({ id: "e", url: "https://y.com", createdAt: "2026-01-01T00:00:00Z", score: 50 }),
+      item({ id: "e", url: "https://y.com", createdAt: "2026-01-01T00:00:00Z", conformance: "conforms" }),
     ];
     const groups = groupByUrl(items);
     expect(groups).toHaveLength(1);
     expect(groups[0]?.url).toBe("https://x.com");
     expect(groups[0]?.scans.map((s) => s.id)).toEqual(["b", "a", "c"]);
-    expect(groups[0]?.scans.map((s) => s.score)).toEqual([40, 60, 80]);
+    expect(groups[0]?.scans.map((s) => s.conformance)).toEqual([
+      "does-not-conform",
+      "conforms",
+      "undetermined",
+    ] as ConformanceOutcome[]);
   });
 
   it("excludes URLs with fewer than two completed scans", () => {
