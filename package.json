@@ -16,6 +16,7 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:migrate:live": "tsx src/db/migrate-live.ts",
     "db:migrate:conformance": "tsx src/db/migrate-conformance.ts",
+    "db:set-reviewer": "tsx src/db/set-reviewer.ts",
     "worker": "tsx src/worker/index.ts",
     "worker:build": "esbuild src/worker/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/worker.js --tsconfig=tsconfig.json --packages=external"
   },
