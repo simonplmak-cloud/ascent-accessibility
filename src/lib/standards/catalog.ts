@@ -56,6 +56,27 @@ export const STANDARDS: Standard[] = [
     tags: ["wcag2a", "wcag2aa"],
   },
   {
+    id: "wcag20a",
+    name: "WCAG 2.0 A",
+    version: "2.0",
+    level: "A",
+    tags: ["wcag2a"],
+  },
+  {
+    id: "wcag20aaa",
+    name: "WCAG 2.0 AAA",
+    version: "2.0",
+    level: "AAA",
+    tags: ["wcag2a", "wcag2aa", "wcag2aaa"],
+  },
+  {
+    id: "wcag21aaa",
+    name: "WCAG 2.1 AAA",
+    version: "2.1",
+    level: "AAA",
+    tags: ["wcag2a", "wcag2aa", "wcag2aaa", "wcag21a", "wcag21aa", "wcag21aaa"],
+  },
+  {
     id: "section508",
     name: "Section 508",
     version: "508",

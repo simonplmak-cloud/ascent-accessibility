@@ -25,6 +25,6 @@ describe("scsForTags", () => {
 describe("getSc", () => {
   it("returns SC metadata", () => {
     expect(getSc("1.4.3")).toMatchObject({ num: "1.4.3", level: "AA" });
-    expect(getSc("4.1.1")).toBeUndefined();
+    expect(getSc("4.1.1")).toMatchObject({ num: "4.1.1", introducedIn: "2.0", removedIn: "2.2" });
   });
 });

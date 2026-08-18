@@ -7,16 +7,19 @@ import {
 } from "@/lib/standards/catalog";
 
 describe("StandardsCatalog", () => {
-  it("lists exactly the seven supported standards", () => {
+  it("lists exactly the ten supported standards", () => {
     const ids = listStandards()
       .map((s) => s.id)
       .sort();
     expect(ids).toEqual(
       [
         "section508",
+        "wcag20a",
         "wcag20aa",
+        "wcag20aaa",
         "wcag21a",
         "wcag21aa",
+        "wcag21aaa",
         "wcag22a",
         "wcag22aa",
         "wcag22aaa",
