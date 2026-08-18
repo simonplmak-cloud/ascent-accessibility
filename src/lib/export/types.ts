@@ -29,8 +29,9 @@ export interface ReportComparison {
 export interface ReportData {
   url: string;
   standard: string;
-  score: number;
-  passBand: string;
+  outcome: "conforms" | "does-not-conform" | "undetermined";
+  scsMet: number;
+  scsApplicable: number;
   pagesScanned: number;
   findings: ReportFinding[];
   generatedAt?: string;

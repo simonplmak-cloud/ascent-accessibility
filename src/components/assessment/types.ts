@@ -51,6 +51,9 @@ export interface Conformance {
   cannotTell: number;
   coverage: number;
   levelAttained: string;
+  outcome: string;
+  scsMet: number;
+  scsApplicable: number;
   rows: ConformanceRow[];
 }
 
@@ -89,6 +92,9 @@ export interface AssessmentResult {
   standard?: string;
   score: number | null;
   passBand: string | null;
+  conformance?: string | null;
+  scsMet?: number | null;
+  scsApplicable?: number | null;
   pagesScanned: number;
   log: LogEntry[];
   findings: Finding[];

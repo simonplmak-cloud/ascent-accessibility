@@ -14,14 +14,19 @@ function finding(ruleId: string): Finding {
 }
 
 function conformance(violatingRows: Array<{ num: string; title: string }>): Conformance {
+  const failed = violatingRows.length;
+  const passed = 50 - failed;
   return {
     total: 50,
-    passed: 50 - violatingRows.length,
-    failed: violatingRows.length,
+    passed,
+    failed,
     notPresent: 0,
     cannotTell: 0,
     coverage: 100,
     levelAttained: "AA",
+    outcome: failed > 0 ? "does-not-conform" : "conforms",
+    scsMet: passed,
+    scsApplicable: 50,
     rows: violatingRows.map((r) => ({ ...r, level: "AA", result: "Failed" as const })),
   };
 }
@@ -33,8 +38,11 @@ function result(overrides: Partial<AssessmentResult> = {}): AssessmentResult {
     partial: false,
     url: "https://example.com",
     standard: "WCAG 2.2 AA",
-    score: 88,
-    passBand: "partial",
+    score: null,
+    passBand: null,
+    conformance: "does-not-conform",
+    scsMet: 49,
+    scsApplicable: 50,
     pagesScanned: 12,
     log: [],
     findings: [],
@@ -47,7 +55,7 @@ function result(overrides: Partial<AssessmentResult> = {}): AssessmentResult {
 }
 
 describe("buildReportSummary", () => {
-  it("summarises score, band, findings, pages, and failed criteria", () => {
+  it("summarises findings, pages, failed criteria, and the outcome", () => {
     const s = buildReportSummary(
       result({
         findings: [finding("a"), finding("b")],
@@ -57,17 +65,36 @@ describe("buildReportSummary", () => {
         },
       }),
     );
-    expect(s).toContain("scores 88 out of 100");
-    expect(s).toContain("a partial result");
-    expect(s).toContain("2 findings");
-    expect(s).toContain("12 pages");
+    expect(s).toContain("was assessed across 12 pages");
+    expect(s).toContain("with 2 findings");
     expect(s).toContain("fails 1 success criterion");
     expect(s).toContain("1.4.3 Contrast (Minimum)");
+    expect(s).toContain("It does not conform to the selected standard.");
   });
 
   it("uses singular and notes no failures when clean", () => {
     const s = buildReportSummary(result({ findings: [finding("a")] }));
-    expect(s).toContain("1 finding");
+    expect(s).toContain("with 1 finding");
     expect(s).toContain("No success criteria failed");
+    expect(s).toContain("It conforms to the selected standard.");
+  });
+
+  it("reports undetermined when criteria await human review", () => {
+    const s = buildReportSummary(
+      result({
+        comparison: {
+          ...result().comparison!,
+          conformance: {
+            ...conformance([]),
+            cannotTell: 3,
+            outcome: "undetermined",
+            scsApplicable: 50,
+            scsMet: 47,
+          },
+        },
+      }),
+    );
+    expect(s).toContain("3 cannot be determined and need human review");
+    expect(s).toContain("Conformance has not yet been determined.");
   });
 });

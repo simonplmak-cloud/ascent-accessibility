@@ -1,5 +1,11 @@
 import type { AssessmentResult } from "./types";
 
+function conformanceOutcomeLabel(outcome: string | undefined): string {
+  if (outcome === "conforms") return "Conforms";
+  if (outcome === "does-not-conform") return "Does not conform";
+  return "Not yet evaluated";
+}
+
 export function ComparisonPanel({ result }: { result: AssessmentResult }) {
   const comparison = result.comparison;
   if (!comparison) return null;
@@ -31,8 +37,10 @@ export function ComparisonPanel({ result }: { result: AssessmentResult }) {
           </thead>
           <tbody>
             <tr className="border-b border-terminal-border">
-              <td className="px-3 py-2 text-terminal-fg">Accessibility score</td>
-              <td className="px-3 py-2 text-terminal-fg">{result.score}/100</td>
+              <td className="px-3 py-2 text-terminal-fg">Conformance</td>
+              <td className="px-3 py-2 text-terminal-fg">
+                {conformanceOutcomeLabel(comparison.conformance?.outcome)}
+              </td>
             </tr>
             {typeof audit?.score === "number" && (
               <tr className="border-b border-terminal-border last:border-b-0">

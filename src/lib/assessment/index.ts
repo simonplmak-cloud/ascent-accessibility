@@ -1,4 +1,4 @@
-import { computeScore, type ConformanceResult } from "@/lib/scoring";
+import { type ConformanceResult } from "@/lib/scoring";
 import { type CrawlOptions, type CrawlResult } from "@/lib/crawler";
 import { ScanFailedError, type ScanResult, type ScanViolation } from "@/lib/scanner";
 import type { CapturedEvidence } from "@/lib/evidence/screenshot";
@@ -40,8 +40,9 @@ export interface AssessmentRepositoryPort {
   complete(
     id: string,
     input: {
-      score: number;
-      passBand: "pass" | "partial" | "fail";
+      conformance: "conforms" | "does-not-conform" | "undetermined";
+      scsMet: number;
+      scsApplicable: number;
       pagesScanned: number;
       partial: boolean;
     },
@@ -49,8 +50,9 @@ export interface AssessmentRepositoryPort {
   finalize(
     id: string,
     input: {
-      score: number;
-      passBand: "pass" | "partial" | "fail";
+      conformance: "conforms" | "does-not-conform" | "undetermined";
+      scsMet: number;
+      scsApplicable: number;
       pagesScanned: number;
       partial: boolean;
       findings: Finding[];
@@ -197,13 +199,15 @@ export async function runAssessment(
     const conformance = evaluated.conformance;
     const aiVerdicts = evaluated.aiVerdicts;
     const aiBudget = evaluated.aiBudget;
-    const score = computeScore(findings);
 
     await log(
       "info",
       `WCAG conformance: ${conformance.passed} Passed / ${conformance.failed} Failed / ${conformance.notPresent} Not present / ${conformance.cannotTell} Cannot tell (${conformance.coverage}% tested)`,
     );
-    await log("info", `score: ${score.score}/100 (${score.passBand})`);
+    await log(
+      "info",
+      `conformance outcome: ${conformance.outcome} (${conformance.scsMet}/${conformance.scsApplicable} applicable SCs meet)`,
+    );
 
     const comparison: ComparisonData = {
       conformance,
@@ -215,8 +219,9 @@ export async function runAssessment(
 
     await log("info", `storing findings and evidence (${findings.length} findings)`);
     await deps.repository.finalize(assessmentId, {
-      score: score.score,
-      passBand: score.passBand,
+      conformance: conformance.outcome,
+      scsMet: conformance.scsMet,
+      scsApplicable: conformance.scsApplicable,
       pagesScanned,
       partial,
       findings,

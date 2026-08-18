@@ -2,8 +2,6 @@ import type { AssessmentResult } from "@/components/assessment/types";
 
 export function buildReportSummary(result: AssessmentResult): string {
   const url = result.url ?? "This website";
-  const score = result.score ?? "n/a";
-  const band = (result.passBand ?? "unknown").toLowerCase();
   const pages = result.pagesScanned;
   const findingCount = result.findings.length;
   const conformance = result.comparison?.conformance;
@@ -27,10 +25,19 @@ export function buildReportSummary(result: AssessmentResult): string {
     }
   }
 
+  const outcome = conformance?.outcome;
+  const outcomePart =
+    outcome === "conforms"
+      ? " It conforms to the selected standard."
+      : outcome === "does-not-conform"
+        ? " It does not conform to the selected standard."
+        : " Conformance has not yet been determined.";
+
   return (
-    `Summary: ${url} scores ${score} out of 100, a ${band} result. ` +
-    `It found ${findingCount} ${findingCount === 1 ? "finding" : "findings"} across ` +
-    `${pages} ${pages === 1 ? "page" : "pages"}.${conformancePart} ` +
-    "See the findings below for what to fix."
+    `Summary: ${url} was assessed across ${pages} ${pages === 1 ? "page" : "pages"} with ` +
+    `${findingCount} ${findingCount === 1 ? "finding" : "findings"}.` +
+    conformancePart +
+    outcomePart +
+    " See the findings below for what to fix."
   );
 }

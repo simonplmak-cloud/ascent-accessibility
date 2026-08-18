@@ -1,4 +1,4 @@
-import type { Impact } from "@/lib/scoring";
+import type { Impact, ConformanceOutcome } from "@/lib/scoring";
 
 export type AssessmentStatus = "queued" | "running" | "completed" | "failed";
 export type PassBand = "pass" | "partial" | "fail";
@@ -52,6 +52,9 @@ export interface Assessment {
   partial: boolean;
   score: number | null;
   passBand: PassBand | null;
+  conformance: ConformanceOutcome | null;
+  scsMet: number | null;
+  scsApplicable: number | null;
   depth: number;
   pageCap: number;
   pagesScanned: number;
@@ -146,6 +149,9 @@ DEFINE FIELD status ON assessment TYPE string DEFAULT "queued";
 DEFINE FIELD partial ON assessment TYPE bool DEFAULT false;
 DEFINE FIELD score ON assessment TYPE option<int>;
 DEFINE FIELD passBand ON assessment TYPE option<string>;
+DEFINE FIELD conformance ON assessment TYPE option<string>;
+DEFINE FIELD scsMet ON assessment TYPE option<int>;
+DEFINE FIELD scsApplicable ON assessment TYPE option<int>;
 DEFINE FIELD depth ON assessment TYPE int DEFAULT 3;
 DEFINE FIELD pageCap ON assessment TYPE int DEFAULT 100;
 DEFINE FIELD pagesScanned ON assessment TYPE int DEFAULT 0;

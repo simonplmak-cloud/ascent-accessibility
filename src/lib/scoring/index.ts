@@ -2,7 +2,9 @@ import { getSc, type WcagLevel, type WcagSc } from "@/lib/standards/wcag-sc";
 import { checkScApplicability, type PageFeatures } from "@/lib/standards/sc-applicability";
 
 export type Impact = "critical" | "serious" | "moderate" | "minor";
-export type PassBand = "pass" | "partial" | "fail";
+
+// The conformance opinion: only issued when no applicable SC is "Cannot tell".
+export type ConformanceOutcome = "conforms" | "does-not-conform" | "undetermined";
 
 // Stage 4 — the machine verdict (deterministic rules + applicability).
 export type MachineVerdict = "Passed" | "Failed" | "Unresolved" | "NotPresent";
@@ -69,11 +71,6 @@ export function normalizeMachineVerdict(value: string): MachineVerdict {
   }
 }
 
-export interface ScoreResult {
-  score: number;
-  passBand: PassBand;
-}
-
 export interface MachineRow {
   num: string;
   title: string;
@@ -107,35 +104,14 @@ export interface ConformanceResult {
   cannotTell: number;
   coverage: number;
   levelAttained: "A" | "AA" | "AAA" | "none";
+  // Conformance opinion + counts (replaces the severity-weighted 0–100 score).
+  outcome: ConformanceOutcome;
+  scsMet: number;
+  scsApplicable: number;
   rows: ScConformanceRow[];
 }
 
-const IMPACT_WEIGHT: Record<Impact, number> = {
-  critical: 10,
-  serious: 5,
-  moderate: 2,
-  minor: 0.5,
-};
-
-const INSTANCE_CAP = 10;
-
 const LEVEL_RANK: Record<WcagLevel, number> = { A: 1, AA: 2, AAA: 3 };
-
-export function weightOf(impact: Impact): number {
-  return IMPACT_WEIGHT[impact];
-}
-
-export function computeScore(
-  findings: readonly { impact: Impact; elementCount?: number }[],
-): ScoreResult {
-  const penalty = findings.reduce((sum, finding) => {
-    const instances = Math.min(finding.elementCount ?? 1, INSTANCE_CAP);
-    return sum + weightOf(finding.impact) * instances;
-  }, 0);
-  const score = Math.max(0, Math.floor(100 - penalty));
-  const passBand: PassBand = score >= 90 ? "pass" : score >= 70 ? "partial" : "fail";
-  return { score, passBand };
-}
 
 // Stage 4 — machine verdict per applicable SC.
 export function computeConformance(
@@ -205,6 +181,17 @@ export function finalizeConformance(
     if (!hasFailed && !hasReview) levelAttained = level;
   }
 
+  const scsApplicable = passed + failed + cannotTell;
+  const scsMet = passed;
+  const outcome: ConformanceOutcome =
+    cannotTell > 0
+      ? "undetermined"
+      : scsApplicable === 0
+        ? "undetermined"
+        : failed > 0
+          ? "does-not-conform"
+          : "conforms";
+
   return {
     total: rows.length,
     passed,
@@ -213,6 +200,9 @@ export function finalizeConformance(
     cannotTell,
     coverage,
     levelAttained,
+    outcome,
+    scsMet,
+    scsApplicable,
     rows,
   };
 }

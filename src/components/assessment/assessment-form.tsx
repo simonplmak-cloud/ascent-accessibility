@@ -204,8 +204,7 @@ export function AssessmentForm({
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         {result?.status === "completed" && (
           <p>
-            Assessment complete. Score: {result.score ?? "n/a"} out of 100.{" "}
-            {result.findings?.length ?? 0} findings.
+            Assessment complete. {result.findings?.length ?? 0} findings.
           </p>
         )}
       </div>

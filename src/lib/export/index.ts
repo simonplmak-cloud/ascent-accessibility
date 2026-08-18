@@ -14,7 +14,7 @@ export type {
 export {
   SEVERITY_ORDER,
   severityColor,
-  passBandColor,
+  outcomeColor,
   severityCounts,
   severityRank,
   groupFindingsBySeverity,

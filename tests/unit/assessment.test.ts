@@ -12,7 +12,7 @@ import type { Impact } from "@/lib/scoring";
 interface RepoState {
   status: string;
   findings: Finding[];
-  completed: { score: number; passBand: string; pagesScanned: number; partial: boolean } | null;
+  completed: { conformance: string; scsMet: number; scsApplicable: number; pagesScanned: number; partial: boolean } | null;
   comparison: unknown;
   backfillComparison: unknown;
 }
@@ -155,7 +155,9 @@ describe("runAssessment", () => {
     });
     expect(state.findings[0]!.recommendation.length).toBeGreaterThan(0);
     expect(state.findings[0]!.wcagSc).toEqual(["1.4.3"]);
-    expect(state.completed).toMatchObject({ passBand: "pass", pagesScanned: 1 });
+    expect(state.completed).toMatchObject({ pagesScanned: 1 });
+    expect(typeof state.completed?.conformance).toBe("string");
+    expect(typeof state.completed?.scsApplicable).toBe("number");
   });
 
   it("fails when the standard is unknown", async () => {

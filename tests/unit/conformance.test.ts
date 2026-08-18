@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   computeConformance,
-  computeScore,
   finalizeConformance,
   normalizeFinalVerdict,
   normalizeMachineVerdict,
@@ -19,14 +18,6 @@ const FEATURES: PageFeatures = {
   hasLang: true,
   hasForms: true,
 };
-
-describe("computeScore", () => {
-  it("weights findings by impact and instance frequency (capped)", () => {
-    expect(computeScore([{ impact: "critical", elementCount: 1 }]).score).toBe(90);
-    expect(computeScore([{ impact: "critical", elementCount: 3 }]).score).toBe(70);
-    expect(computeScore([{ impact: "critical", elementCount: 20 }]).score).toBe(0);
-  });
-});
 
 describe("normalizeFinalVerdict (legacy → official vocabulary)", () => {
   it("passes through official values unchanged", () => {

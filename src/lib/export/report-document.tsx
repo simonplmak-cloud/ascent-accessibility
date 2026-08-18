@@ -6,8 +6,6 @@ import {
   View,
   Image,
   StyleSheet,
-  Svg,
-  Path,
   Link,
   renderToBuffer,
 } from "@react-pdf/renderer";
@@ -16,7 +14,7 @@ import {
   affectedSuccessCriteria,
   generatedDate,
   groupFindingsBySeverity,
-  passBandColor,
+  outcomeColor,
   severityColor,
   severityCounts,
   severityRank,
@@ -25,6 +23,12 @@ import {
   type SeverityCounts,
 } from "./report-data";
 import type { ReportData } from "./types";
+
+function outcomeLabel(outcome: string): string {
+  if (outcome === "conforms") return "Conforms";
+  if (outcome === "does-not-conform") return "Does not conform";
+  return "Not yet evaluated";
+}
 
 const styles = StyleSheet.create({
   page: {
@@ -68,32 +72,6 @@ const styles = StyleSheet.create({
   // Colophon
   colophon: { marginTop: 24, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 10, fontSize: 8, color: "#59636e", flexDirection: "row", justifyContent: "space-between" },
 });
-
-function ScoreGauge({ score, color }: { score: number; color: string }) {
-  const clamped = Math.max(0, Math.min(100, Math.round(score)));
-  const radius = 80;
-  const arcLength = Math.PI * radius;
-  const dash = arcLength * (clamped / 100);
-  const d = "M 20 110 A 80 80 0 0 1 180 110";
-
-  return (
-    <View style={{ alignItems: "center" }}>
-      <Svg width={240} height={120} viewBox="0 0 200 120">
-        <Path d={d} stroke="#e5e7eb" strokeWidth={16} fill="none" strokeLinecap="round" />
-        <Path
-          d={d}
-          stroke={color}
-          strokeWidth={16}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={`${dash.toFixed(1)} ${arcLength.toFixed(1)}`}
-        />
-      </Svg>
-      <Text style={{ fontSize: 28, fontWeight: 700, color }}>{clamped}</Text>
-      <Text style={{ fontSize: 10, color: "#59636e" }}>out of 100</Text>
-    </View>
-  );
-}
 
 function SeverityBars({ counts }: { counts: SeverityCounts }) {
   const max = Math.max(1, ...SEVERITY_ORDER.map((s) => counts[s]));
@@ -160,7 +138,7 @@ function Row({ label, children }: { label?: string; children: ReactNode }) {
 
 export function AccessibilityReportDocument({ report, logo }: { report: ReportData; logo: Buffer | null }) {
   const counts = severityCounts(report.findings);
-  const bandColor = passBandColor(report.passBand);
+  const bandColor = outcomeColor(report.outcome);
   const grouped = groupFindingsBySeverity(report.findings);
   const top = topIssues(report.findings, 5);
   const affected = affectedSuccessCriteria(report.findings);
@@ -193,10 +171,9 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
             <Row label="Pages scanned">{String(report.pagesScanned)}</Row>
             <Row label="Generated">{generatedDate(report.generatedAt)}</Row>
           </View>
-          <View style={styles.gauge}>
-            <ScoreGauge score={report.score} color={bandColor} />
-          </View>
-          <Text style={[styles.verdict, { color: bandColor }]}>Result: {report.passBand}</Text>
+          <Text style={[styles.verdict, { color: bandColor }]}>
+            {outcomeLabel(report.outcome)} — {report.scsMet}/{report.scsApplicable} applicable SCs meet
+          </Text>
           <Text style={styles.disclaimer}>
             Automated assessment — findings are preliminary and do not constitute a full WCAG conformance claim.
           </Text>
@@ -221,7 +198,7 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
         <View id="executive-summary" style={styles.section}>
           <Text style={styles.h2}>1. Executive summary</Text>
           <Text>
-            Result: <Text style={{ color: bandColor, fontWeight: 700 }}>{report.passBand}</Text> — score {report.score} / 100 across {report.pagesScanned} page(s).
+            Result: <Text style={{ color: bandColor, fontWeight: 700 }}>{outcomeLabel(report.outcome)}</Text> — {report.scsMet}/{report.scsApplicable} applicable SCs meet, across {report.pagesScanned} page(s).
           </Text>
           <Text style={{ marginTop: 4 }}>
             {totalFindings} finding(s): critical {counts.critical}, serious {counts.serious}, moderate {counts.moderate}, minor {counts.minor}.
@@ -344,8 +321,8 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
               <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>Result</Text>
             </View>
             <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, { flex: 1 }]}>Accessibility score</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>{report.score} / 100</Text>
+              <Text style={[styles.tableCell, { flex: 1 }]}>Conformance</Text>
+              <Text style={[styles.tableCell, { flex: 1 }]}>{outcomeLabel(report.outcome)}</Text>
             </View>
             {comparison.audit !== undefined ? (
               <View style={styles.tableRow}>

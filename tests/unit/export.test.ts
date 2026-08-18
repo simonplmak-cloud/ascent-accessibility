@@ -4,8 +4,9 @@ import { exportReport, type ReportData } from "@/lib/export";
 const report: ReportData = {
   url: "https://example.com/",
   standard: "WCAG 2.2 AA",
-  score: 87,
-  passBand: "partial",
+  outcome: "does-not-conform",
+  scsMet: 49,
+  scsApplicable: 50,
   pagesScanned: 5,
   findings: [
     {
@@ -38,7 +39,7 @@ describe("exportReport", () => {
         return Buffer.from("x");
       },
     });
-    expect(received?.score).toBe(87);
+    expect(received?.outcome).toBe("does-not-conform");
     expect(received?.findings).toHaveLength(1);
   });
 

@@ -2,8 +2,9 @@ import { getDb, query, withDbRetry } from "../index";
 import type { Assessment, Finding, LogEntry, NewAssessment, PassBand } from "../schema";
 
 export interface CompleteAssessmentInput {
-  score: number;
-  passBand: "pass" | "partial" | "fail";
+  conformance: "conforms" | "does-not-conform" | "undetermined";
+  scsMet: number;
+  scsApplicable: number;
   pagesScanned: number;
   partial: boolean;
 }
@@ -15,6 +16,9 @@ export interface AssessmentSummary {
   status: Assessment["status"];
   score: number | null;
   passBand: PassBand | null;
+  conformance: string | null;
+  scsMet: number | null;
+  scsApplicable: number | null;
   pagesScanned: number;
   partial: boolean;
   createdAt: string;
@@ -22,7 +26,7 @@ export interface AssessmentSummary {
 }
 
 const SUMMARY_PROJECTION =
-  "id, url, standard, status, score, passBand, pagesScanned, partial, createdAt, updatedAt";
+  "id, url, standard, status, score, passBand, conformance, scsMet, scsApplicable, pagesScanned, partial, createdAt, updatedAt";
 
 function mapSummary(raw: Record<string, unknown>): AssessmentSummary {
   return {
@@ -32,6 +36,9 @@ function mapSummary(raw: Record<string, unknown>): AssessmentSummary {
     status: raw.status as Assessment["status"],
     score: raw.score == null ? null : Number(raw.score),
     passBand: (raw.passBand as PassBand | null) ?? null,
+    conformance: (raw.conformance as string | null) ?? null,
+    scsMet: raw.scsMet == null ? null : Number(raw.scsMet),
+    scsApplicable: raw.scsApplicable == null ? null : Number(raw.scsApplicable),
     pagesScanned: Number(raw.pagesScanned ?? 0),
     partial: Boolean(raw.partial),
     createdAt: String(raw.createdAt),
@@ -80,7 +87,7 @@ export const assessmentRepository = {
 
   async complete(id: string, input: CompleteAssessmentInput): Promise<void> {
     await query(
-      "UPDATE assessment SET status = 'completed', score = $score, passBand = $passBand, pagesScanned = $pagesScanned, partial = $partial, updatedAt = time::now() WHERE id = type::record($id)",
+      "UPDATE assessment SET status = 'completed', conformance = $conformance, scsMet = $scsMet, scsApplicable = $scsApplicable, pagesScanned = $pagesScanned, partial = $partial, updatedAt = time::now() WHERE id = type::record($id)",
       { id, ...input },
     );
   },
@@ -92,11 +99,12 @@ export const assessmentRepository = {
     input: CompleteAssessmentInput & { findings: Finding[]; comparison: unknown },
   ): Promise<void> {
     await query(
-      "UPDATE assessment SET status = 'completed', score = $score, passBand = $passBand, pagesScanned = $pagesScanned, partial = $partial, findings = $findings, comparison = $comparison, updatedAt = time::now() WHERE id = type::record($id)",
+      "UPDATE assessment SET status = 'completed', conformance = $conformance, scsMet = $scsMet, scsApplicable = $scsApplicable, pagesScanned = $pagesScanned, partial = $partial, findings = $findings, comparison = $comparison, updatedAt = time::now() WHERE id = type::record($id)",
       {
         id,
-        score: input.score,
-        passBand: input.passBand,
+        conformance: input.conformance,
+        scsMet: input.scsMet,
+        scsApplicable: input.scsApplicable,
         pagesScanned: input.pagesScanned,
         partial: input.partial,
         findings: JSON.stringify(input.findings),

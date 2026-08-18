@@ -46,8 +46,7 @@ export function Report({ result }: { result: AssessmentResult }) {
 
       <div className="mt-4">
         <ScoreSummary
-          score={result.score}
-          passBand={result.passBand}
+          conformance={result.comparison?.conformance}
           findings={result.findings}
         />
       </div>
