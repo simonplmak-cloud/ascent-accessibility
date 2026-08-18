@@ -7,7 +7,6 @@ function makeViolation(
   id: string,
   description: string,
   tags: string[],
-  url: string,
 ): ScanViolation {
   return {
     id,
@@ -21,7 +20,7 @@ function makeViolation(
   };
 }
 
-export async function runInteractionScan(page: Page, url: string): Promise<ScanViolation[]> {
+export async function runInteractionScan(page: Page): Promise<ScanViolation[]> {
   const violations: ScanViolation[] = [];
   const viewport = page.viewportSize();
 
@@ -33,7 +32,7 @@ export async function runInteractionScan(page: Page, url: string): Promise<ScanV
     });
     if (overflow) {
       violations.push(
-        makeViolation("reflow", "content overflows horizontally at a 320px viewport", ["wcag2aa", "wcag1410"], url),
+        makeViolation("reflow", "content overflows horizontally at a 320px viewport", ["wcag2aa", "wcag1410"]),
       );
     }
   } catch {
@@ -73,7 +72,7 @@ export async function runInteractionScan(page: Page, url: string): Promise<ScanV
       }
       if (stuck) {
         violations.push(
-          makeViolation("no-keyboard-trap", "keyboard focus appears trapped", ["wcag2a", "wcag212"], url),
+          makeViolation("no-keyboard-trap", "keyboard focus appears trapped", ["wcag2a", "wcag212"]),
         );
       }
     }

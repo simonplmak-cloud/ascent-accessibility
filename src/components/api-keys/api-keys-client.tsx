@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export interface ApiKeySummary {
@@ -12,14 +12,42 @@ export interface ApiKeySummary {
   rateLimit: number;
 }
 
-export function ApiKeysClient({ keys }: { keys: ApiKeySummary[] }) {
-  const router = useRouter();
+type AuthState = "loading" | "signed-out" | "not-subscribed" | "ready";
+
+export function ApiKeysClient() {
+  const [keys, setKeys] = useState<ApiKeySummary[]>([]);
+  const [auth, setAuth] = useState<AuthState>("loading");
   const [name, setName] = useState("");
   const [rateLimit, setRateLimit] = useState(60);
   const [issuedKey, setIssuedKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
+
+  async function load() {
+    try {
+      const res = await fetch("/api/v1/api-keys");
+      if (res.status === 401) {
+        setAuth("signed-out");
+        return;
+      }
+      if (res.status === 402) {
+        setAuth("not-subscribed");
+        return;
+      }
+      if (!res.ok) throw new Error("load failed");
+      const data = (await res.json()) as ApiKeySummary[];
+      setKeys(data);
+      setAuth("ready");
+    } catch {
+      setError("Could not load API keys.");
+      setAuth("ready");
+    }
+  }
+
+  useEffect(() => {
+    void load();
+  }, []);
 
   async function createKey(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,10 +60,10 @@ export function ApiKeysClient({ keys }: { keys: ApiKeySummary[] }) {
         body: JSON.stringify({ name, rateLimit }),
       });
       if (!res.ok) throw new Error("create failed");
-      const issued = await res.json();
+      const issued = (await res.json()) as { key: string };
       setIssuedKey(issued.key);
       setName("");
-      router.refresh();
+      await load();
     } catch {
       setError("Could not create a key.");
     }
@@ -49,7 +77,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKeySummary[] }) {
       const res = await fetch(`/api/v1/api-keys/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("revoke failed");
       setNotice("Key revoked.");
-      router.refresh();
+      await load();
     } catch {
       setError("Could not revoke that key.");
     } finally {
@@ -59,6 +87,50 @@ export function ApiKeysClient({ keys }: { keys: ApiKeySummary[] }) {
         return next;
       });
     }
+  }
+
+  if (auth === "loading") {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16">
+        <h1 className="font-mono text-2xl font-bold text-terminal-fg">API access</h1>
+        <p className="mt-4 font-mono text-sm text-terminal-muted">Loading…</p>
+      </div>
+    );
+  }
+
+  if (auth === "signed-out") {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16">
+        <h1 className="font-mono text-2xl font-bold text-terminal-fg">API access</h1>
+        <p className="mt-4 font-mono leading-7 text-terminal-muted">
+          Sign in to manage API keys for programmatic assessments.
+        </p>
+        <Link
+          href="/sign-in"
+          className="mt-6 inline-block rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
+        >
+          Sign in
+        </Link>
+      </div>
+    );
+  }
+
+  if (auth === "not-subscribed") {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16">
+        <h1 className="font-mono text-2xl font-bold text-terminal-fg">API access</h1>
+        <p className="mt-4 font-mono leading-7 text-terminal-muted">
+          API access is available to subscribers. Subscribe to generate API keys for programmatic
+          assessments.
+        </p>
+        <Link
+          href="/site"
+          className="mt-6 inline-block rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
+        >
+          Subscribe
+        </Link>
+      </div>
+    );
   }
 
   return (

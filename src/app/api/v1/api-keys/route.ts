@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { apiKeyCreateSchema } from "@/server/validation";
 import { apiKeyService } from "@/server/bootstrap";
 import { apiKeyRepository, subscriptionRepository } from "@/db/repository";
-import { getSessionUser, getUserId } from "@/server/auth";
+import { getSessionUser } from "@/server/auth";
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
@@ -28,8 +28,15 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const userId = await getUserId();
-  const keys = await apiKeyRepository.list(userId);
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
+  }
+  const subscribed = await subscriptionRepository.isActive(user.email);
+  if (!subscribed) {
+    return NextResponse.json({ code: "PAYMENT_REQUIRED" }, { status: 402 });
+  }
+  const keys = await apiKeyRepository.list(user.email);
   return NextResponse.json(
     keys.map((key) => ({
       id: key.id,

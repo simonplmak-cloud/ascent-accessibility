@@ -10,7 +10,7 @@ export interface PageScanner {
   scan: (url: string, tags: string[]) => Promise<ScanResult>;
   captureEvidence: (result: ScanResult) => Promise<CapturedEvidence>;
   screenshotPage: () => Promise<Buffer>;
-  interactionScan: (url: string) => Promise<ScanViolation[]>;
+  interactionScan: () => Promise<ScanViolation[]>;
   close: () => Promise<void>;
   discard: () => Promise<void>;
 }
@@ -114,7 +114,7 @@ export async function createPageScanner(): Promise<PageScanner> {
     scan: (url: string, tags: string[]) => runEngine(url, tags, scannerPage),
     captureEvidence: (result: ScanResult) => captureEvidence(scannerPage, result),
     screenshotPage: () => page.screenshot({ type: "jpeg", quality: 60 }),
-    interactionScan: (url: string) => runInteractionScan(page, url),
+    interactionScan: () => runInteractionScan(page),
     // Normal completion: close the context and return the browser to the pool.
     close: async () => {
       if (disposed) return;

@@ -72,7 +72,7 @@ export interface PageScanner {
   scan: (url: string, tags: string[]) => Promise<ScanResult>;
   captureEvidence: (result: ScanResult) => Promise<CapturedEvidence>;
   screenshotPage: () => Promise<Buffer>;
-  interactionScan: (url: string) => Promise<ScanViolation[]>;
+  interactionScan: () => Promise<ScanViolation[]>;
   close: () => Promise<void>;
   discard: () => Promise<void>;
 }
@@ -346,7 +346,7 @@ async function scanAndConsolidate(
                 }
 
                 try {
-                  const interaction = await scanner.interactionScan(url);
+                  const interaction = await scanner.interactionScan();
                   if (interaction.length > 0) {
                     engineFindings.push(...violationsToFindings(url, interaction));
                   }
