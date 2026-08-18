@@ -22,6 +22,15 @@ export async function getUserId(): Promise<string | null> {
   return user?.email ?? null;
 }
 
+export async function getRole(): Promise<string | null> {
+  const user = await getSessionUser();
+  return user?.role ?? null;
+}
+
+export async function isReviewer(): Promise<boolean> {
+  return (await getRole()) === "reviewer";
+}
+
 // Owner of an assessment: the signed-in user's email, or the anonymous session id
 // (a browser cookie) so anonymous visitors still see only their own history.
 export async function getOwnerId(): Promise<string | null> {

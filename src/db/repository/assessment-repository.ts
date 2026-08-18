@@ -273,4 +273,69 @@ export const assessmentRepository = {
       { id, log: JSON.stringify(entries.slice(-MAX_LOG_ENTRIES)) },
     );
   },
+
+  // --- Human review workflow ---
+
+  async requestReview(id: string): Promise<boolean> {
+    const rows = await query<Record<string, unknown>>(
+      "UPDATE assessment SET reviewStatus = 'requested', updatedAt = time::now() WHERE id = type::record($id) AND reviewStatus IS NONE RETURN AFTER",
+      { id },
+    );
+    return rows.length > 0;
+  },
+
+  async claimReview(
+    id: string,
+    claim: { reviewerId: string; reviewerName: string; organization: string; claimedAt: string },
+  ): Promise<boolean> {
+    const rows = await query<Record<string, unknown>>(
+      "UPDATE assessment SET reviewStatus = 'in-review', reviewClaim = $claim, updatedAt = time::now() WHERE id = type::record($id) AND (reviewStatus = 'requested' OR reviewStatus IS NONE) RETURN AFTER",
+      { id, claim: JSON.stringify(claim) },
+    );
+    return rows.length > 0;
+  },
+
+  async getReviewState(id: string): Promise<{
+    reviewStatus: string | null;
+    reviewClaim: string | null;
+    conformance: string | null;
+    scsMet: number | null;
+    scsApplicable: number | null;
+  }> {
+    const rows = await query<Record<string, unknown>>(
+      "SELECT reviewStatus, reviewClaim, conformance, scsMet, scsApplicable FROM assessment WHERE id = type::record($id) LIMIT 1",
+      { id },
+    );
+    const r = rows[0] ?? {};
+    return {
+      reviewStatus: (r.reviewStatus as string | null) ?? null,
+      reviewClaim: (r.reviewClaim as string | null) ?? null,
+      conformance: (r.conformance as string | null) ?? null,
+      scsMet: r.scsMet == null ? null : Number(r.scsMet),
+      scsApplicable: r.scsApplicable == null ? null : Number(r.scsApplicable),
+    };
+  },
+
+  async listReviewQueue(): Promise<AssessmentSummary[]> {
+    const rows = await query<Record<string, unknown>>(
+      `SELECT ${SUMMARY_PROJECTION} FROM assessment WHERE reviewStatus = 'requested' OR reviewStatus = 'in-review' ORDER BY updatedAt ASC`,
+      {},
+    );
+    return rows.map(mapSummary);
+  },
+
+  async submitReview(
+    id: string,
+    input: {
+      reviewResults: string;
+      conformance: string;
+      scsMet: number;
+      scsApplicable: number;
+    },
+  ): Promise<void> {
+    await query(
+      "UPDATE assessment SET reviewStatus = 'reviewed', reviewResults = $reviewResults, conformance = $conformance, scsMet = $scsMet, scsApplicable = $scsApplicable, updatedAt = time::now() WHERE id = type::record($id)",
+      { id, ...input },
+    );
+  },
 };

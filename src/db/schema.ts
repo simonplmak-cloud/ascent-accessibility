@@ -220,6 +220,7 @@ DEFINE INDEX subscription_user_idx ON subscription FIELDS userId UNIQUE;`,
 DEFINE FIELD name ON user TYPE string;
 DEFINE FIELD email ON user TYPE string;
 DEFINE FIELD password ON user TYPE string PERMISSIONS FOR select NONE;
+DEFINE FIELD role ON user TYPE option<string> DEFAULT NONE;
 DEFINE FIELD createdAt ON user TYPE datetime DEFAULT time::now();
 DEFINE INDEX user_email_idx ON user FIELDS email UNIQUE;`,
 
