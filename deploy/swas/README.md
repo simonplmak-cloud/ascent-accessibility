@@ -22,6 +22,22 @@ latency-critical path.
 - `wcag-score-worker.service` — runs `node dist/worker.js` (systemd, `Restart=always`).
 - `browserless.service` — runs `ghcr.io/browserless/chromium` via Docker, bound to `127.0.0.1:3000`.
 
+## Concurrency (4C/8G box)
+
+The box was upgraded 2C/4G → 4C/8G. Recommended `WORKER_*` in `/opt/wcag-score/.env`
+(unquoted — systemd `EnvironmentFile` does not strip quotes):
+
+```
+WORKER_SCAN_CONCURRENCY=4        # parallel page scans
+WORKER_ASSESSMENT_CONCURRENCY=2  # parallel assessments
+WORKER_BROWSER_POOL_SIZE=4       # warm Chromium pool
+```
+
+Total browsers = `ASSESSMENT_CONCURRENCY × SCAN_CONCURRENCY` = 8 (≈4 GB at ~500 MB
+each) + browserless + the node worker — within 8 GB. To use browserless from a
+*separate* box, set `BROWSERLESS_URL=ws://<other-box>:3000` and keep
+`BROWSERLESS_TOKEN` in sync across both boxes.
+
 ## SSH in
 
 ```bash

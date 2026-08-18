@@ -40,7 +40,7 @@ async function launchBrowser(): Promise<Browser> {
 // ~2-5s Chromium launch cost each time. Each scan still gets a fresh context
 // (cookies/storage don't leak between sites); the browser process lives on.
 const idleBrowsers: Browser[] = [];
-const MAX_POOL_SIZE = Number(process.env.WORKER_BROWSER_POOL_SIZE ?? 2);
+const MAX_POOL_SIZE = Number(process.env.WORKER_BROWSER_POOL_SIZE ?? 4);
 
 async function acquireBrowser(): Promise<Browser> {
   while (idleBrowsers.length > 0) {

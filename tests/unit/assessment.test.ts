@@ -14,10 +14,17 @@ interface RepoState {
   findings: Finding[];
   completed: { score: number; passBand: string; pagesScanned: number; partial: boolean } | null;
   comparison: unknown;
+  backfillComparison: unknown;
 }
 
 function makeRepo(assessment: AssessmentRecord) {
-  const state: RepoState = { status: assessment.status, findings: [], completed: null, comparison: undefined };
+  const state: RepoState = {
+    status: assessment.status,
+    findings: [],
+    completed: null,
+    comparison: undefined,
+    backfillComparison: undefined,
+  };
   const repo: AssessmentRepositoryPort = {
     async findById() {
       return { ...assessment, status: state.status };
@@ -41,7 +48,9 @@ function makeRepo(assessment: AssessmentRecord) {
     async insertFindings(_id, items) {
       state.findings = items;
     },
-    async insertComparison() {},
+    async insertComparison(_id, comparison) {
+      state.backfillComparison = comparison;
+    },
     async appendLog() {},
     async setLog() {},
   };
@@ -207,7 +216,10 @@ describe("runAssessment", () => {
 
     await runAssessment("a1", deps);
 
-    expect(state.comparison).toMatchObject({
+    // The accessibility result is finalized without the audit; the audit is
+    // backfilled via insertComparison afterward.
+    expect((state.comparison as { audit?: unknown }).audit).toBeUndefined();
+    expect(state.backfillComparison).toMatchObject({
       audit: {
         score: 81,
         failedAudits: [{ id: "color-contrast", weight: 7 }],
@@ -216,7 +228,7 @@ describe("runAssessment", () => {
     });
   });
 
-  it("omits the audit block when the audit dep errors", async () => {
+  it("omits the audit backfill when the audit dep errors", async () => {
     const { repo, state } = makeRepo(assessment);
     const deps = {
       ...makeDeps(repo, async () => ({
@@ -233,7 +245,6 @@ describe("runAssessment", () => {
 
     await runAssessment("a1", deps);
 
-    const comparison = state.comparison as { audit?: unknown };
-    expect(comparison.audit).toBeUndefined();
+    expect(state.backfillComparison).toBeUndefined();
   });
 });

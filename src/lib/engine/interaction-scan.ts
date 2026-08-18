@@ -56,7 +56,7 @@ export async function runInteractionScan(page: Page): Promise<ScanViolation[]> {
       let stuck = false;
       let prev = "";
       let same = 0;
-      for (let i = 0; i < Math.min(focusable + 5, 60); i++) {
+      for (let i = 0; i < Math.min(focusable + 5, 20); i++) {
         await page.keyboard.press("Tab");
         const cur = await page.evaluate(() => {
           const a = document.activeElement;

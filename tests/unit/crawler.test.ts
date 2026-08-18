@@ -10,6 +10,10 @@ import {
   type CrawlerDeps,
 } from "@/lib/crawler";
 
+// Deterministic (sequential) crawl for order-sensitive assertions; parallelism
+// is exercised explicitly in its own test.
+process.env.CRAWL_CONCURRENCY = "1";
+
 const noDelay = async () => {};
 const noRobots = async () => null;
 

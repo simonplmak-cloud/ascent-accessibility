@@ -90,7 +90,6 @@ export interface AssessmentDeps {
 
 interface ConsolidateOutput {
   findings: Finding[];
-  audit: SiteAuditReport | undefined;
   passedScs: Set<string>;
   features: PageFeatures;
   aiScreenshot: Buffer | null;
@@ -207,7 +206,6 @@ export async function runAssessment(
     await log("info", `score: ${score.score}/100 (${score.passBand})`);
 
     const comparison: ComparisonData = {
-      audit: output.audit,
       conformance,
       ai:
         ENABLE_AI_REVIEW && deps.visionModel
@@ -226,6 +224,19 @@ export async function runAssessment(
     });
     await log("info", "assessment complete");
     await flushLogs();
+
+    // Backfill the site audit (Lighthouse) after the accessibility result is
+    // already finalized and readable — the perf/SEO appendix fills in later.
+    if (deps.siteAudit) {
+      try {
+        const audit = await runSiteAudit(urls, deps);
+        if (audit) {
+          await deps.repository.insertComparison(assessmentId, { ...comparison, audit });
+        }
+      } catch {
+        /* audit backfill failed — the accessibility result stands */
+      }
+    }
   } catch (error) {
     // Transient error: re-throw so the worker can retry (retry-exhaustion
     // failure is handled by the worker route, not here).
@@ -243,7 +254,7 @@ const PAGE_TIMEOUT_MS = Number(process.env.WORKER_PAGE_TIMEOUT_MS ?? 180_000);
 
 // Qwen-VL needs-review triage (off by default — adds a vision call per assessment).
 const ENABLE_AI_REVIEW = process.env.ENABLE_AI_REVIEW === "true";
-const AI_REVIEW_MODEL = process.env.AI_REVIEW_MODEL ?? "qwen3-vl-plus";
+const AI_REVIEW_MODEL = process.env.AI_REVIEW_MODEL ?? "qwen3-vl-flash";
 
 class PageTimeoutError extends Error {
   constructor(label: string, ms: number) {
@@ -278,10 +289,6 @@ async function scanAndConsolidate(
   const engineFindings: ToolFinding[] = [];
   const passedScs = new Set<string>();
   let features: PageFeatures = EMPTY_FEATURES;
-  const signalSums = new Map<string, number>();
-  const failedAudits = new Map<string, number>();
-  let auditRuns = 0;
-  let auditVersion: string | undefined;
   let aiScreenshot: Buffer | null = null;
   const incompleteContext: string[] = [];
   const concurrency = Math.max(1, deps.concurrency ?? 4);
@@ -298,12 +305,6 @@ async function scanAndConsolidate(
             await withTimeout(
               async () => {
                 log("info", `scanning ${url} with the Ascent Access engine`);
-                // Fire the site audit (independent HTTP) concurrently with the
-                // CDP-bound engine + interaction scans — identical output,
-                // shorter per-page wall-clock.
-                const auditPromise = deps.siteAudit
-                  ? deps.siteAudit(url).catch(() => undefined)
-                  : Promise.resolve(undefined);
 
                 const scan = await scanner.scan(url, standard.tags);
                 log("info", `engine: ${scan.violations.length} violation(s) on ${url}`);
@@ -342,22 +343,6 @@ async function scanAndConsolidate(
                   }
                 } catch {
                   /* interaction checks unavailable — continue with the engine alone */
-                }
-
-                const audit = await auditPromise;
-                if (audit) {
-                  if (audit.signals) {
-                    for (const [key, value] of Object.entries(audit.signals)) {
-                      if (typeof value === "number") {
-                        signalSums.set(key, (signalSums.get(key) ?? 0) + value);
-                      }
-                    }
-                    auditRuns += 1;
-                  }
-                  for (const failed of audit.failedAudits) {
-                    failedAudits.set(failed.id, failed.weight);
-                  }
-                  if (audit.auditVersion) auditVersion = audit.auditVersion;
                 }
 
                 if (!aiScreenshot) {
@@ -404,34 +389,74 @@ async function scanAndConsolidate(
 
   const findings = consolidateFindings(engineFindings);
 
-  const avgSignal = (key: string): number | undefined => {
-    const sum = signalSums.get(key);
-    return sum === undefined ? undefined : Math.round(sum / auditRuns);
-  };
-
-  const audit: SiteAuditReport | undefined =
-    auditRuns > 0
-      ? {
-          score: avgSignal("accessibility") ?? 100,
-          failedAudits: [...failedAudits.entries()].map(([id, weight]) => ({ id, weight })),
-          signals: {
-            accessibility: avgSignal("accessibility"),
-            performance: avgSignal("performance"),
-            seo: avgSignal("seo"),
-            bestPractices: avgSignal("bestPractices"),
-            pwa: avgSignal("pwa"),
-          },
-          auditVersion,
-        }
-      : undefined;
-
   return {
     findings,
-    audit,
     passedScs,
     features,
     aiScreenshot,
     incompleteContext,
+  };
+}
+
+// Runs the site audit (Lighthouse) over the scanned pages concurrently and
+// aggregates the signals into a single SiteAuditReport. Called as a backfill
+// after the accessibility result has already been finalized, so the report is
+// readable immediately and the audit appendix fills in shortly after.
+async function runSiteAudit(
+  urls: string[],
+  deps: AssessmentDeps,
+): Promise<SiteAuditReport | undefined> {
+  if (!deps.siteAudit) return undefined;
+
+  const signalSums = new Map<string, number>();
+  const failedAudits = new Map<string, number>();
+  let auditRuns = 0;
+  let auditVersion: string | undefined;
+  const concurrency = Math.max(1, deps.concurrency ?? 4);
+  const queue = [...urls];
+
+  const workers = Array.from({ length: Math.min(concurrency, queue.length) }, async () => {
+    for (let url = queue.shift(); url !== undefined; url = queue.shift()) {
+      try {
+        const audit = await deps.siteAudit!(url);
+        if (audit.signals) {
+          for (const [key, value] of Object.entries(audit.signals)) {
+            if (typeof value === "number") {
+              signalSums.set(key, (signalSums.get(key) ?? 0) + value);
+            }
+          }
+          auditRuns += 1;
+        }
+        for (const failed of audit.failedAudits) {
+          failedAudits.set(failed.id, failed.weight);
+        }
+        if (audit.auditVersion) auditVersion = audit.auditVersion;
+      } catch {
+        /* audit failed for this page — skip */
+      }
+    }
+  });
+
+  await Promise.all(workers);
+
+  if (auditRuns === 0) return undefined;
+
+  const avg = (key: string): number | undefined => {
+    const sum = signalSums.get(key);
+    return sum === undefined ? undefined : Math.round(sum / auditRuns);
+  };
+
+  return {
+    score: avg("accessibility") ?? 100,
+    failedAudits: [...failedAudits.entries()].map(([id, weight]) => ({ id, weight })),
+    signals: {
+      accessibility: avg("accessibility"),
+      performance: avg("performance"),
+      seo: avg("seo"),
+      bestPractices: avg("bestPractices"),
+      pwa: avg("pwa"),
+    },
+    auditVersion,
   };
 }
 

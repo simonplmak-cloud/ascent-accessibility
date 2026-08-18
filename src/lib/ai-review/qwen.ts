@@ -72,7 +72,7 @@ export class QwenVisionClient implements VisionModel {
       process.env.QWEN_BASE_URL ??
       "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
     ).replace(/\/$/, "");
-    this.model = opts.model ?? process.env.AI_REVIEW_MODEL ?? "qwen3-vl-plus";
+    this.model = opts.model ?? process.env.AI_REVIEW_MODEL ?? "qwen3-vl-flash";
     this.fetchFn = opts.fetchFn ?? fetch;
   }
 

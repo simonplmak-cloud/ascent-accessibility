@@ -3,6 +3,7 @@ export interface CrawlOptions {
   maxPages?: number;
   politenessDelayMs?: number;
   userAgent?: string;
+  crawlConcurrency?: number;
 }
 
 export interface CrawlResult {
@@ -233,53 +234,73 @@ export async function crawl(
     }
   }
   let capped = false;
+  let stopped = false;
 
-  while (queue.length > 0) {
-    const { url, depth } = queue.shift()!;
-    const key = url.href;
-    if (visited.has(key)) continue;
-    visited.add(key);
+  const crawlConcurrency = Math.max(
+    1,
+    options.crawlConcurrency ?? Number(process.env.CRAWL_CONCURRENCY ?? 4),
+  );
 
-    if (!isAllowedByRobots(url, disallow)) {
-      log.push(`robots.txt blocks ${url.pathname || "/"} — skipping`);
-      continue;
-    }
+  const workers = Array.from(
+    { length: Math.min(crawlConcurrency, Math.max(1, queue.length)) },
+    async () => {
+      while (!stopped) {
+        const item = queue.shift();
+        if (!item) break;
+        const { url, depth } = item;
+        const key = url.href;
+        if (visited.has(key)) continue;
+        visited.add(key);
 
-    await deps.delay(delayMs);
-    let html: string;
-    try {
-      log.push(`crawling ${url.href}`);
-      html = await deps.fetchHtml(url.href);
-    } catch {
-      log.push(`crawl failed (unreachable): ${url.href}`);
-      continue;
-    }
+        if (!isAllowedByRobots(url, disallow)) {
+          log.push(`robots.txt blocks ${url.pathname || "/"} — skipping`);
+          continue;
+        }
 
-    urls.push(url.href);
+        await deps.delay(delayMs);
+        let html: string;
+        try {
+          log.push(`crawling ${url.href}`);
+          html = await deps.fetchHtml(url.href);
+        } catch {
+          log.push(`crawl failed (unreachable): ${url.href}`);
+          continue;
+        }
 
-    const children = discoverChildren(html, url.href, origin, visited);
-    log.push(`${url.pathname || "/"} → ${children.length} link(s)`);
+        if (urls.length >= maxPages) {
+          capped = true;
+          stopped = true;
+          break;
+        }
+        urls.push(url.href);
 
-    if (urls.length >= maxPages) {
-      if (children.length > 0 || queue.length > 0) capped = true;
-      log.push(`crawl cap reached: ${urls.length} page(s) (max ${maxPages})`);
-      break;
-    }
+        const children = discoverChildren(html, url.href, origin, visited);
+        log.push(`${url.pathname || "/"} → ${children.length} link(s)`);
 
-    if (depth >= maxDepth) {
-      if (children.length > 0) capped = true;
-      continue;
-    }
+        if (urls.length >= maxPages) {
+          if (children.length > 0 || queue.length > 0) capped = true;
+          stopped = true;
+          break;
+        }
 
-    for (const child of children) {
-      if (urls.length + queue.length < maxPages) {
-        queue.push({ url: child, depth: depth + 1 });
-      } else {
-        capped = true;
-        break;
+        if (depth >= maxDepth) {
+          if (children.length > 0) capped = true;
+          continue;
+        }
+
+        for (const child of children) {
+          if (urls.length + queue.length < maxPages) {
+            queue.push({ url: child, depth: depth + 1 });
+          } else {
+            capped = true;
+            break;
+          }
+        }
       }
-    }
-  }
+    },
+  );
+
+  await Promise.all(workers);
 
   if (queue.length > 0) capped = true;
 
