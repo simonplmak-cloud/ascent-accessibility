@@ -8,7 +8,7 @@ Split, DB-as-queue deployment. No background work on Vercel:
 
 - **Vercel** (Next.js App Router) = marketing site + API only. `POST /api/v1/assessments` inserts a `queued` record into SurrealDB and returns `202`. It does not crawl or scan.
 - **SurrealDB** = the job store. `assessment.status` (`queued → running → completed/failed`) *is* the queue.
-- **Worker** (`src/worker/index.ts`, compiled Node container) runs on a **SWAS (Alibaba Cloud Simple Application Server) box in HK** (IP `47.243.145.140`), managed by systemd (`/opt/wcag-score`, unit `wcag-score-worker.service`). It polls SurrealDB every 1s, runs `runAssessment` (sitemap → crawl → scan → score → persist), appends a live log, and recovers stale `running` records.
+- **Worker** (`src/worker/index.ts`, compiled Node container) runs on a **SWAS (Alibaba Cloud Simple Application Server) box in HK** (`wcag-workforce.ascent-partners.com`), managed by systemd (`/opt/wcag-score`, unit `wcag-score-worker.service`). It polls SurrealDB every 1s, runs `runAssessment` (sitemap → crawl → scan → score → persist), appends a live log, and recovers stale `running` records.
 - **Browserless** = the headless Chrome, **co-located on the same SWAS box** (Docker container `browserless`, image `ghcr.io/browserless/chromium`, unit `browserless.service`, bound to `127.0.0.1:3000`). `scanner-factory.ts` connects via `chromium.connectOverCDP(BROWSERLESS_URL?token=BROWSERLESS_TOKEN)`; if `BROWSERLESS_TOKEN` is unset it falls back to `chromium.launch()` (local dev only). The browser stays warm across worker deploys.
 
 **Auth** is SurrealDB native (record access), not Clerk. `src/server/auth.ts` `getSessionUser()`/`getUserId()` return the user's **email** (used as `ownerId`/`userId`). `SESSION_COOKIE` (httpOnly JWT) for sessions; `ANON_COOKIE` gives anonymous visitors their own history. The root `layout.tsx` is async and resolves the role (signed-in / subscriber) for the role-aware header.
@@ -48,7 +48,7 @@ Verification order: `check` → `test` → `build`. Run a single test with `npx 
 
 ### Deployment
 - **Vercel** auto-deploys from GitHub `main` (push = deploy). Custom domain `wcag-score.ascent.partners`.
-- **Worker + Browserless (SWAS HK)** — the worker and a co-located Browserless run on one Alibaba Cloud Simple Application Server (HK, IP `47.243.145.140`), managed by systemd. Code + units live in `deploy/swas/`:
+- **Worker + Browserless (SWAS HK)** — the worker and a co-located Browserless run on one Alibaba Cloud Simple Application Server (HK, `wcag-workforce.ascent-partners.com`), managed by systemd. Code + units live in `deploy/swas/`:
   - **Update** (already-provisioned box): SSH in, `git pull` + `pnpm worker:build` + `systemctl restart wcag-score-worker` (`deploy/swas/deploy.sh`).
   - **Fresh box from GitHub**: `deploy/swas/provision.sh` (installs node/pnpm/docker, clones, builds, generates a `BROWSERLESS_TOKEN`, writes `.env`, installs both systemd units, pulls the image, starts). Only the secrets are inputs (env vars — never committed).
   - **The worker `.env` must be UNQUOTED** — systemd `EnvironmentFile` doesn't strip quotes, and values must be free of `$`/spaces/`#` (this is why the live `/opt/wcag-score/.env` is unquoted). `browserless.service` sources the same `.env`, so the container token stays in sync with `BROWSERLESS_TOKEN`.
