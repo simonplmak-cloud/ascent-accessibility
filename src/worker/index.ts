@@ -5,6 +5,7 @@ import { assessmentRepository, evidenceRepository } from "@/db/repository";
 import { createPageScanner, warmBrowserPool } from "@/server/scanner-factory";
 import { runSiteAudit } from "@/lib/comparison/site-audit";
 import { QwenVisionClient } from "@/lib/ai-review/qwen";
+import { resolveOwnerApiKey } from "@/server/byok";
 import { logger } from "@/lib/observability/logger";
 
 const POLL_INTERVAL_MS = Number(process.env.WORKER_POLL_INTERVAL_MS ?? 1000);
@@ -44,6 +45,10 @@ async function processQueued() {
           },
           siteAudit: (url) => runSiteAudit(url),
           visionModel: new QwenVisionClient(),
+          resolveByokModel: async (ownerId) => {
+            const apiKey = await resolveOwnerApiKey(ownerId);
+            return apiKey ? new QwenVisionClient({ apiKey }) : null;
+          },
           concurrency: SCAN_CONCURRENCY,
         });
         logger.info({ assessmentId: assessment.id }, "assessment completed");

@@ -11,12 +11,16 @@ export const metadata: Metadata = {
 
 const faqs = [
   {
-    q: "Is the single-page scan really free?",
-    a: "Yes — no account and no payment. Submit a public URL and you get a score, findings, and remediation guidance.",
+    q: "Is the scan really free?",
+    a: "Yes — single-page and whole-website scans are free for verified accounts. You just need to sign in and confirm your email.",
   },
   {
-    q: "What does the subscription unlock?",
-    a: "Whole-website scans (full sitemap and link crawl), the conformance table, site audit signals, PDF export, API access, and saved history.",
+    q: "What does a verified account unlock?",
+    a: "Whole-website scans (full sitemap and link crawl), the conformance table, site audit signals, PDF export, API access, and saved history — all free.",
+  },
+  {
+    q: "How is AI-assisted review priced?",
+    a: "Bring your own key. If you want AI-assisted review, you can save your own Qwen/DashScope API key and pay the token cost directly; the platform bears no cost and charges no fee.",
   },
   {
     q: "How long does a scan take?",

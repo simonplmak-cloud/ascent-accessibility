@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { createConnection } from "@/db";
-import { ANON_COOKIE, SESSION_COOKIE, verifySessionToken, type SessionUser } from "@/lib/auth/session";
+import { SESSION_COOKIE, verifySessionToken, type SessionUser } from "@/lib/auth/session";
 
 export async function getSessionUser(): Promise<SessionUser | null> {
   const store = await cookies();
@@ -31,11 +31,13 @@ export async function isReviewer(): Promise<boolean> {
   return (await getRole()) === "reviewer";
 }
 
-// Owner of an assessment: the signed-in user's email, or the anonymous session id
-// (a browser cookie) so anonymous visitors still see only their own history.
+export async function isVerified(): Promise<boolean> {
+  return (await getSessionUser())?.verified === true;
+}
+
+// Owner of an assessment: the signed-in user's email. Anonymous scanning is
+// removed — there is no anonymous session fallback.
 export async function getOwnerId(): Promise<string | null> {
   const user = await getSessionUser();
-  if (user) return user.email;
-  const store = await cookies();
-  return store.get(ANON_COOKIE)?.value ?? null;
+  return user?.email ?? null;
 }

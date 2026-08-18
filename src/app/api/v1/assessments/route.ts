@@ -1,34 +1,28 @@
-import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { assessRequestSchema } from "@/server/validation";
 import { validateTargetUrl } from "@/server/ssrf";
 import { IP_RATE_LIMIT, RATE_WINDOW_MS } from "@/server/rate-limit";
 import { getClientIp } from "@/server/ip";
 import { apiKeyService, rateLimiter } from "@/server/bootstrap";
-import { assessmentRepository, subscriptionRepository } from "@/db/repository";
+import { assessmentRepository } from "@/db/repository";
 import { getStandard } from "@/lib/standards/catalog";
 import { resolveCrawlScope } from "@/lib/assessment/scope";
-import { getOwnerId, getSessionUser, getUserId } from "@/server/auth";
-import { isWholeSiteAllowed } from "@/lib/entitlement";
+import { getSessionUser } from "@/server/auth";
 import { withCorrelationId } from "@/lib/observability/logger";
-import { ANON_COOKIE } from "@/lib/auth/session";
 
 export async function POST(req: Request) {
   const ip = getClientIp(req);
 
-  // API-key authentication (programmatic access — subscribed users only).
+  // API-key authentication (programmatic access — verified users only; keys are
+  // issued to verified accounts, so a valid key implies a verified owner).
   const authHeader = req.headers.get("authorization");
   const rawKey = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
   let apiKeyUserId: string | null = null;
+  let sessionEmail: string | null = null;
   if (rawKey) {
     const auth = await apiKeyService.authenticate(rawKey);
     if (!auth.ok) {
       return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
-    }
-    const subscribed = auth.userId ? await subscriptionRepository.isActive(auth.userId) : false;
-    if (!subscribed) {
-      return NextResponse.json({ code: "PAYMENT_REQUIRED" }, { status: 402 });
     }
     // Per-key rate limit (requests/min) — IP limiter does not apply to API keys.
     const keyLimited = await rateLimiter.check(auth.apiKeyId, auth.rateLimit, 60_000);
@@ -37,10 +31,19 @@ export async function POST(req: Request) {
     }
     apiKeyUserId = auth.userId;
   } else {
+    // Session auth: every scan requires a verified account (identity-gated).
+    const sessionUser = await getSessionUser();
+    if (!sessionUser) {
+      return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
+    }
+    if (!sessionUser.verified) {
+      return NextResponse.json({ code: "VERIFY_EMAIL" }, { status: 403 });
+    }
     const limited = await rateLimiter.check(ip, IP_RATE_LIMIT, RATE_WINDOW_MS);
     if (!limited.allowed) {
       return NextResponse.json({ code: "RATE_LIMITED" }, { status: 429 });
     }
+    sessionEmail = sessionUser.email;
   }
 
   const body = await req.json().catch(() => null);
@@ -54,15 +57,20 @@ export async function POST(req: Request) {
 
   const { url, standard, depth, pageCap, scope } = parsed.data;
 
-  if (scope === "site") {
-    if (!apiKeyUserId) {
-      const userId = await getUserId();
-      const subscribed = userId ? await subscriptionRepository.isActive(userId) : false;
-      const gate = isWholeSiteAllowed({ userId, subscribed });
-      if (!gate.ok) {
-        const status = gate.code === "UNAUTHORIZED" ? 401 : 402;
-        return NextResponse.json({ code: gate.code }, { status });
-      }
+  // Per-account daily scan limits (bound the slow whole-site path).
+  if (sessionEmail) {
+    const day = new Date().toISOString().slice(0, 10);
+    const dailyLimit =
+      scope === "site"
+        ? Number(process.env.SCAN_SITE_DAILY_LIMIT ?? 3)
+        : Number(process.env.SCAN_PAGE_DAILY_LIMIT ?? 20);
+    const accountLimited = await rateLimiter.check(
+      `account:${sessionEmail}:${scope}:${day}`,
+      dailyLimit,
+      24 * 60 * 60 * 1000,
+    );
+    if (!accountLimited.allowed) {
+      return NextResponse.json({ code: "RATE_LIMITED" }, { status: 429 });
     }
   }
 
@@ -90,21 +98,8 @@ export async function POST(req: Request) {
 
   const crawlScope = resolveCrawlScope(scope, depth, pageCap);
 
-  // Owner: API-key user's email > signed-in user's email > anonymous session cookie.
-  let ownerId = apiKeyUserId ?? null;
-  let newAnonId: string | null = null;
-  if (!ownerId) {
-    const sessionUser = await getSessionUser();
-    ownerId = sessionUser?.email ?? null;
-    if (!ownerId) {
-      const store = await cookies();
-      ownerId = store.get(ANON_COOKIE)?.value ?? null;
-      if (!ownerId) {
-        ownerId = `anon_${randomUUID()}`;
-        newAnonId = ownerId;
-      }
-    }
-  }
+  // Owner: API-key user's email > signed-in user's email. No anonymous path.
+  const ownerId = apiKeyUserId ?? sessionEmail;
 
   const assessment = await assessmentRepository.create({
     url: ssrf.url.href,
@@ -116,24 +111,17 @@ export async function POST(req: Request) {
 
   withCorrelationId(assessment.id).info({ ip }, "assessment queued");
 
-  const response = NextResponse.json(
+  return NextResponse.json(
     { id: assessment.id, status: "queued", url: ssrf.url.href, standard },
     { status: 202 },
   );
-  if (newAnonId) {
-    response.cookies.set(ANON_COOKIE, newAnonId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-    });
-  }
-  return response;
 }
 
 export async function GET() {
-  const ownerId = await getOwnerId();
-  const assessments = await assessmentRepository.list(ownerId);
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) {
+    return NextResponse.json({ assessments: [] });
+  }
+  const assessments = await assessmentRepository.list(sessionUser.email);
   return NextResponse.json({ assessments });
 }

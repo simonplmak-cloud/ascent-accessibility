@@ -26,6 +26,7 @@ export interface AssessmentRecord {
   status: string;
   depth: number;
   pageCap: number;
+  ownerId: string | null;
 }
 
 export interface ComparisonData {
@@ -90,6 +91,7 @@ export interface AssessmentDeps {
   evidenceStore: EvidenceStorePort;
   siteAudit?: (url: string) => Promise<SiteAuditReport>;
   visionModel?: VisionModel;
+  resolveByokModel?: (ownerId: string) => Promise<VisionModel | null>;
   concurrency?: number;
 }
 
@@ -182,6 +184,18 @@ export async function runAssessment(
       `scan complete: ${output.findings.length} finding(s) across ${urls.length} page(s)`,
     );
 
+    // Per-assessment AI model: use the owner's BYOK key when present (else the
+    // platform model, else skip AI review).
+    let visionModel = deps.visionModel;
+    if (deps.resolveByokModel && assessment.ownerId) {
+      try {
+        const byok = await deps.resolveByokModel(assessment.ownerId);
+        if (byok) visionModel = byok;
+      } catch {
+        /* fall back to the platform model */
+      }
+    }
+
     const evaluated = await evaluateStandard(
       {
         version: standard.version,
@@ -192,7 +206,7 @@ export async function runAssessment(
         pageUrl: seed.href,
       },
       {
-        visionModel: deps.visionModel,
+        visionModel,
         aiScreenshot: output.aiScreenshot,
         incompleteContext: output.incompleteContext,
         aiEnabled: ENABLE_AI_REVIEW,

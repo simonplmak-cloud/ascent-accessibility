@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
-import { getUserId } from "@/server/auth";
-import { subscriptionRepository } from "@/db/repository";
+import { getSessionUser } from "@/server/auth";
 
 export async function GET() {
-  const userId = await getUserId();
-  if (!userId) {
+  const user = await getSessionUser();
+  if (!user) {
     return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
-  const subscribed = await subscriptionRepository.isActive(userId);
-  return NextResponse.json({ subscribed });
+  return NextResponse.json({ email: user.email, verified: user.verified });
 }

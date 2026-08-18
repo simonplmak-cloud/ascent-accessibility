@@ -64,6 +64,7 @@ const assessment: AssessmentRecord = {
   status: "queued",
   depth: 3,
   pageCap: 100,
+  ownerId: "user@example.com",
 };
 
 const scanOk = async (url: string) => ({

@@ -9,86 +9,105 @@ import { ButtonLink } from "@/components/ui/button-link";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Ascent Accessibility pricing — free single-page assessments and a US$28/month subscription for whole-website scans and API access.",
+    "Ascent Accessibility is free to use. Single-page and whole-site scans are free for verified accounts; AI-assisted review is bring-your-own-key, and human review is priced per page.",
   alternates: { canonical: "/pricing" },
 };
 
 const free = [
-  "Single-page assessment — no account required",
+  "Single-page and whole-website scans — no charge",
   "WCAG 2.2 A/AA/AAA, 2.1 and 2.0, plus Section 508",
-  "Overall 0–100 score with pass / partial / fail",
+  "Conformance outcome with 'x of y applicable SCs meet'",
   "Findings with impact, affected elements, and pages",
   "Plain-language remediation guidance for every finding",
   "Evidence screenshots of each violation",
 ];
 
-const paid = [
-  "Everything in the free tier",
-  "Whole-website scans — full sitemap and link crawl",
-  "Conformance table across all applicable success criteria",
-  "Site audit signals on every page",
-  "Downloadable PDF and CSV reports",
-  "API access for programmatic assessments",
-  "Your scan history, saved across visits",
+const byok = [
+  "AI-assisted review of criteria automation cannot resolve",
+  "Bring your own Qwen/DashScope API key — you pay the token cost, we don't",
+  "Fail-safe: nothing is marked passed without high confidence",
+  "Covered by your existing key; no per-scan fee",
 ];
 
-function FeatureList({ items }: { items: string[] }) {
-  return (
-    <ul className="mt-4 space-y-2 font-mono text-sm text-terminal-muted">
-      {items.map((item) => (
-        <li key={item} className="flex gap-2">
-          <span aria-hidden="true" className="text-terminal-pass">✓</span>
-          {item}
-        </li>
-      ))}
-    </ul>
-  );
-}
+const human = [
+  "Independent review by a workforce with lived experience",
+  "Resolves every 'Cannot tell' criterion with a written rationale",
+  "A signed, dated conformance evaluation report (in-app + PDF)",
+  "VPAT/ACR export for procurement",
+  "Priced per page — contact us for a quote",
+];
 
 export default function PricingPage() {
   return (
     <PageShell width="4xl">
       <PageHeading>Pricing</PageHeading>
       <MutedText className="mt-4">
-        One free tier, one simple subscription. No per-scan fees, no contracts — cancel
-        any time from the billing portal.
+        The assessment is free to use. We fund the service through donations and paid human
+        review — not by charging for scans.
       </MutedText>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-2">
+      <div className="mt-10 grid gap-6 md:grid-cols-3">
         <Card className="p-6">
           <h2 className="font-mono text-xl font-semibold text-terminal-fg">Free</h2>
           <p className="mt-1 font-mono text-3xl font-bold text-terminal-fg">
             US$0
-            <span className="text-base font-normal text-terminal-muted"> / forever</span>
+            <span className="text-base font-normal text-terminal-muted"> / always</span>
           </p>
-          <FeatureList items={free} />
+          <ul className="mt-4 space-y-2 font-mono text-sm text-terminal-muted">
+            {free.map((item) => (
+              <li key={item} className="flex gap-2">
+                <span aria-hidden="true" className="text-terminal-pass">✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
           <ButtonLink href="/assess" className="mt-6 inline-block">
-            Assess a page for free
+            Start an assessment
+          </ButtonLink>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="font-mono text-xl font-semibold text-terminal-fg">AI-assisted review</h2>
+          <p className="mt-1 font-mono text-3xl font-bold text-terminal-fg">BYOK</p>
+          <ul className="mt-4 space-y-2 font-mono text-sm text-terminal-muted">
+            {byok.map((item) => (
+              <li key={item} className="flex gap-2">
+                <span aria-hidden="true" className="text-terminal-pass">✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+          <ButtonLink href="/site" className="mt-6 inline-block">
+            Whole-website scan
           </ButtonLink>
         </Card>
 
         <Card className="border-terminal-pass p-6">
-          <h2 className="font-mono text-xl font-semibold text-terminal-fg">Whole-website</h2>
+          <h2 className="font-mono text-xl font-semibold text-terminal-fg">Human review</h2>
           <p className="mt-1 font-mono text-3xl font-bold text-terminal-fg">
-            US$28
-            <span className="text-base font-normal text-terminal-muted"> / month</span>
+            Per page
+            <span className="text-base font-normal text-terminal-muted"> · quoted</span>
           </p>
-          <FeatureList items={paid} />
-          <ButtonLink href="/site" className="mt-6 inline-block">
-            Subscribe
+          <ul className="mt-4 space-y-2 font-mono text-sm text-terminal-muted">
+            {human.map((item) => (
+              <li key={item} className="flex gap-2">
+                <span aria-hidden="true" className="text-terminal-pass">✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+          <ButtonLink href="/contact" className="mt-6 inline-block">
+            Request a quote
           </ButtonLink>
         </Card>
       </div>
 
       <p className="mt-8 font-mono text-sm text-terminal-muted">
-        Billing is handled by Stripe. Prices are in US dollars and may be subject to local
-        taxes. See our{" "}
-        <InlineLink href="/terms">terms of service</InlineLink>
-        ,{" "}
-        <InlineLink href="/refund">refund policy</InlineLink>
-        , and{" "}
-        <InlineLink href="/sla">service commitment</InlineLink>
-        .
+        Prefer to support the service?{" "}
+        <InlineLink href="/donate">Make a donation</InlineLink> — it keeps the scans free. See our{" "}
+        <InlineLink href="/terms">terms</InlineLink>,{" "}
+        <InlineLink href="/refund">refund policy</InlineLink>, and{" "}
+        <InlineLink href="/sla">service commitment</InlineLink>.
       </p>
     </PageShell>
   );

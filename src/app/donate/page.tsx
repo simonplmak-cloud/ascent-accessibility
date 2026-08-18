@@ -90,6 +90,13 @@ export default function DonatePage() {
         up a monthly donation.
       </p>
 
+      <div className="mt-6 rounded border border-terminal-pass bg-terminal-surface p-4">
+        <p className="font-mono text-sm text-terminal-fg">
+          <strong className="text-terminal-pass">US$250/month keeps the service running</strong> —
+          it covers the scan infrastructure so scans stay free for everyone.
+        </p>
+      </div>
+
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <fieldset>
           <legend className="font-mono text-sm text-terminal-fg">Frequency</legend>

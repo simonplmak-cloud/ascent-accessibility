@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { apiKeyCreateSchema } from "@/server/validation";
 import { apiKeyService } from "@/server/bootstrap";
-import { apiKeyRepository, subscriptionRepository } from "@/db/repository";
+import { apiKeyRepository } from "@/db/repository";
 import { getSessionUser } from "@/server/auth";
 
 export async function POST(req: Request) {
@@ -9,9 +9,8 @@ export async function POST(req: Request) {
   if (!user) {
     return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
-  const subscribed = await subscriptionRepository.isActive(user.email);
-  if (!subscribed) {
-    return NextResponse.json({ code: "PAYMENT_REQUIRED" }, { status: 402 });
+  if (!user.verified) {
+    return NextResponse.json({ code: "VERIFY_EMAIL" }, { status: 403 });
   }
 
   const body = await req.json().catch(() => null);
@@ -32,9 +31,8 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
-  const subscribed = await subscriptionRepository.isActive(user.email);
-  if (!subscribed) {
-    return NextResponse.json({ code: "PAYMENT_REQUIRED" }, { status: 402 });
+  if (!user.verified) {
+    return NextResponse.json({ code: "VERIFY_EMAIL" }, { status: 403 });
   }
   const keys = await apiKeyRepository.list(user.email);
   return NextResponse.json(

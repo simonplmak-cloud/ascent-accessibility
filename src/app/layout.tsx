@@ -4,7 +4,6 @@ import { SiteHeader, type HeaderAuthState } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CookieBanner } from "@/components/cookie-banner";
 import { getSessionUser } from "@/server/auth";
-import { subscriptionRepository } from "@/db/repository";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
 
 // Runs before first paint to apply the stored theme and avoid a flash of the
@@ -75,17 +74,15 @@ const ORGANIZATION_JSON_LD = {
     "A Hong Kong registered charity connecting leaders with the tools to turn sustainability into action.",
 };
 
-// Resolves the header's role (signed-in / subscriber) without ever breaking the
-// page: if the database is unreachable we degrade to the anonymous nav rather
-// than throwing (which is what used to surface the "Something went wrong" page).
+// Resolves the header's role (signed-in) without ever breaking the page: if the
+// database is unreachable we degrade to the anonymous nav rather than throwing.
 async function getHeaderAuthState(): Promise<HeaderAuthState> {
   try {
     const user = await getSessionUser();
-    if (!user) return { signedIn: false, subscribed: false, email: null };
-    const subscribed = await subscriptionRepository.isActive(user.email);
-    return { signedIn: true, subscribed, email: user.email };
+    if (!user) return { signedIn: false, email: null };
+    return { signedIn: true, email: user.email };
   } catch {
-    return { signedIn: false, subscribed: false, email: null };
+    return { signedIn: false, email: null };
   }
 }
 

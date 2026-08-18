@@ -12,7 +12,7 @@ export interface ApiKeySummary {
   rateLimit: number;
 }
 
-type AuthState = "loading" | "signed-out" | "not-subscribed" | "ready";
+type AuthState = "loading" | "signed-out" | "unverified" | "ready";
 
 export function ApiKeysClient() {
   const [keys, setKeys] = useState<ApiKeySummary[]>([]);
@@ -31,8 +31,8 @@ export function ApiKeysClient() {
         setAuth("signed-out");
         return;
       }
-      if (res.status === 402) {
-        setAuth("not-subscribed");
+      if (res.status === 403) {
+        setAuth("unverified");
         return;
       }
       if (!res.ok) throw new Error("load failed");
@@ -115,20 +115,13 @@ export function ApiKeysClient() {
     );
   }
 
-  if (auth === "not-subscribed") {
+  if (auth === "unverified") {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
         <h1 className="font-mono text-2xl font-bold text-terminal-fg">API access</h1>
         <p className="mt-4 font-mono leading-7 text-terminal-muted">
-          API access is available to subscribers. Subscribe to generate API keys for programmatic
-          assessments.
+          Please verify your email before creating API keys.
         </p>
-        <Link
-          href="/site"
-          className="mt-6 inline-block rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
-        >
-          Subscribe
-        </Link>
       </div>
     );
   }

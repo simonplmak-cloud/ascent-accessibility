@@ -13,7 +13,27 @@ DEFINE FIELD OVERWRITE reviewClaim ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE reviewResults ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE snapshotAt ON assessment TYPE option<datetime>;
 DEFINE FIELD OVERWRITE pageSnapshots ON assessment TYPE option<string>;
-DEFINE FIELD OVERWRITE role ON user TYPE option<string> DEFAULT NONE;`,
+DEFINE FIELD OVERWRITE role ON user TYPE option<string> DEFAULT NONE;
+DEFINE FIELD OVERWRITE verified ON user TYPE bool DEFAULT false;
+DEFINE FIELD OVERWRITE googleSub ON user TYPE option<string>;
+DEFINE FIELD OVERWRITE emailVerificationToken ON user TYPE option<string>;
+DEFINE FIELD OVERWRITE passkeys ON user TYPE option<string>;
+DEFINE FIELD OVERWRITE qwenApiKey ON user TYPE option<string>;
+DEFINE INDEX OVERWRITE user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
+  `DEFINE ACCESS user_google ON DATABASE TYPE RECORD
+  SIGNUP (
+    CREATE user CONTENT {
+      name: $name,
+      email: $email,
+      password: crypto::argon2::generate($password),
+      googleSub: $googleSub,
+      verified: true
+    }
+  )
+  SIGNIN (
+    SELECT * FROM user WHERE googleSub = $googleSub
+  )
+  DURATION FOR SESSION 24h OVERWRITE;`,
 ];
 
 async function main() {

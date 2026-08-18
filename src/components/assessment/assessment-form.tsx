@@ -164,12 +164,12 @@ export function AssessmentForm({
           )}
           {fixedScope === "page" && (
             <p className="font-mono text-sm text-terminal-muted">
-              Single page — free, no account required.
+              Single page — free.
             </p>
           )}
           {fixedScope === "site" && (
             <p className="font-mono text-sm text-terminal-muted">
-              Whole website — subscriber feature.
+              Whole website — free.
             </p>
           )}
         </fieldset>
@@ -221,9 +221,9 @@ function messageForCode(code: string): string {
     case "RATE_LIMITED":
       return "Too many requests. Please wait a moment and try again.";
     case "UNAUTHORIZED":
-      return "Whole-website scans require an account. Please sign in.";
-    case "PAYMENT_REQUIRED":
-      return "Whole-website scans require an active subscription.";
+      return "Please sign in to run an assessment.";
+    case "VERIFY_EMAIL":
+      return "Please verify your email before running assessments.";
     default:
       return "Please enter a valid website URL.";
   }

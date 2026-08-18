@@ -221,8 +221,14 @@ DEFINE FIELD name ON user TYPE string;
 DEFINE FIELD email ON user TYPE string;
 DEFINE FIELD password ON user TYPE string PERMISSIONS FOR select NONE;
 DEFINE FIELD role ON user TYPE option<string> DEFAULT NONE;
+DEFINE FIELD verified ON user TYPE bool DEFAULT false;
+DEFINE FIELD googleSub ON user TYPE option<string>;
+DEFINE FIELD emailVerificationToken ON user TYPE option<string>;
+DEFINE FIELD passkeys ON user TYPE option<string>;
+DEFINE FIELD qwenApiKey ON user TYPE option<string>;
 DEFINE FIELD createdAt ON user TYPE datetime DEFAULT time::now();
-DEFINE INDEX user_email_idx ON user FIELDS email UNIQUE;`,
+DEFINE INDEX user_email_idx ON user FIELDS email UNIQUE;
+DEFINE INDEX user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
 
   `DEFINE ACCESS user ON DATABASE TYPE RECORD
   SIGNUP (
@@ -235,6 +241,21 @@ DEFINE INDEX user_email_idx ON user FIELDS email UNIQUE;`,
   SIGNIN (
     SELECT * FROM user WHERE email = $email
       AND crypto::argon2::compare(password, $password)
+  )
+  DURATION FOR SESSION 24h;`,
+
+  `DEFINE ACCESS user_google ON DATABASE TYPE RECORD
+  SIGNUP (
+    CREATE user CONTENT {
+      name: $name,
+      email: $email,
+      password: crypto::argon2::generate($password),
+      googleSub: $googleSub,
+      verified: true
+    }
+  )
+  SIGNIN (
+    SELECT * FROM user WHERE googleSub = $googleSub
   )
   DURATION FOR SESSION 24h;`,
 

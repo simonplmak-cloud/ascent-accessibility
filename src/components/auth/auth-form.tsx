@@ -53,7 +53,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       <p className="mt-2 font-mono leading-7 text-terminal-muted">
         {isSignUp
           ? "An account unlocks whole-website scans across your entire site."
-          : "Sign in to run whole-website scans and manage your subscription."}
+          : "Sign in to run whole-website scans and see your history."}
       </p>
 
       <form onSubmit={onSubmit} className="mt-8 space-y-5" noValidate={false}>

@@ -11,7 +11,6 @@ import { ButtonLink } from "@/components/ui/button-link";
 
 export interface HeaderAuthState {
   signedIn: boolean;
-  subscribed: boolean;
   email: string | null;
 }
 
@@ -29,14 +28,13 @@ const baseNavItems = [
   { href: "/donate", label: "Donate" },
 ];
 
-// Role-gated — only shown to signed-in users (and API access to subscribers).
-// Anonymous visitors don't see History, Site scans, or API access.
+// Role-gated — only shown to signed-in users. Anonymous visitors don't see
+// History, Site scans, or API access.
 const signedInNavItems = [
   { href: "/history", label: "History" },
   { href: "/site", label: "Site scans" },
+  { href: "/api-keys", label: "API access" },
 ];
-
-const subscriberNavItems = [{ href: "/api-keys", label: "API access" }];
 
 export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
   const [open, setOpen] = useState(false);
@@ -46,7 +44,6 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
   const navItems = [
     ...baseNavItems,
     ...(authState.signedIn ? signedInNavItems : []),
-    ...(authState.subscribed ? subscriberNavItems : []),
   ];
 
   async function signOut() {

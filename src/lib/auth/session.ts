@@ -10,6 +10,7 @@ export interface SessionUser {
   email: string;
   name: string;
   role: string | null;
+  verified: boolean;
 }
 
 export interface AuthConfig {
@@ -94,7 +95,7 @@ export async function verifySessionToken(
   try {
     await db.authenticate(token);
     const results = await db
-      .query("SELECT id, email, name, role FROM user WHERE id = $auth.id LIMIT 1")
+      .query("SELECT id, email, name, role, verified FROM user WHERE id = $auth.id LIMIT 1")
       .json()
       .collect();
     const rows = (results as unknown[])[0] as Array<Record<string, unknown>> | undefined;
@@ -105,6 +106,7 @@ export async function verifySessionToken(
       email: typeof record.email === "string" ? record.email : "",
       name: typeof record.name === "string" ? record.name : "",
       role: typeof record.role === "string" ? record.role : null,
+      verified: record.verified === true,
     };
   } catch {
     return null;
