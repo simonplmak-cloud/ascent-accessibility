@@ -9,11 +9,11 @@ const PRINCIPLES: Record<string, string> = {
 
 function resultClass(result: string): string {
   switch (result) {
-    case "compliant":
+    case "Passed":
       return "text-terminal-pass";
-    case "violate":
+    case "Failed":
       return "text-terminal-fail";
-    case "need-human-checking":
+    case "CannotTell":
       return "text-terminal-serious";
     default:
       return "text-terminal-muted";
@@ -21,9 +21,9 @@ function resultClass(result: string): string {
 }
 
 function resultLabel(result: string): string {
-  if (result === "not-applicable") return "not applicable";
-  if (result === "need-human-checking") return "needs human check";
-  if (result === "violate") return "violation";
+  if (result === "NotPresent") return "not present";
+  if (result === "CannotTell") return "cannot tell";
+  if (result === "NotChecked") return "not checked";
   return result;
 }
 
@@ -44,9 +44,9 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
         WCAG conformance
       </h2>
       <p className="mt-1 font-mono text-sm text-terminal-muted">
-        {conformance.compliant} compliant · {conformance.violate} violation ·{" "}
-        {conformance.notApplicable} not applicable · {conformance.needHumanChecking} needs human
-        check · {conformance.coverage}% tested · level attained:{" "}
+        {conformance.passed} passed · {conformance.failed} failed ·{" "}
+        {conformance.notPresent} not present · {conformance.cannotTell} cannot tell ·{" "}
+        {conformance.coverage}% tested · level attained:{" "}
         <span className="text-terminal-fg">{conformance.levelAttained}</span>
       </p>
 

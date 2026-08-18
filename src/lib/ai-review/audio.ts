@@ -24,14 +24,14 @@ export async function runAudioReview(
       scs,
       prompt:
         "Assess each WCAG time-based-media criterion against the provided media. " +
-        "Return compliant / violate / need-human-checking with a confidence from 0.0 to 1.0 " +
+        "Return Passed / Failed / Cannot tell with a confidence from 0.0 to 1.0 " +
         "(promote only at confidence >= 0.8) and a reasoning.",
     });
   } catch {
-    // Fail-safe: media-analysis errors leave every media SC need-human-checking.
+    // Fail-safe: media-analysis errors leave every media SC Cannot tell.
     return scs.map((sc) => ({
       sc,
-      verdict: "need-human-checking",
+      verdict: "CannotTell",
       confidence: 0,
       reasoning: "audio model error",
     }));

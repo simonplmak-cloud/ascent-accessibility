@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { computeConformance, computeScore, finalizeConformance } from "@/lib/scoring";
+import {
+  computeConformance,
+  computeScore,
+  finalizeConformance,
+  normalizeFinalVerdict,
+  normalizeMachineVerdict,
+} from "@/lib/scoring";
 import { EMPTY_FEATURES, type PageFeatures } from "@/lib/standards/sc-applicability";
 import { scsForStandard } from "@/lib/standards/version";
 
@@ -22,28 +28,59 @@ describe("computeScore", () => {
   });
 });
 
+describe("normalizeFinalVerdict (legacy → official vocabulary)", () => {
+  it("passes through official values unchanged", () => {
+    expect(normalizeFinalVerdict("Passed")).toBe("Passed");
+    expect(normalizeFinalVerdict("Failed")).toBe("Failed");
+    expect(normalizeFinalVerdict("CannotTell")).toBe("CannotTell");
+    expect(normalizeFinalVerdict("NotPresent")).toBe("NotPresent");
+    expect(normalizeFinalVerdict("NotChecked")).toBe("NotChecked");
+  });
+
+  it("maps legacy verdicts to official vocabulary", () => {
+    expect(normalizeFinalVerdict("compliant")).toBe("Passed");
+    expect(normalizeFinalVerdict("violate")).toBe("Failed");
+    expect(normalizeFinalVerdict("need-human-checking")).toBe("CannotTell");
+    expect(normalizeFinalVerdict("needs-review")).toBe("CannotTell");
+    expect(normalizeFinalVerdict("not-applicable")).toBe("NotPresent");
+  });
+
+  it("fails safe to CannotTell for unknown values", () => {
+    expect(normalizeFinalVerdict("garbage")).toBe("CannotTell");
+  });
+});
+
+describe("normalizeMachineVerdict", () => {
+  it("maps legacy machine verdicts", () => {
+    expect(normalizeMachineVerdict("compliant")).toBe("Passed");
+    expect(normalizeMachineVerdict("violate")).toBe("Failed");
+    expect(normalizeMachineVerdict("need-checking")).toBe("Unresolved");
+    expect(normalizeMachineVerdict("not-applicable")).toBe("NotPresent");
+  });
+});
+
 describe("computeConformance (machine verdict)", () => {
-  it("marks violating and compliant SCs", () => {
+  it("marks failing and passing SCs", () => {
     const result = computeConformance(
       scsForStandard("2.2", "AA"),
       [{ wcagSc: ["1.4.3"] }],
       new Set(["1.4.3", "1.1.1"]),
       FEATURES,
     );
-    expect(result.rows.find((r) => r.num === "1.4.3")?.result).toBe("violate");
-    expect(result.rows.find((r) => r.num === "1.1.1")?.result).toBe("compliant");
-    expect(result.violate).toBe(1);
+    expect(result.rows.find((r) => r.num === "1.4.3")?.result).toBe("Failed");
+    expect(result.rows.find((r) => r.num === "1.1.1")?.result).toBe("Passed");
+    expect(result.failed).toBe(1);
   });
 
-  it("marks content-absent SCs as not-applicable", () => {
+  it("marks content-absent SCs as NotPresent", () => {
     const result = computeConformance(scsForStandard("2.2", "A"), [], new Set(), EMPTY_FEATURES);
-    expect(result.rows.find((r) => r.num === "1.2.1")?.result).toBe("not-applicable");
-    expect(result.rows.find((r) => r.num === "1.1.1")?.result).toBe("not-applicable");
+    expect(result.rows.find((r) => r.num === "1.2.1")?.result).toBe("NotPresent");
+    expect(result.rows.find((r) => r.num === "1.1.1")?.result).toBe("NotPresent");
   });
 
-  it("marks applicable-but-untested SCs as need-checking", () => {
+  it("marks applicable-but-untested SCs as Unresolved", () => {
     const result = computeConformance(scsForStandard("2.2", "A"), [], new Set(), FEATURES);
-    expect(result.rows.find((r) => r.num === "2.1.1")?.result).toBe("need-checking");
+    expect(result.rows.find((r) => r.num === "2.1.1")?.result).toBe("Unresolved");
   });
 
   it("excludes 4.1.1 for 2.2 but includes it for 2.0", () => {
@@ -53,18 +90,18 @@ describe("computeConformance (machine verdict)", () => {
 });
 
 describe("finalizeConformance (final verdict)", () => {
-  it("promotes need-checking via AI-resolved verdicts", () => {
+  it("promotes Unresolved via AI-resolved verdicts", () => {
     const machine = computeConformance(scsForStandard("2.2", "A"), [], new Set(), FEATURES);
-    const result = finalizeConformance(machine, new Map([["2.1.1", "compliant"]]));
-    expect(result.rows.find((r) => r.num === "2.1.1")?.result).toBe("compliant");
-    expect(result.rows.find((r) => r.num === "2.1.1")?.machineResult).toBe("need-checking");
+    const result = finalizeConformance(machine, new Map([["2.1.1", "Passed"]]));
+    expect(result.rows.find((r) => r.num === "2.1.1")?.result).toBe("Passed");
+    expect(result.rows.find((r) => r.num === "2.1.1")?.machineResult).toBe("Unresolved");
   });
 
-  it("leaves unresolved need-checking as need-human-checking", () => {
+  it("leaves unresolved SCs as CannotTell", () => {
     const machine = computeConformance(scsForStandard("2.2", "A"), [], new Set(), FEATURES);
     const result = finalizeConformance(machine, new Map());
-    expect(result.rows.find((r) => r.num === "2.1.1")?.result).toBe("need-human-checking");
-    expect(result.needHumanChecking).toBeGreaterThan(0);
+    expect(result.rows.find((r) => r.num === "2.1.1")?.result).toBe("CannotTell");
+    expect(result.cannotTell).toBeGreaterThan(0);
   });
 
   it("does not claim a level while SCs await human check", () => {

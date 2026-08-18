@@ -201,7 +201,7 @@ export async function runAssessment(
 
     await log(
       "info",
-      `WCAG conformance: ${conformance.compliant} compliant / ${conformance.violate} violate / ${conformance.notApplicable} not applicable / ${conformance.needHumanChecking} need human checking (${conformance.coverage}% tested)`,
+      `WCAG conformance: ${conformance.passed} Passed / ${conformance.failed} Failed / ${conformance.notPresent} Not present / ${conformance.cannotTell} Cannot tell (${conformance.coverage}% tested)`,
     );
     await log("info", `score: ${score.score}/100 (${score.passBand})`);
 

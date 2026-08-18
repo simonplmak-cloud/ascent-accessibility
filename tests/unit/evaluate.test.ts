@@ -55,29 +55,29 @@ describe("evaluateStandard", () => {
       { ...input, findings: [finding(["1.4.3"])], passedScs: new Set(["1.1.1"]) },
       { visionModel: m, aiScreenshot: Buffer.alloc(0), aiEnabled: true },
     );
-    expect(out.conformance.rows.find((r) => r.num === "1.4.3")?.result).toBe("violate");
-    expect(out.conformance.rows.find((r) => r.num === "1.1.1")?.result).toBe("compliant");
+    expect(out.conformance.rows.find((r) => r.num === "1.4.3")?.result).toBe("Failed");
+    expect(out.conformance.rows.find((r) => r.num === "1.1.1")?.result).toBe("Passed");
     expect(prompt).not.toContain("- 1.4.3 ");
     expect(prompt).not.toContain("- 1.1.1 ");
   });
 
-  it("dispatches AI for need-checking non-manual SCs and folds compliant (AC-6, AC-12)", async () => {
-    const m = model([{ sc: "1.3.2", verdict: "compliant", confidence: 0.9, reasoning: "r" }]);
+  it("dispatches AI for unresolved non-manual SCs and folds Passed (AC-6, AC-12)", async () => {
+    const m = model([{ sc: "1.3.2", verdict: "Passed", confidence: 0.9, reasoning: "r" }]);
     const out = await evaluateStandard(
       input,
       { visionModel: m, aiScreenshot: Buffer.alloc(0), aiEnabled: true },
     );
     expect(m.review).toHaveBeenCalled();
-    expect(out.conformance.rows.find((r) => r.num === "1.3.2")?.result).toBe("compliant");
+    expect(out.conformance.rows.find((r) => r.num === "1.3.2")?.result).toBe("Passed");
   });
 
-  it("leaves AI-uncertain verdicts as need-human-checking (AC-8)", async () => {
-    const m = model([{ sc: "1.3.2", verdict: "compliant", confidence: 0.5, reasoning: "r" }]);
+  it("leaves AI-uncertain verdicts as CannotTell (AC-8)", async () => {
+    const m = model([{ sc: "1.3.2", verdict: "Passed", confidence: 0.5, reasoning: "r" }]);
     const out = await evaluateStandard(
       input,
       { visionModel: m, aiScreenshot: Buffer.alloc(0), aiEnabled: true },
     );
-    expect(out.conformance.rows.find((r) => r.num === "1.3.2")?.result).toBe("need-human-checking");
+    expect(out.conformance.rows.find((r) => r.num === "1.3.2")?.result).toBe("CannotTell");
   });
 
   it("never dispatches manual-only SCs to AI (AC-7)", async () => {
@@ -88,13 +88,13 @@ describe("evaluateStandard", () => {
       { visionModel: m, aiScreenshot: Buffer.alloc(0), aiEnabled: true },
     );
     // 3.3.4 (error prevention, legal/financial/data) is manual-only + applicable (hasForms)
-    // -> excluded from the AI prompt, ends need-human-checking.
+    // -> excluded from the AI prompt, ends CannotTell.
     expect(prompt).not.toContain("- 3.3.4 ");
-    expect(out.conformance.rows.find((r) => r.num === "3.3.4")?.result).toBe("need-human-checking");
+    expect(out.conformance.rows.find((r) => r.num === "3.3.4")?.result).toBe("CannotTell");
   });
 
   it("skips AI when disabled (AC-6)", async () => {
     const out = await evaluateStandard(input, { aiEnabled: false });
-    expect(out.conformance.rows.find((r) => r.num === "1.3.2")?.result).toBe("need-human-checking");
+    expect(out.conformance.rows.find((r) => r.num === "1.3.2")?.result).toBe("CannotTell");
   });
 });

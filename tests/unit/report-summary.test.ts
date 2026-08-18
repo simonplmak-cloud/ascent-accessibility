@@ -16,13 +16,13 @@ function finding(ruleId: string): Finding {
 function conformance(violatingRows: Array<{ num: string; title: string }>): Conformance {
   return {
     total: 50,
-    compliant: 50 - violatingRows.length,
-    violate: violatingRows.length,
-    notApplicable: 0,
-    needHumanChecking: 0,
+    passed: 50 - violatingRows.length,
+    failed: violatingRows.length,
+    notPresent: 0,
+    cannotTell: 0,
     coverage: 100,
     levelAttained: "AA",
-    rows: violatingRows.map((r) => ({ ...r, level: "AA", result: "violate" as const })),
+    rows: violatingRows.map((r) => ({ ...r, level: "AA", result: "Failed" as const })),
   };
 }
 

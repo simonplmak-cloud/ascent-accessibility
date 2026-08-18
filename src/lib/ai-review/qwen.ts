@@ -18,7 +18,7 @@ export const AiReviewSchema = z.object({
 });
 
 function mapVerdict(v: RawVerdict): AiVerdict {
-  return v === "pass" ? "compliant" : v === "fail" ? "violate" : "need-human-checking";
+  return v === "pass" ? "Passed" : v === "fail" ? "Failed" : "CannotTell";
 }
 
 export class ImageTooLargeError extends Error {

@@ -20,19 +20,19 @@ describe("runAudioReview", () => {
   it("returns the model verdicts when media is present (AC-13)", async () => {
     const model: AudioModel = {
       review: vi.fn(async (): Promise<AiReview[]> => [
-        { sc: "1.2.2", verdict: "compliant", confidence: 0.9, reasoning: "captions match" },
+        { sc: "1.2.2", verdict: "Passed", confidence: 0.9, reasoning: "captions match" },
       ]),
     };
     const out = await runAudioReview(model, ["1.2.2"], ["https://x.example/video.mp4"]);
     expect(out).toHaveLength(1);
-    expect(out[0]).toMatchObject({ verdict: "compliant" });
+    expect(out[0]).toMatchObject({ verdict: "Passed" });
   });
 
-  it("fails safe to need-human-checking on model error (AC-13)", async () => {
+  it("fails safe to CannotTell on model error (AC-13)", async () => {
     const model: AudioModel = { review: async () => Promise.reject(new Error("boom")) };
     const out = await runAudioReview(model, ["1.2.2"], ["https://x.example/video.mp4"]);
     expect(out).toEqual([
-      { sc: "1.2.2", verdict: "need-human-checking", confidence: 0, reasoning: "audio model error" },
+      { sc: "1.2.2", verdict: "CannotTell", confidence: 0, reasoning: "audio model error" },
     ]);
   });
 });

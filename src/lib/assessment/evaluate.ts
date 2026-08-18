@@ -49,13 +49,13 @@ export async function evaluateStandard(
   let passedScs = new Set(input.passedScs);
   const aiVerdicts: AiReview[] = [];
   const aiBudget: AiBudget = { calls: 0, images: 0 };
-  const resolved = new Map<string, "compliant" | "violate">();
+  const resolved = new Map<string, "Passed" | "Failed">();
 
   let machine = computeConformance(scs, findings, passedScs, input.features);
 
   if (deps.aiEnabled && deps.visionModel && deps.aiScreenshot) {
     const eligible = machine.rows
-      .filter((row) => row.result === "need-checking")
+      .filter((row) => row.result === "Unresolved")
       .filter((row) => !isManualOnly(row.num))
       .map((row) => row.num);
 
@@ -76,8 +76,8 @@ export async function evaluateStandard(
       passedScs = applied.passedScs;
 
       for (const review of triage.reviews) {
-        if (review.verdict === "compliant") resolved.set(review.sc, "compliant");
-        else if (review.verdict === "violate") resolved.set(review.sc, "violate");
+        if (review.verdict === "Passed") resolved.set(review.sc, "Passed");
+        else if (review.verdict === "Failed") resolved.set(review.sc, "Failed");
       }
 
       machine = computeConformance(scs, findings, passedScs, input.features);

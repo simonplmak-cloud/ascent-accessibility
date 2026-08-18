@@ -120,15 +120,15 @@ function SeverityBars({ counts }: { counts: SeverityCounts }) {
   );
 }
 
-function ConformanceBar({ c }: { c: { compliant: number; violate: number; notApplicable: number; needHumanChecking: number } }) {
-  const total = c.compliant + c.violate + c.notApplicable + c.needHumanChecking;
+function ConformanceBar({ c }: { c: { passed: number; failed: number; notPresent: number; cannotTell: number } }) {
+  const total = c.passed + c.failed + c.notPresent + c.cannotTell;
   if (total <= 0) return <Text style={styles.empty}>No conformance data.</Text>;
 
   const segments = [
-    { label: "Compliant", value: c.compliant, color: "#1a7f37" },
-    { label: "Violation", value: c.violate, color: "#d1242f" },
-    { label: "Not applicable", value: c.notApplicable, color: "#d0d7de" },
-    { label: "Needs human check", value: c.needHumanChecking, color: "#9a6700" },
+    { label: "Passed", value: c.passed, color: "#1a7f37" },
+    { label: "Failed", value: c.failed, color: "#d1242f" },
+    { label: "Not present", value: c.notPresent, color: "#d0d7de" },
+    { label: "Cannot tell", value: c.cannotTell, color: "#9a6700" },
   ].filter((s) => s.value > 0);
 
   return (
@@ -255,7 +255,7 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
           {conformance ? (
             <View>
               <Text>
-                {conformance.compliant} compliant · {conformance.violate} violation · {conformance.notApplicable} not applicable · {conformance.needHumanChecking} need human check · {conformance.coverage}% tested · level attained: <Text style={{ fontWeight: 700 }}>{conformance.levelAttained}</Text>
+                {conformance.passed} passed · {conformance.failed} failed · {conformance.notPresent} not present · {conformance.cannotTell} cannot tell · {conformance.coverage}% tested · level attained: <Text style={{ fontWeight: 700 }}>{conformance.levelAttained}</Text>
               </Text>
               <View style={{ marginTop: 8 }}>
                 <ConformanceBar c={conformance} />

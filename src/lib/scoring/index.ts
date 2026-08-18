@@ -5,10 +5,69 @@ export type Impact = "critical" | "serious" | "moderate" | "minor";
 export type PassBand = "pass" | "partial" | "fail";
 
 // Stage 4 — the machine verdict (deterministic rules + applicability).
-export type MachineVerdict = "compliant" | "violate" | "need-checking" | "not-applicable";
+export type MachineVerdict = "Passed" | "Failed" | "Unresolved" | "NotPresent";
 
-// Stage 6 — the final verdict (machine + AI, folded per SC).
-export type FinalVerdict = "compliant" | "violate" | "need-human-checking" | "not-applicable";
+// Stage 6 — the final verdict (machine + AI, folded per SC), in the W3C/WAI
+// conformance-evaluation vocabulary.
+export type FinalVerdict = "Passed" | "Failed" | "CannotTell" | "NotPresent" | "NotChecked";
+
+export const FINAL_VERDICT_LABELS: Record<FinalVerdict, string> = {
+  Passed: "Passed",
+  Failed: "Failed",
+  CannotTell: "Cannot tell",
+  NotPresent: "Not present",
+  NotChecked: "Not checked",
+};
+
+// Legacy (pre-rename) verdicts normalized to the official vocabulary on read.
+export function normalizeFinalVerdict(value: string): FinalVerdict {
+  switch (value) {
+    case "Passed":
+      return "Passed";
+    case "Failed":
+      return "Failed";
+    case "CannotTell":
+      return "CannotTell";
+    case "NotPresent":
+      return "NotPresent";
+    case "NotChecked":
+      return "NotChecked";
+    case "compliant":
+      return "Passed";
+    case "violate":
+      return "Failed";
+    case "need-human-checking":
+    case "needs-review":
+      return "CannotTell";
+    case "not-applicable":
+      return "NotPresent";
+    default:
+      return "CannotTell";
+  }
+}
+
+export function normalizeMachineVerdict(value: string): MachineVerdict {
+  switch (value) {
+    case "Passed":
+      return "Passed";
+    case "Failed":
+      return "Failed";
+    case "Unresolved":
+      return "Unresolved";
+    case "NotPresent":
+      return "NotPresent";
+    case "compliant":
+      return "Passed";
+    case "violate":
+      return "Failed";
+    case "need-checking":
+      return "Unresolved";
+    case "not-applicable":
+      return "NotPresent";
+    default:
+      return "Unresolved";
+  }
+}
 
 export interface ScoreResult {
   score: number;
@@ -24,10 +83,10 @@ export interface MachineRow {
 
 export interface MachineConformanceResult {
   total: number;
-  compliant: number;
-  violate: number;
-  notApplicable: number;
-  needChecking: number;
+  passed: number;
+  failed: number;
+  notPresent: number;
+  unresolved: number;
   coverage: number;
   rows: MachineRow[];
 }
@@ -42,10 +101,10 @@ export interface ScConformanceRow {
 
 export interface ConformanceResult {
   total: number;
-  compliant: number;
-  violate: number;
-  notApplicable: number;
-  needHumanChecking: number;
+  passed: number;
+  failed: number;
+  notPresent: number;
+  cannotTell: number;
   coverage: number;
   levelAttained: "A" | "AA" | "AAA" | "none";
   rows: ScConformanceRow[];
@@ -94,46 +153,46 @@ export function computeConformance(
 
   const rows: MachineRow[] = scs.map((sc) => {
     let result: MachineVerdict;
-    if (failed.has(sc.num)) result = "violate";
-    else if (passedScs.has(sc.num)) result = "compliant";
+    if (failed.has(sc.num)) result = "Failed";
+    else if (passedScs.has(sc.num)) result = "Passed";
     else if (checkScApplicability(sc.num, features) === "not-applicable") {
-      result = "not-applicable";
+      result = "NotPresent";
     } else {
-      result = "need-checking";
+      result = "Unresolved";
     }
     return { num: sc.num, title: sc.title, level: sc.level, result };
   });
 
-  const compliant = rows.filter((r) => r.result === "compliant").length;
-  const violate = rows.filter((r) => r.result === "violate").length;
-  const notApplicable = rows.filter((r) => r.result === "not-applicable").length;
-  const needChecking = rows.filter((r) => r.result === "need-checking").length;
-  const tested = compliant + violate;
+  const passed = rows.filter((r) => r.result === "Passed").length;
+  const failedCount = rows.filter((r) => r.result === "Failed").length;
+  const notPresent = rows.filter((r) => r.result === "NotPresent").length;
+  const unresolved = rows.filter((r) => r.result === "Unresolved").length;
+  const tested = passed + failedCount;
   const coverage = scs.length === 0 ? 0 : Math.round((tested / scs.length) * 100);
 
-  return { total: scs.length, compliant, violate, notApplicable, needChecking, coverage, rows };
+  return { total: scs.length, passed, failed: failedCount, notPresent, unresolved, coverage, rows };
 }
 
 // Stage 6 — fold AI verdicts into the final verdict per SC.
 export function finalizeConformance(
   machine: MachineConformanceResult,
-  resolved: ReadonlyMap<string, "compliant" | "violate">,
+  resolved: ReadonlyMap<string, "Passed" | "Failed">,
 ): ConformanceResult {
   const rows: ScConformanceRow[] = machine.rows.map((row) => {
     let result: FinalVerdict;
-    if (row.result === "need-checking") {
-      result = resolved.get(row.num) ?? "need-human-checking";
+    if (row.result === "Unresolved") {
+      result = resolved.get(row.num) ?? "CannotTell";
     } else {
       result = row.result;
     }
     return { num: row.num, title: row.title, level: row.level, result, machineResult: row.result };
   });
 
-  const compliant = rows.filter((r) => r.result === "compliant").length;
-  const violate = rows.filter((r) => r.result === "violate").length;
-  const notApplicable = rows.filter((r) => r.result === "not-applicable").length;
-  const needHumanChecking = rows.filter((r) => r.result === "need-human-checking").length;
-  const tested = compliant + violate;
+  const passed = rows.filter((r) => r.result === "Passed").length;
+  const failed = rows.filter((r) => r.result === "Failed").length;
+  const notPresent = rows.filter((r) => r.result === "NotPresent").length;
+  const cannotTell = rows.filter((r) => r.result === "CannotTell").length;
+  const tested = passed + failed;
   const coverage = rows.length === 0 ? 0 : Math.round((tested / rows.length) * 100);
 
   let levelAttained: ConformanceResult["levelAttained"] = "none";
@@ -141,17 +200,17 @@ export function finalizeConformance(
   for (const level of ["A", "AA", "AAA"] as const) {
     if (LEVEL_RANK[level] > maxRank) break;
     const relevant = rows.filter((r) => LEVEL_RANK[r.level] <= LEVEL_RANK[level]);
-    const hasViolate = relevant.some((r) => r.result === "violate");
-    const hasReview = relevant.some((r) => r.result === "need-human-checking");
-    if (!hasViolate && !hasReview) levelAttained = level;
+    const hasFailed = relevant.some((r) => r.result === "Failed");
+    const hasReview = relevant.some((r) => r.result === "CannotTell");
+    if (!hasFailed && !hasReview) levelAttained = level;
   }
 
   return {
     total: rows.length,
-    compliant,
-    violate,
-    notApplicable,
-    needHumanChecking,
+    passed,
+    failed,
+    notPresent,
+    cannotTell,
     coverage,
     levelAttained,
     rows,

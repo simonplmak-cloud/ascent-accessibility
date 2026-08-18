@@ -10,7 +10,7 @@ export function buildReportSummary(result: AssessmentResult): string {
 
   let conformancePart = "";
   if (conformance) {
-    const fails = conformance.rows.filter((row) => row.result === "violate");
+    const fails = conformance.rows.filter((row) => row.result === "Failed");
     if (fails.length > 0) {
       const listed = fails
         .slice(0, 3)
@@ -20,8 +20,8 @@ export function buildReportSummary(result: AssessmentResult): string {
       conformancePart = ` It fails ${fails.length} success ${
         fails.length === 1 ? "criterion" : "criteria"
       } — ${listed}${more}.`;
-    } else if (conformance.needHumanChecking > 0) {
-      conformancePart = ` No criteria failed, but ${conformance.needHumanChecking} need human checking.`;
+    } else if (conformance.cannotTell > 0) {
+      conformancePart = ` No criteria failed, but ${conformance.cannotTell} cannot be determined and need human review.`;
     } else {
       conformancePart = " No success criteria failed.";
     }
