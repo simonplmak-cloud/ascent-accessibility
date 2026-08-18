@@ -96,10 +96,15 @@ export const assessmentRepository = {
   // + complete (three round-trips) with a single write.
   async finalize(
     id: string,
-    input: CompleteAssessmentInput & { findings: Finding[]; comparison: unknown },
+    input: CompleteAssessmentInput & {
+      findings: Finding[];
+      comparison: unknown;
+      snapshotAt: string;
+      pageSnapshots: Record<string, { html: string; screenshotEvidenceId: string | null }>;
+    },
   ): Promise<void> {
     await query(
-      "UPDATE assessment SET status = 'completed', conformance = $conformance, scsMet = $scsMet, scsApplicable = $scsApplicable, pagesScanned = $pagesScanned, partial = $partial, findings = $findings, comparison = $comparison, updatedAt = time::now() WHERE id = type::record($id)",
+      "UPDATE assessment SET status = 'completed', conformance = $conformance, scsMet = $scsMet, scsApplicable = $scsApplicable, pagesScanned = $pagesScanned, partial = $partial, findings = $findings, comparison = $comparison, snapshotAt = $snapshotAt, pageSnapshots = $pageSnapshots, updatedAt = time::now() WHERE id = type::record($id)",
       {
         id,
         conformance: input.conformance,
@@ -109,6 +114,8 @@ export const assessmentRepository = {
         partial: input.partial,
         findings: JSON.stringify(input.findings),
         comparison: JSON.stringify(input.comparison),
+        snapshotAt: input.snapshotAt,
+        pageSnapshots: JSON.stringify(input.pageSnapshots),
       },
     );
   },

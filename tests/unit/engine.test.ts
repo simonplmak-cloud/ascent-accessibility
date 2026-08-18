@@ -10,6 +10,7 @@ function makePage(raw: unknown): ScannerPage {
     goto: vi.fn(async () => ({ status: () => 200 })),
     addInitScript: vi.fn(async () => {}),
     evaluate: vi.fn(async () => raw),
+    content: vi.fn(async () => "<html></html>"),
     screenshot: vi.fn(async () => Buffer.alloc(0)),
     screenshotElement: vi.fn(async () => Buffer.alloc(0)),
   };

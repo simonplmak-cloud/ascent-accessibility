@@ -83,6 +83,7 @@ export interface ScannerPage {
   ): Promise<{ status(): number } | null>;
   addInitScript(options: { path: string } | { content: string }): Promise<void>;
   evaluate(pageFn: (arg: string[]) => unknown, arg: string[]): Promise<unknown>;
+  content(): Promise<string>;
   screenshot(options?: ScreenshotOptions): Promise<Buffer>;
   screenshotElement(selector: string): Promise<Buffer>;
 }

@@ -57,6 +57,8 @@ export interface AssessmentRepositoryPort {
       partial: boolean;
       findings: Finding[];
       comparison: unknown;
+      snapshotAt: string;
+      pageSnapshots: Record<string, { html: string; screenshotEvidenceId: string | null }>;
     },
   ): Promise<void>;
   fail(id: string): Promise<void>;
@@ -74,6 +76,7 @@ export interface PageScanner {
   scan: (url: string, tags: string[]) => Promise<ScanResult>;
   captureEvidence: (result: ScanResult) => Promise<CapturedEvidence>;
   screenshotPage: () => Promise<Buffer>;
+  snapshotPage: () => Promise<{ html: string; screenshot: Buffer }>;
   interactionScan: () => Promise<ScanViolation[]>;
   close: () => Promise<void>;
   discard: () => Promise<void>;
@@ -96,6 +99,8 @@ interface ConsolidateOutput {
   features: PageFeatures;
   aiScreenshot: Buffer | null;
   incompleteContext: string[];
+  snapshotAt: string;
+  pageSnapshots: Record<string, { html: string; screenshotEvidenceId: string | null }>;
 }
 
 export async function runAssessment(
@@ -226,6 +231,8 @@ export async function runAssessment(
       partial,
       findings,
       comparison,
+      snapshotAt: output.snapshotAt,
+      pageSnapshots: output.pageSnapshots,
     });
     await log("info", "assessment complete");
     await flushLogs();
@@ -296,6 +303,8 @@ async function scanAndConsolidate(
   let features: PageFeatures = EMPTY_FEATURES;
   let aiScreenshot: Buffer | null = null;
   const incompleteContext: string[] = [];
+  const snapshotAt = new Date().toISOString();
+  const pageSnapshots: Record<string, { html: string; screenshotEvidenceId: string | null }> = {};
   const concurrency = Math.max(1, deps.concurrency ?? 4);
   const queue = [...urls];
 
@@ -313,6 +322,29 @@ async function scanAndConsolidate(
 
                 const scan = await scanner.scan(url, standard.tags);
                 log("info", `engine: ${scan.violations.length} violation(s) on ${url}`);
+
+                // Freeze a point-in-time snapshot (full-page HTML + screenshot) so
+                // a later human review judges exactly what was scanned, even after
+                // the live site changes.
+                try {
+                  const snap = await scanner.snapshotPage();
+                  let screenshotEvidenceId: string | null = null;
+                  try {
+                    const ev = await deps.evidenceStore.put({
+                      assessmentId,
+                      pageUrl: url,
+                      kind: "page",
+                      image: snap.screenshot.toString("base64"),
+                      mime: "image/jpeg",
+                    });
+                    screenshotEvidenceId = ev.id;
+                  } catch {
+                    /* evidence store unavailable — keep HTML only */
+                  }
+                  pageSnapshots[url] = { html: snap.html, screenshotEvidenceId };
+                } catch {
+                  /* snapshot unavailable — review falls back to live evidence */
+                }
 
                 for (const pass of scan.passes) {
                   for (const sc of scsForTags(pass.tags)) passedScs.add(sc);
@@ -400,6 +432,8 @@ async function scanAndConsolidate(
     features,
     aiScreenshot,
     incompleteContext,
+    snapshotAt,
+    pageSnapshots,
   };
 }
 
