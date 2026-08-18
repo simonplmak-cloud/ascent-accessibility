@@ -1,9 +1,4 @@
-import {
-  computeConformance,
-  computeScore,
-  finalizeConformance,
-  type ConformanceResult,
-} from "@/lib/scoring";
+import { computeScore, type ConformanceResult } from "@/lib/scoring";
 import { type CrawlOptions, type CrawlResult } from "@/lib/crawler";
 import { ScanFailedError, type ScanResult, type ScanViolation } from "@/lib/scanner";
 import type { CapturedEvidence } from "@/lib/evidence/screenshot";
@@ -14,7 +9,6 @@ import {
 } from "@/lib/comparison/consolidate";
 import type { SiteAuditReport } from "@/lib/comparison/site-audit";
 import { scsForTags } from "@/lib/standards/wcag-sc";
-import { scsForStandard } from "@/lib/standards/version";
 import {
   EMPTY_FEATURES,
   mergeFeatures,
@@ -22,7 +16,7 @@ import {
 } from "@/lib/standards/sc-applicability";
 import type { Standard } from "@/lib/standards/catalog";
 import type { AiBudget, AiReview, VisionModel } from "@/lib/ai-review/types";
-import { applyAiVerdicts, runTriage } from "@/lib/ai-review/triage";
+import { evaluateStandard } from "@/lib/assessment/evaluate";
 import type { Finding, LogEntry, LogLevel, NewEvidence } from "@/db/schema";
 
 export interface AssessmentRecord {
@@ -182,47 +176,28 @@ export async function runAssessment(
       `scan complete: ${output.findings.length} finding(s) across ${urls.length} page(s)`,
     );
 
-    let findings = output.findings;
-    let passedScs = output.passedScs;
-    const aiBudget: AiBudget = { calls: 0, images: 0 };
-    const aiVerdicts: AiReview[] = [];
-
-    const applicableScs = scsForStandard(standard.version, standard.level ?? "AA");
-    let machineConformance = computeConformance(
-      applicableScs,
-      findings,
-      passedScs,
-      output.features,
+    const evaluated = await evaluateStandard(
+      {
+        version: standard.version,
+        level: standard.level ?? "AA",
+        findings: output.findings,
+        passedScs: output.passedScs,
+        features: output.features,
+        pageUrl: seed.href,
+      },
+      {
+        visionModel: deps.visionModel,
+        aiScreenshot: output.aiScreenshot,
+        incompleteContext: output.incompleteContext,
+        aiEnabled: ENABLE_AI_REVIEW,
+        threshold: Number(process.env.AI_REVIEW_CONFIDENCE_THRESHOLD ?? 0.8),
+      },
     );
 
-    if (ENABLE_AI_REVIEW && deps.visionModel && output.aiScreenshot) {
-      const unresolved = machineConformance.rows
-        .filter((row) => row.result === "need-checking")
-        .map((row) => row.num);
-      if (unresolved.length > 0) {
-        const triage = await runTriage({
-          model: deps.visionModel,
-          image: output.aiScreenshot,
-          unresolvedScs: unresolved,
-          incompleteContext: output.incompleteContext,
-          threshold: Number(process.env.AI_REVIEW_CONFIDENCE_THRESHOLD ?? 0.8),
-        });
-        aiBudget.calls += triage.budget.calls;
-        aiBudget.images += triage.budget.images;
-        aiVerdicts.push(...triage.reviews);
-        const applied = applyAiVerdicts(findings, passedScs, triage.reviews, seed.href);
-        findings = applied.findings;
-        passedScs = applied.passedScs;
-        machineConformance = computeConformance(
-          applicableScs,
-          findings,
-          passedScs,
-          output.features,
-        );
-      }
-    }
-
-    const conformance = finalizeConformance(machineConformance, new Map());
+    const findings = evaluated.findings;
+    const conformance = evaluated.conformance;
+    const aiVerdicts = evaluated.aiVerdicts;
+    const aiBudget = evaluated.aiBudget;
     const score = computeScore(findings);
 
     await log(
