@@ -3,17 +3,18 @@ import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
 import { InlineLink } from "@/components/ui/inline-link";
+import { listStandards, type Standard } from "@/lib/standards/catalog";
+import { scsForStandard } from "@/lib/standards/version";
 import {
-  WCAG_SCS,
-  principleName,
   specUrl,
   understandingUrl,
+  type WcagSc,
 } from "@/lib/standards/wcag-sc";
 
 export const metadata: Metadata = {
-  title: "WCAG 2.2 success criteria",
+  title: "WCAG success criteria",
   description:
-    "The complete WCAG 2.2 success criteria reference — every criterion grouped by principle and conformance level, with links to the specification and Understanding documents.",
+    "The success criteria the assessment tool scores against — WCAG 2.0, 2.1, 2.2, and Section 508 — with links to the specification and Understanding documents.",
   alternates: { canonical: "/standards" },
 };
 
@@ -23,59 +24,75 @@ const LEVEL_STYLE: Record<string, string> = {
   AAA: "text-terminal-moderate",
 };
 
+function scsFor(standard: Standard): WcagSc[] {
+  if (standard.version === "508") {
+    // Section 508 maps to WCAG 2.0 AA.
+    return scsForStandard("2.0", "AA");
+  }
+  return scsForStandard(standard.version, standard.level ?? "AA");
+}
+
+function ScList({ scs }: { scs: WcagSc[] }) {
+  return (
+    <ul className="mt-3 divide-y divide-terminal-border rounded border border-terminal-border">
+      {scs.map((sc) => (
+        <li key={sc.num} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2">
+          <span
+            aria-hidden="true"
+            className={`w-8 font-mono text-xs font-bold ${LEVEL_STYLE[sc.level] ?? "text-terminal-muted"}`}
+          >
+            {sc.level}
+          </span>
+          <a
+            href={specUrl(sc)}
+            target="_blank"
+            rel="noreferrer"
+            className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+          >
+            {sc.num}
+            <span className="sr-only"> (opens in a new window)</span>
+          </a>
+          <span className="font-mono text-sm text-terminal-fg">{sc.title}</span>
+          <a
+            href={understandingUrl(sc)}
+            target="_blank"
+            rel="noreferrer"
+            className="font-mono text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
+          >
+            Understanding<span className="sr-only"> (opens in a new window)</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function StandardsPage() {
-  const principles = [1, 2, 3, 4] as const;
+  const standards = listStandards();
 
   return (
     <PageShell width="4xl">
-      <PageHeading>WCAG 2.2 success criteria</PageHeading>
+      <PageHeading>WCAG success criteria</PageHeading>
       <MutedText className="mt-4">
-        Every success criterion in WCAG 2.2, grouped by principle and conformance level.
-        The number links to the W3C specification; &ldquo;Understanding&rdquo; links to the
-        official explanatory document. This is the same catalogue the assessment tool
-        scores against.
+        Every success criterion the assessment tool scores against, across WCAG 2.0, 2.1, 2.2 and
+        Section 508. The number links to the W3C specification; &ldquo;Understanding&rdquo; links to the
+        official explanatory document.
       </MutedText>
 
-      {principles.map((principle) => {
-        const scs = WCAG_SCS.filter((sc) => sc.principle === principle);
-        return (
-          <section key={principle} aria-labelledby={`p-${principle}`} className="mt-10">
-            <h2 id={`p-${principle}`} className="font-mono text-xl font-semibold text-terminal-fg">
-              {principle}. {principleName(principle)}
-            </h2>
-            <ul className="mt-3 divide-y divide-terminal-border rounded border border-terminal-border">
-              {scs.map((sc) => (
-                <li key={sc.num} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2">
-                  <span
-                    aria-hidden="true"
-                    className={`w-8 font-mono text-xs font-bold ${LEVEL_STYLE[sc.level] ?? "text-terminal-muted"}`}
-                  >
-                    {sc.level}
-                  </span>
-                  <a
-                    href={specUrl(sc)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
-                  >
-                    {sc.num}
-                    <span className="sr-only"> (opens in a new window)</span>
-                  </a>
-                  <span className="font-mono text-sm text-terminal-fg">{sc.title}</span>
-                  <a
-                    href={understandingUrl(sc)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-mono text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
-                  >
-                    Understanding<span className="sr-only"> (opens in a new window)</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        );
-      })}
+      {standards.map((standard) => (
+        <section key={standard.id} aria-labelledby={`s-${standard.id}`} className="mt-10">
+          <h2 id={`s-${standard.id}`} className="font-mono text-xl font-semibold text-terminal-fg">
+            {standard.name}
+            {standard.version === "508" && (
+              <span className="font-mono text-sm font-normal text-terminal-muted">
+                {" "}
+                (maps to WCAG 2.0 AA)
+              </span>
+            )}
+          </h2>
+          <ScList scs={scsFor(standard)} />
+        </section>
+      ))}
 
       <p className="mt-10 font-mono text-sm text-terminal-muted">
         Source:{" "}
@@ -85,7 +102,7 @@ export default function StandardsPage() {
           rel="noreferrer"
           className="underline underline-offset-4 hover:text-terminal-fg"
         >
-          Web Content Accessibility Guidelines (WCAG) 2.2
+          Web Content Accessibility Guidelines (WCAG)
         </a>{" "}
         by the W3C. Learn how the tool scores against these in{" "}
         <InlineLink href="/methodology">our methodology</InlineLink>.

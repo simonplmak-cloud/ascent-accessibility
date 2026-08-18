@@ -95,6 +95,8 @@ export interface AssessmentResult {
   conformance?: string | null;
   scsMet?: number | null;
   scsApplicable?: number | null;
+  reviewStatus?: string | null;
+  snapshotAt?: string | null;
   pagesScanned: number;
   log: LogEntry[];
   findings: Finding[];

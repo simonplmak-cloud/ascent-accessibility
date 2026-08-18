@@ -33,6 +33,8 @@ export async function GET(
     conformance: assessment.conformance,
     scsMet: assessment.scsMet,
     scsApplicable: assessment.scsApplicable,
+    reviewStatus: assessment.reviewStatus,
+    snapshotAt: assessment.snapshotAt,
     pagesScanned: assessment.pagesScanned,
     log,
     comparison,

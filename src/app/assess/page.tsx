@@ -6,7 +6,7 @@ import { AssessmentForm } from "@/components/assessment/assessment-form";
 export const metadata: Metadata = {
   title: "Start an assessment",
   description:
-    "Assess your website against WCAG 2.2 AA. Submit a URL and get a score, findings, and remediation guidance.",
+    "Assess your website against WCAG 2.0, 2.1, 2.2, or Section 508. Submit a URL and get a conformance result with findings and remediation guidance.",
 };
 
 export default function AssessPage() {

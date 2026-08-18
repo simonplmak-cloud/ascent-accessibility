@@ -57,6 +57,13 @@ export function Report({ result }: { result: AssessmentResult }) {
         </p>
       )}
 
+      {result.reviewStatus === "reviewed" && result.snapshotAt && (
+        <p className="mt-3 font-mono text-xs text-terminal-muted">
+          Conformance evaluated as at {new Date(result.snapshotAt).toUTCString()}. This report is a
+          professional opinion, not a certified audit or legal advice.
+        </p>
+      )}
+
       {result.comparison?.conformance && (
         <ConformanceTable conformance={result.comparison.conformance} />
       )}
