@@ -1,6 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+// The history page is a server component that reads assessment history directly
+// from SurrealDB, so these tests require the full stack (app + SurrealDB + auth).
+test.skip(!process.env.E2E_FULL_STACK, "requires the full stack (SurrealDB + auth)");
+
 type Status = "queued" | "running" | "completed" | "failed";
 
 interface Item {

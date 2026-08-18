@@ -1,6 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+// The API keys page is a server component that reads from SurrealDB and requires
+// a signed-in subscriber, so these tests require the full stack.
+test.skip(!process.env.E2E_FULL_STACK, "requires the full stack (SurrealDB + subscriber auth)");
+
 interface Key {
   id: string;
   name: string;
