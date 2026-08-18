@@ -103,6 +103,7 @@ const createScanner = async () => ({
     elements: [],
   }),
   screenshotPage: async () => Buffer.alloc(0),
+  interactionScan: async () => [],
   close: async () => {},
   discard: async () => {},
 });

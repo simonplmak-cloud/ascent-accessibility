@@ -71,4 +71,45 @@ export const operableRules: Rule[] = [
       return { result: "pass" };
     },
   },
+  {
+    id: "focus-visible",
+    description: "Ensures keyboard focus is visibly indicated",
+    help: "Keyboard focus must be visibly indicated",
+    impact: "serious",
+    tags: ["wcag2aa", "wcag247"],
+    wcagSc: ["2.4.7"],
+    selector: null,
+    check: () => {
+      let suppressed = false;
+      let hasFocusVisibleAlt = false;
+      try {
+        for (const sheet of Array.from(document.styleSheets)) {
+          let rules: CSSRuleList | null;
+          try {
+            rules = sheet.cssRules;
+          } catch {
+            continue;
+          }
+          for (const rule of Array.from(rules ?? [])) {
+            const css = rule as CSSStyleRule;
+            if (!css.selectorText) continue;
+            if (/:focus-visible/.test(css.selectorText)) hasFocusVisibleAlt = true;
+            if (/:focus(?![-\w])/.test(css.selectorText)) {
+              const outline = css.style?.outline;
+              if (outline === "none" || outline === "0") suppressed = true;
+            }
+          }
+        }
+      } catch {
+        return { result: "incomplete", failureSummary: "could not inspect stylesheets" };
+      }
+      if (suppressed && !hasFocusVisibleAlt) {
+        return {
+          result: "fail",
+          failureSummary: "focus outline suppressed without a :focus-visible alternative",
+        };
+      }
+      return { result: "pass" };
+    },
+  },
 ];

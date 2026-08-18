@@ -1,6 +1,6 @@
 import { computeConformance, computeScore, type ConformanceResult } from "@/lib/scoring";
 import { type CrawlOptions, type CrawlResult } from "@/lib/crawler";
-import { ScanFailedError, type ScanResult } from "@/lib/scanner";
+import { ScanFailedError, type ScanResult, type ScanViolation } from "@/lib/scanner";
 import type { CapturedEvidence } from "@/lib/evidence/screenshot";
 import {
   violationsToFindings,
@@ -72,6 +72,7 @@ export interface PageScanner {
   scan: (url: string, tags: string[]) => Promise<ScanResult>;
   captureEvidence: (result: ScanResult) => Promise<CapturedEvidence>;
   screenshotPage: () => Promise<Buffer>;
+  interactionScan: (url: string) => Promise<ScanViolation[]>;
   close: () => Promise<void>;
   discard: () => Promise<void>;
 }
@@ -342,6 +343,15 @@ async function scanAndConsolidate(
                       incompleteContext.push(`${inc.id}: ${node.failureSummary}`);
                     }
                   }
+                }
+
+                try {
+                  const interaction = await scanner.interactionScan(url);
+                  if (interaction.length > 0) {
+                    engineFindings.push(...violationsToFindings(url, interaction));
+                  }
+                } catch {
+                  /* interaction checks unavailable — continue with the engine alone */
                 }
 
                 if (deps.siteAudit) {

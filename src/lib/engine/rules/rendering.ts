@@ -99,4 +99,47 @@ export const renderingRules: Rule[] = [
       return { result: "pass" };
     },
   },
+  {
+    id: "non-text-contrast",
+    description: "Ensures UI component boundaries meet the 3:1 contrast minimum",
+    help: "UI component borders and indicators must have 3:1 contrast",
+    impact: "serious",
+    tags: ["wcag2aa", "wcag1411"],
+    wcagSc: ["1.4.11"],
+    selector: "input:not([type='hidden']), select, textarea, button",
+    check: (el) => {
+      const cs = getComputedStyle(el);
+      const borderStyle = cs.borderTopStyle;
+      if (borderStyle === "none" || borderStyle === "hidden") return { result: "pass" };
+      const width = parseFloat(cs.borderTopWidth);
+      if (width <= 0) return { result: "pass" };
+
+      const parse = (c: string): [number, number, number, number] | null => {
+        const m = /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)/i.exec(c);
+        if (!m) return null;
+        return [parseFloat(m[1]!), parseFloat(m[2]!), parseFloat(m[3]!), m[4] !== undefined ? parseFloat(m[4]) : 1];
+      };
+      const luminance = (r: number, g: number, b: number) => {
+        const f = (v: number) => {
+          const s = v / 255;
+          return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+        };
+        return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+      };
+
+      const border = parse(cs.borderTopColor);
+      const bg = parse(cs.backgroundColor);
+      if (!border || !bg) return { result: "incomplete", failureSummary: "border or background color not computable" };
+      if (bg[3] === 0) return { result: "incomplete", failureSummary: "transparent background — contrast undecidable" };
+
+      const l1 = luminance(border[0], border[1], border[2]);
+      const l2 = luminance(bg[0], bg[1], bg[2]);
+      const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+
+      if (ratio < 3) {
+        return { result: "fail", failureSummary: `component boundary contrast ${ratio.toFixed(2)} is below 3:1` };
+      }
+      return { result: "pass" };
+    },
+  },
 ];

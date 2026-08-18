@@ -1,7 +1,8 @@
 import { chromium, type Browser, type Page } from "playwright";
-import { type ScannerPage, type ScanResult } from "@/lib/scanner";
+import { type ScannerPage, type ScanResult, type ScanViolation } from "@/lib/scanner";
 import { captureEvidence, type CapturedEvidence } from "@/lib/evidence/screenshot";
 import { runEngine } from "@/lib/engine/runner";
+import { runInteractionScan } from "@/lib/engine/interaction-scan";
 import { ALL_RULES } from "@/lib/engine/rules";
 import { buildEngineSource } from "@/lib/engine/registry";
 
@@ -9,6 +10,7 @@ export interface PageScanner {
   scan: (url: string, tags: string[]) => Promise<ScanResult>;
   captureEvidence: (result: ScanResult) => Promise<CapturedEvidence>;
   screenshotPage: () => Promise<Buffer>;
+  interactionScan: (url: string) => Promise<ScanViolation[]>;
   close: () => Promise<void>;
   discard: () => Promise<void>;
 }
@@ -112,6 +114,7 @@ export async function createPageScanner(): Promise<PageScanner> {
     scan: (url: string, tags: string[]) => runEngine(url, tags, scannerPage),
     captureEvidence: (result: ScanResult) => captureEvidence(scannerPage, result),
     screenshotPage: () => page.screenshot({ type: "jpeg", quality: 60 }),
+    interactionScan: (url: string) => runInteractionScan(page, url),
     // Normal completion: close the context and return the browser to the pool.
     close: async () => {
       if (disposed) return;

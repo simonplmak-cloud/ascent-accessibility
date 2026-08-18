@@ -4,6 +4,7 @@ import { operableRules } from "./operable";
 import { understandableRules } from "./understandable";
 import { robustRules } from "./robust";
 import { renderingRules } from "./rendering";
+import { interactionRules } from "./interaction";
 
 export const ALL_RULES: Rule[] = [
   ...perceivableRules,
@@ -11,6 +12,7 @@ export const ALL_RULES: Rule[] = [
   ...understandableRules,
   ...robustRules,
   ...renderingRules,
+  ...interactionRules,
 ];
 
 export function selectRules(tags: readonly string[]): Rule[] {
