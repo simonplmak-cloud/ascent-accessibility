@@ -35,8 +35,9 @@ export async function GET(
     {
       url: assessment.url,
       standard: assessment.standard,
-      score: assessment.score ?? 0,
-      passBand: assessment.passBand ?? "fail",
+      outcome: assessment.conformance ?? "undetermined",
+      scsMet: assessment.scsMet ?? 0,
+      scsApplicable: assessment.scsApplicable ?? 0,
       pagesScanned: assessment.pagesScanned,
       generatedAt: assessment.updatedAt,
       comparison: comparison ?? undefined,

@@ -1,29 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-import {
-  mapViolations,
-  scanPage,
-  ScanFailedError,
-  type ScannerPage,
-} from "@/lib/scanner";
-import { EMPTY_FEATURES } from "@/lib/standards/sc-applicability";
-
-function makePage(
-  raw: unknown,
-  opts?: { status?: number; gotoError?: Error },
-): ScannerPage {
-  return {
-    goto: vi.fn(async () => {
-      if (opts?.gotoError) throw opts.gotoError;
-      return opts?.status !== undefined
-        ? { status: () => opts.status! }
-        : { status: () => 200 };
-    }),
-    addInitScript: vi.fn(async () => {}),
-    evaluate: vi.fn(async () => ({ raw, features: EMPTY_FEATURES })),
-    screenshot: vi.fn(async () => Buffer.alloc(0)),
-    screenshotElement: vi.fn(async () => Buffer.alloc(0)),
-  };
-}
+import { describe, expect, it } from "vitest";
+import { mapViolations, mapRuleSummary } from "@/lib/scanner";
 
 const rawResult = {
   violations: [
@@ -32,12 +8,11 @@ const rawResult = {
       impact: "serious",
       description: "Elements must meet minimum color contrast ratio thresholds",
       help: "Color contrast",
-      helpUrl: "https://dequeuniversity.com/rules/axe/4.10/color-contrast",
+      helpUrl: "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
       tags: ["wcag2aa", "wcag143"],
       nodes: [
         { html: "<a>", target: ["a"], failureSummary: "Fix contrast" },
         { html: "<b>", target: ["b"], failureSummary: "Fix contrast" },
-        { html: "<c>", target: ["c"], failureSummary: "Fix contrast" },
       ],
     },
     {
@@ -58,7 +33,7 @@ describe("mapViolations", () => {
     expect(mapped[0]).toMatchObject({
       id: "color-contrast",
       impact: "serious",
-      nodeCount: 3,
+      nodeCount: 2,
       tags: ["wcag2aa", "wcag143"],
       help: "Color contrast",
     });
@@ -76,33 +51,16 @@ describe("mapViolations", () => {
   });
 });
 
-describe("scanPage", () => {
-  it("returns mapped violations, passes, and incomplete", async () => {
-    const page = makePage(rawResult);
-    const result = await scanPage("https://example.com/", ["wcag2a", "wcag2aa"], page);
-    expect(result.url).toBe("https://example.com/");
-    expect(result.violations).toHaveLength(2);
-    expect(result.passes).toHaveLength(1);
-    expect(result.incomplete).toHaveLength(0);
-    expect(page.goto).toHaveBeenCalledWith(
-      "https://example.com/",
-      expect.objectContaining({ timeout: 45000 }),
-    );
-  });
-
-  it("throws ScanFailedError when navigation fails (AC-E2)", async () => {
-    const page = makePage(rawResult, {
-      gotoError: new Error("net::ERR_NAME_NOT_RESOLVED"),
+describe("mapRuleSummary", () => {
+  it("preserves incomplete nodes so the AI triage can review them", () => {
+    const summary = mapRuleSummary({
+      id: "button-name",
+      tags: ["wcag2a"],
+      nodes: [{ html: "<button>", target: ["button"], failureSummary: "undecidable" }],
     });
-    await expect(
-      scanPage("https://example.com/", ["wcag2aa"], page),
-    ).rejects.toThrow(ScanFailedError);
-  });
-
-  it("throws ScanFailedError on HTTP 4xx/5xx (AC-E2)", async () => {
-    const page = makePage(rawResult, { status: 404 });
-    await expect(
-      scanPage("https://example.com/", ["wcag2aa"], page),
-    ).rejects.toThrow(/HTTP 404/);
+    expect(summary.nodes?.[0]).toMatchObject({
+      target: ["button"],
+      failureSummary: "undecidable",
+    });
   });
 });

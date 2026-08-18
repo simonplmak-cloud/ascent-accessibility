@@ -6,8 +6,6 @@ import {
   View,
   Image,
   StyleSheet,
-  Svg,
-  Path,
   Link,
   renderToBuffer,
 } from "@react-pdf/renderer";
@@ -16,7 +14,7 @@ import {
   affectedSuccessCriteria,
   generatedDate,
   groupFindingsBySeverity,
-  passBandColor,
+  outcomeColor,
   severityColor,
   severityCounts,
   severityRank,
@@ -25,6 +23,12 @@ import {
   type SeverityCounts,
 } from "./report-data";
 import type { ReportData } from "./types";
+
+function outcomeLabel(outcome: string): string {
+  if (outcome === "conforms") return "Conforms";
+  if (outcome === "does-not-conform") return "Does not conform";
+  return "Not yet evaluated";
+}
 
 const styles = StyleSheet.create({
   page: {
@@ -69,32 +73,6 @@ const styles = StyleSheet.create({
   colophon: { marginTop: 24, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 10, fontSize: 8, color: "#59636e", flexDirection: "row", justifyContent: "space-between" },
 });
 
-function ScoreGauge({ score, color }: { score: number; color: string }) {
-  const clamped = Math.max(0, Math.min(100, Math.round(score)));
-  const radius = 80;
-  const arcLength = Math.PI * radius;
-  const dash = arcLength * (clamped / 100);
-  const d = "M 20 110 A 80 80 0 0 1 180 110";
-
-  return (
-    <View style={{ alignItems: "center" }}>
-      <Svg width={240} height={120} viewBox="0 0 200 120">
-        <Path d={d} stroke="#e5e7eb" strokeWidth={16} fill="none" strokeLinecap="round" />
-        <Path
-          d={d}
-          stroke={color}
-          strokeWidth={16}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={`${dash.toFixed(1)} ${arcLength.toFixed(1)}`}
-        />
-      </Svg>
-      <Text style={{ fontSize: 28, fontWeight: 700, color }}>{clamped}</Text>
-      <Text style={{ fontSize: 10, color: "#59636e" }}>out of 100</Text>
-    </View>
-  );
-}
-
 function SeverityBars({ counts }: { counts: SeverityCounts }) {
   const max = Math.max(1, ...SEVERITY_ORDER.map((s) => counts[s]));
 
@@ -120,15 +98,15 @@ function SeverityBars({ counts }: { counts: SeverityCounts }) {
   );
 }
 
-function ConformanceBar({ c }: { c: { passed: number; failed: number; notApplicable: number; needsReview: number } }) {
-  const total = c.passed + c.failed + c.notApplicable + c.needsReview;
+function ConformanceBar({ c }: { c: { passed: number; failed: number; notPresent: number; cannotTell: number } }) {
+  const total = c.passed + c.failed + c.notPresent + c.cannotTell;
   if (total <= 0) return <Text style={styles.empty}>No conformance data.</Text>;
 
   const segments = [
-    { label: "Pass", value: c.passed, color: "#1a7f37" },
-    { label: "Fail", value: c.failed, color: "#d1242f" },
-    { label: "Not applicable", value: c.notApplicable, color: "#d0d7de" },
-    { label: "Needs review", value: c.needsReview, color: "#9a6700" },
+    { label: "Passed", value: c.passed, color: "#1a7f37" },
+    { label: "Failed", value: c.failed, color: "#d1242f" },
+    { label: "Not present", value: c.notPresent, color: "#d0d7de" },
+    { label: "Cannot tell", value: c.cannotTell, color: "#9a6700" },
   ].filter((s) => s.value > 0);
 
   return (
@@ -160,7 +138,7 @@ function Row({ label, children }: { label?: string; children: ReactNode }) {
 
 export function AccessibilityReportDocument({ report, logo }: { report: ReportData; logo: Buffer | null }) {
   const counts = severityCounts(report.findings);
-  const bandColor = passBandColor(report.passBand);
+  const bandColor = outcomeColor(report.outcome);
   const grouped = groupFindingsBySeverity(report.findings);
   const top = topIssues(report.findings, 5);
   const affected = affectedSuccessCriteria(report.findings);
@@ -193,10 +171,9 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
             <Row label="Pages scanned">{String(report.pagesScanned)}</Row>
             <Row label="Generated">{generatedDate(report.generatedAt)}</Row>
           </View>
-          <View style={styles.gauge}>
-            <ScoreGauge score={report.score} color={bandColor} />
-          </View>
-          <Text style={[styles.verdict, { color: bandColor }]}>Result: {report.passBand}</Text>
+          <Text style={[styles.verdict, { color: bandColor }]}>
+            {outcomeLabel(report.outcome)} — {report.scsMet}/{report.scsApplicable} applicable SCs meet
+          </Text>
           <Text style={styles.disclaimer}>
             Automated assessment — findings are preliminary and do not constitute a full WCAG conformance claim.
           </Text>
@@ -221,7 +198,7 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
         <View id="executive-summary" style={styles.section}>
           <Text style={styles.h2}>1. Executive summary</Text>
           <Text>
-            Result: <Text style={{ color: bandColor, fontWeight: 700 }}>{report.passBand}</Text> — score {report.score} / 100 across {report.pagesScanned} page(s).
+            Result: <Text style={{ color: bandColor, fontWeight: 700 }}>{outcomeLabel(report.outcome)}</Text> — {report.scsMet}/{report.scsApplicable} applicable SCs meet, across {report.pagesScanned} page(s).
           </Text>
           <Text style={{ marginTop: 4 }}>
             {totalFindings} finding(s): critical {counts.critical}, serious {counts.serious}, moderate {counts.moderate}, minor {counts.minor}.
@@ -243,7 +220,7 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
         <View id="methodology" style={styles.section}>
           <Text style={styles.h2}>2. Methodology</Text>
           <Text>
-            Automated testing engines: axe-core, IBM Equal Access, and a Lighthouse-comparable score.
+            Automated testing by the Ascent Access accessibility engine, with a companion site audit and AI-assisted review.
           </Text>
           <Text style={{ marginTop: 4 }}>
             This is an automated baseline. Automated tools detect a subset of WCAG issues; full conformance requires manual review (keyboard operation, screen readers, and contrast inspection).
@@ -255,7 +232,7 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
           {conformance ? (
             <View>
               <Text>
-                {conformance.passed} pass · {conformance.failed} fail · {conformance.notApplicable} not applicable · {conformance.needsReview} need review · {conformance.coverage}% machine-tested · level attained: <Text style={{ fontWeight: 700 }}>{conformance.levelAttained}</Text>
+                {conformance.passed} passed · {conformance.failed} failed · {conformance.notPresent} not present · {conformance.cannotTell} cannot tell · {conformance.coverage}% tested · level attained: <Text style={{ fontWeight: 700 }}>{conformance.levelAttained}</Text>
               </Text>
               <View style={{ marginTop: 8 }}>
                 <ConformanceBar c={conformance} />
@@ -338,27 +315,19 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
 
         {comparison ? (
           <View id="comparison" style={styles.section}>
-            <Text style={styles.h2}>7. Cross-tool comparison</Text>
+            <Text style={styles.h2}>7. Ascent Access analysis</Text>
             <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>Tool</Text>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>Signal</Text>
               <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>Result</Text>
             </View>
             <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, { flex: 1 }]}>Ascent Accessibility</Text>
-              <Text style={[styles.tableCell, { flex: 1 }]}>{report.score} / 100</Text>
+              <Text style={[styles.tableCell, { flex: 1 }]}>Conformance</Text>
+              <Text style={[styles.tableCell, { flex: 1 }]}>{outcomeLabel(report.outcome)}</Text>
             </View>
-            {comparison.lighthouse !== undefined ? (
+            {comparison.audit !== undefined ? (
               <View style={styles.tableRow}>
-                <Text style={[styles.tableCell, { flex: 1 }]}>Lighthouse (comparable)</Text>
-                <Text style={[styles.tableCell, { flex: 1 }]}>{comparison.lighthouse.score} / 100</Text>
-              </View>
-            ) : null}
-            {comparison.ibm ? (
-              <View style={styles.tableRow}>
-                <Text style={[styles.tableCell, { flex: 1 }]}>IBM Equal Access</Text>
-                <Text style={[styles.tableCell, { flex: 1 }]}>
-                  {comparison.ibm.violation} violations · {comparison.ibm.potentialViolation} needs review · {comparison.ibm.recommendation} recommendations
-                </Text>
+                <Text style={[styles.tableCell, { flex: 1 }]}>Site audit accessibility</Text>
+                <Text style={[styles.tableCell, { flex: 1 }]}>{comparison.audit.score} / 100</Text>
               </View>
             ) : null}
           </View>

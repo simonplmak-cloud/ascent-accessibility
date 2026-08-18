@@ -1,5 +1,5 @@
 export interface FindingSource {
-  tool: "axe" | "lighthouse" | "ibm";
+  tool: "engine" | "ai";
   ruleId: string;
   impact: string;
   message: string;
@@ -39,30 +39,49 @@ export interface ConformanceRow {
   num: string;
   title: string;
   level: string;
-  result: "pass" | "fail" | "not-applicable" | "needs-review";
+  result: "Passed" | "Failed" | "CannotTell" | "NotPresent" | "NotChecked";
+  machineResult?: "Passed" | "Failed" | "Unresolved" | "NotPresent";
 }
 
 export interface Conformance {
   total: number;
   passed: number;
   failed: number;
-  notApplicable: number;
-  needsReview: number;
+  notPresent: number;
+  cannotTell: number;
   coverage: number;
   levelAttained: string;
+  outcome: string;
+  scsMet: number;
+  scsApplicable: number;
   rows: ConformanceRow[];
 }
 
 export interface ComparisonData {
-  lighthouse: { score: number; failedAudits: Array<{ id: string; weight: number }> };
-  ibm: {
-    violation: number;
-    potentialViolation: number;
-    recommendation: number;
-    pass: number;
-    manual: number;
+  audit?: {
+    score: number;
+    failedAudits: Array<{ id: string; weight: number }>;
+    signals?: {
+      accessibility?: number;
+      performance?: number;
+      seo?: number;
+      bestPractices?: number;
+      pwa?: number;
+    };
+    auditVersion?: string;
   };
   conformance?: Conformance;
+  ai?: {
+    model: string;
+    verdicts: Array<{
+      sc: string;
+      verdict: "Passed" | "Failed" | "CannotTell";
+      confidence: number;
+      reasoning: string;
+      evidenceId?: string | null;
+    }>;
+    budget: { calls: number; images: number };
+  };
 }
 
 export interface AssessmentResult {
@@ -73,6 +92,11 @@ export interface AssessmentResult {
   standard?: string;
   score: number | null;
   passBand: string | null;
+  conformance?: string | null;
+  scsMet?: number | null;
+  scsApplicable?: number | null;
+  reviewStatus?: string | null;
+  snapshotAt?: string | null;
   pagesScanned: number;
   log: LogEntry[];
   findings: Finding[];

@@ -1,12 +1,11 @@
-import type { Finding, FindingInstance, FindingSource } from "@/db/schema";
+import type { Finding, FindingInstance } from "@/db/schema";
 import type { Impact } from "@/lib/scoring";
 import { getRecommendation } from "@/lib/recommendations";
 import { getSc, scsForTags } from "@/lib/standards/wcag-sc";
-import { LIGHTHOUSE_AUDIT_WEIGHTS } from "@/lib/standards/lighthouse-audits";
-import type { AxeViolation } from "@/lib/scanner";
+import type { ScanViolation } from "@/lib/scanner";
 
 export interface ToolFinding {
-  tool: "axe" | "ibm";
+  tool: "engine";
   ruleId: string;
   impact: Impact;
   message: string;
@@ -44,11 +43,6 @@ function toInstance(node: ToolFinding["nodes"][number]): FindingInstance {
   };
 }
 
-function recommendationFor(finding: ToolFinding): string {
-  if (finding.tool === "ibm" && finding.help) return finding.help;
-  return getRecommendation(finding.ruleId, finding.impact);
-}
-
 function baseFinding(finding: ToolFinding): Finding {
   const sc = primarySc(finding);
   const scInfo = sc ? getSc(sc) : undefined;
@@ -58,34 +52,29 @@ function baseFinding(finding: ToolFinding): Finding {
     description: finding.message,
     pageUrl: finding.pageUrl,
     elementCount: finding.nodes.length,
-    recommendation: recommendationFor(finding),
+    recommendation: getRecommendation(finding.ruleId, finding.impact),
     help: finding.help,
     helpUrl: finding.helpUrl,
     wcagSc: finding.wcagSc,
     wcagLevel: scInfo?.level ?? null,
     scTitle: scInfo?.title ?? "Best practice",
     confidence: "single-source",
-    sources: [],
+    sources: [
+      { tool: "engine", ruleId: finding.ruleId, impact: finding.impact, message: finding.message },
+    ],
     instances: finding.nodes.map(toInstance),
   };
 }
 
-function addSource(finding: Finding, f: ToolFinding, tool: FindingSource["tool"]): void {
-  if (!finding.sources.some((s) => s.tool === tool && s.ruleId === f.ruleId)) {
-    finding.sources.push({ tool, ruleId: f.ruleId, impact: f.impact, message: f.message });
-  }
-  if (IMPACT_RANK[f.impact] > IMPACT_RANK[finding.impact]) finding.impact = f.impact;
-}
-
-export function axeViolationsToFindings(
+export function violationsToFindings(
   pageUrl: string,
-  violations: AxeViolation[],
+  violations: ScanViolation[],
 ): ToolFinding[] {
   return violations.map((violation) => {
     const wcagSc = scsForTags(violation.tags);
     const firstSc = wcagSc[0];
     return {
-      tool: "axe",
+      tool: "engine",
       ruleId: violation.id,
       impact: violation.impact,
       message: violation.description,
@@ -104,42 +93,14 @@ export function axeViolationsToFindings(
   });
 }
 
-export function consolidateFindings(
-  axeFindings: ToolFinding[],
-  ibmFindings: ToolFinding[],
-): Finding[] {
+export function consolidateFindings(engineFindings: ToolFinding[]): Finding[] {
   const groups = new Map<string, Finding>();
 
-  for (const f of axeFindings) {
+  for (const f of engineFindings) {
     const key = groupKey(f);
-    let finding = groups.get(key);
-    if (!finding) {
-      finding = baseFinding(f);
-      groups.set(key, finding);
+    if (!groups.has(key)) {
+      groups.set(key, baseFinding(f));
     }
-    addSource(finding, f, "axe");
-    if (LIGHTHOUSE_AUDIT_WEIGHTS[f.ruleId] !== undefined) {
-      addSource(finding, f, "lighthouse");
-    }
-  }
-
-  for (const f of ibmFindings) {
-    const key = groupKey(f);
-    let finding = groups.get(key);
-    if (!finding) {
-      finding = baseFinding(f);
-      groups.set(key, finding);
-    }
-    addSource(finding, f, "ibm");
-    for (const node of f.nodes) {
-      finding.instances.push(toInstance(node));
-    }
-  }
-
-  for (const finding of groups.values()) {
-    const tools = new Set(finding.sources.map((source) => source.tool));
-    finding.confidence = tools.size >= 2 ? "confirmed" : "single-source";
-    finding.elementCount = finding.instances.length;
   }
 
   return [...groups.values()].sort(

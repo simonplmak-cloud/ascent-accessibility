@@ -5,62 +5,83 @@ export interface Standard {
   name: string;
   version: string;
   level: WcagLevel | null;
-  axeTags: string[];
+  tags: string[];
 }
 
-// axe-core tags rules by the version they were introduced in (non-cumulative).
+// Rules are tagged by the WCAG version they were introduced in (non-cumulative).
 // Selecting a standard therefore requires the full cumulative tag set across
-// versions. axe-core 4.13 exposes `wcag22aa` only (no `wcag22a`/`wcag22aaa`),
-// so 2.2-A and 2.2-AAA reuse the 2.0/2.1 tag sets.
+// versions. The `wcag22aa` tag carries the 2.2-AA additions, while `wcag22a`
+// and `wcag22aaa` reuse the 2.0/2.1 tag sets for their respective levels.
 export const STANDARDS: Standard[] = [
   {
     id: "wcag22aa",
     name: "WCAG 2.2 AA",
     version: "2.2",
     level: "AA",
-    axeTags: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"],
+    tags: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"],
   },
   {
     id: "wcag22a",
     name: "WCAG 2.2 A",
     version: "2.2",
     level: "A",
-    axeTags: ["wcag2a", "wcag21a"],
+    tags: ["wcag2a", "wcag21a"],
   },
   {
     id: "wcag22aaa",
     name: "WCAG 2.2 AAA",
     version: "2.2",
     level: "AAA",
-    axeTags: ["wcag2a", "wcag2aa", "wcag2aaa", "wcag21a", "wcag21aa", "wcag22aa"],
+    tags: ["wcag2a", "wcag2aa", "wcag2aaa", "wcag21a", "wcag21aa", "wcag22aa"],
   },
   {
     id: "wcag21aa",
     name: "WCAG 2.1 AA",
     version: "2.1",
     level: "AA",
-    axeTags: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
+    tags: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
   },
   {
     id: "wcag21a",
     name: "WCAG 2.1 A",
     version: "2.1",
     level: "A",
-    axeTags: ["wcag2a", "wcag21a"],
+    tags: ["wcag2a", "wcag21a"],
   },
   {
     id: "wcag20aa",
     name: "WCAG 2.0 AA",
     version: "2.0",
     level: "AA",
-    axeTags: ["wcag2a", "wcag2aa"],
+    tags: ["wcag2a", "wcag2aa"],
+  },
+  {
+    id: "wcag20a",
+    name: "WCAG 2.0 A",
+    version: "2.0",
+    level: "A",
+    tags: ["wcag2a"],
+  },
+  {
+    id: "wcag20aaa",
+    name: "WCAG 2.0 AAA",
+    version: "2.0",
+    level: "AAA",
+    tags: ["wcag2a", "wcag2aa", "wcag2aaa"],
+  },
+  {
+    id: "wcag21aaa",
+    name: "WCAG 2.1 AAA",
+    version: "2.1",
+    level: "AAA",
+    tags: ["wcag2a", "wcag2aa", "wcag2aaa", "wcag21a", "wcag21aa", "wcag21aaa"],
   },
   {
     id: "section508",
     name: "Section 508",
     version: "508",
     level: null,
-    axeTags: ["section508"],
+    tags: ["section508"],
   },
 ];
 

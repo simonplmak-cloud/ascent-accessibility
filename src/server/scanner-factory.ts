@@ -1,16 +1,17 @@
-import { createRequire } from "node:module";
 import { chromium, type Browser, type Page } from "playwright";
-import { scanPage, type ScannerPage, type ScanResult } from "@/lib/scanner";
+import { type ScannerPage, type ScanResult, type ScanViolation } from "@/lib/scanner";
 import { captureEvidence, type CapturedEvidence } from "@/lib/evidence/screenshot";
-import { runIbmScan, type IbmScanOutput } from "@/lib/comparison/ibm";
-
-const require = createRequire(import.meta.url);
-const axePath = require.resolve("axe-core/axe.min.js");
+import { runEngine } from "@/lib/engine/runner";
+import { runInteractionScan } from "@/lib/engine/interaction-scan";
+import { ALL_RULES } from "@/lib/engine/rules";
+import { buildEngineSource } from "@/lib/engine/registry";
 
 export interface PageScanner {
   scan: (url: string, tags: string[]) => Promise<ScanResult>;
   captureEvidence: (result: ScanResult) => Promise<CapturedEvidence>;
-  scanIbm: (url: string) => Promise<IbmScanOutput>;
+  screenshotPage: () => Promise<Buffer>;
+  snapshotPage: () => Promise<{ html: string; screenshot: Buffer }>;
+  interactionScan: () => Promise<ScanViolation[]>;
   close: () => Promise<void>;
   discard: () => Promise<void>;
 }
@@ -40,7 +41,7 @@ async function launchBrowser(): Promise<Browser> {
 // ~2-5s Chromium launch cost each time. Each scan still gets a fresh context
 // (cookies/storage don't leak between sites); the browser process lives on.
 const idleBrowsers: Browser[] = [];
-const MAX_POOL_SIZE = Number(process.env.WORKER_BROWSER_POOL_SIZE ?? 2);
+const MAX_POOL_SIZE = Number(process.env.WORKER_BROWSER_POOL_SIZE ?? 4);
 
 async function acquireBrowser(): Promise<Browser> {
   while (idleBrowsers.length > 0) {
@@ -80,6 +81,7 @@ function asScannerPage(page: Page): ScannerPage {
     },
     evaluate: (pageFn, arg) =>
       page.evaluate(pageFn as unknown as (a: unknown) => unknown, arg as unknown),
+    content: () => page.content(),
     screenshot: (options) => page.screenshot(options),
     screenshotElement: (selector) =>
       page.locator(selector).first().screenshot({ timeout: 5000 }),
@@ -104,16 +106,21 @@ export async function createPageScanner(): Promise<PageScanner> {
   const browser = await acquireBrowser();
   const context = await browser.newContext();
   const page = await context.newPage();
-  // Inject axe-core before navigation (addInitScript runs via CDP and is not
-  // blocked by the target page's Content-Security-Policy).
-  await page.addInitScript({ path: axePath });
+  // Inject the Ascent Access engine before navigation (addInitScript runs via
+  // CDP and is not blocked by the target page's Content-Security-Policy).
+  await page.addInitScript({ content: buildEngineSource(ALL_RULES) });
   const scannerPage = asScannerPage(page);
   let disposed = false;
 
   return {
-    scan: (url: string, tags: string[]) => scanPage(url, tags, scannerPage),
+    scan: (url: string, tags: string[]) => runEngine(url, tags, scannerPage),
     captureEvidence: (result: ScanResult) => captureEvidence(scannerPage, result),
-    scanIbm: (url: string) => runIbmScan(page, url),
+    screenshotPage: () => page.screenshot({ type: "jpeg", quality: 60 }),
+    snapshotPage: async () => ({
+      html: await page.content(),
+      screenshot: await page.screenshot({ type: "jpeg", quality: 60 }),
+    }),
+    interactionScan: () => runInteractionScan(page),
     // Normal completion: close the context and return the browser to the pool.
     close: async () => {
       if (disposed) return;

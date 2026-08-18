@@ -2,21 +2,21 @@ import { describe, expect, it, vi } from "vitest";
 import { createCheckoutSession, createStripe } from "@/server/stripe";
 import type Stripe from "stripe";
 
-function mockStripe(url: string | null): Stripe {
+function mockStripe(clientSecret: string | null): Stripe {
   return {
     checkout: {
       sessions: {
-        create: vi.fn(async () => ({ url })),
+        create: vi.fn(async () => ({ client_secret: clientSecret })),
       },
     },
   } as unknown as Stripe;
 }
 
 describe("StripeService", () => {
-  it("creates a checkout session and returns the URL (AC-10)", async () => {
-    const stripe = mockStripe("https://checkout.stripe.com/c/pay/abc");
+  it("creates a checkout session and returns the client secret (AC-10)", async () => {
+    const stripe = mockStripe("cs_test_123");
     const result = await createCheckoutSession(10, stripe);
-    expect(result).toEqual({ url: "https://checkout.stripe.com/c/pay/abc" });
+    expect(result).toEqual({ clientSecret: "cs_test_123" });
     expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: "payment",
@@ -29,7 +29,7 @@ describe("StripeService", () => {
     );
   });
 
-  it("throws when Stripe returns no URL (AC-E3)", async () => {
+  it("throws when Stripe returns no client secret (AC-E3)", async () => {
     const stripe = mockStripe(null);
     await expect(createCheckoutSession(10, stripe)).rejects.toThrow(/did not return/);
   });

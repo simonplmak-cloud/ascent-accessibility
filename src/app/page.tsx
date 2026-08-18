@@ -2,51 +2,84 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Free WCAG 2.2 AA Accessibility Assessment",
+  title: "Independent accessibility conformance assurance",
   description:
-    "Run a free accessibility assessment against WCAG 2.2 AA. Get a score, concrete findings, and remediation guidance — no login required.",
+    "Automated scanning, AI-assisted review, and independent human verification by people with lived experience — an evidence-based WCAG conformance evaluation report for compliance and ESG teams.",
 };
+
+const cards = [
+  {
+    title: "Standard coverage",
+    body: "WCAG 2.0, 2.1, 2.2 (A/AA/AAA) and Section 508, mapped to EN 301 549 and regional regulations.",
+  },
+  {
+    title: "Evidence-based findings",
+    body: "Every finding carries the affected element, page, and WCAG reference — an auditable record.",
+  },
+  {
+    title: "Independent human verification",
+    body: "Criteria automation cannot resolve are verified by a review workforce with lived experience.",
+  },
+  {
+    title: "Conformance evaluation report",
+    body: "A signed, dated report structured as an assurance engagement, for due diligence and board reporting.",
+  },
+];
 
 export default function Home() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-16">
       <section className="max-w-2xl">
         <h1 className="font-mono text-4xl font-bold tracking-tight text-terminal-fg">
-          Measure your website&apos;s accessibility
+          Independent accessibility conformance assurance
         </h1>
         <p className="mt-4 font-mono text-lg text-terminal-muted">
-          Run a free accessibility assessment against WCAG 2.2 AA. Get a score, concrete
-          findings, and remediation guidance — no login required.
+          Automated scanning and AI-assisted review establish the baseline. Independent human
+          verification — by a review workforce with lived experience of visual, hearing, and motor
+          disabilities — resolves what automation cannot, producing an evidence-based conformance
+          evaluation report aligned to WCAG 2.2 and the regulations that reference it.
         </p>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href="/assess"
             className="rounded bg-terminal-fg px-6 py-3 font-mono text-base font-medium text-terminal-bg hover:bg-terminal-serious"
           >
-            Assess your site
+            Start an assessment
+          </Link>
+          <Link
+            href="/human-review"
+            className="rounded border border-terminal-border px-6 py-3 font-mono text-base font-medium text-terminal-fg hover:border-terminal-serious"
+          >
+            Request conformance review
           </Link>
         </div>
       </section>
 
-      <section className="mt-20 grid gap-8 md:grid-cols-3" aria-label="What you get">
-        <div>
-          <h2 className="font-mono text-lg font-semibold text-terminal-fg">Assessment findings</h2>
-          <p className="mt-2 font-mono text-terminal-muted">
-            Detailed violations with the rule, impact level, and affected page.
-          </p>
-        </div>
-        <div>
-          <h2 className="font-mono text-lg font-semibold text-terminal-fg">Recommendations</h2>
-          <p className="mt-2 font-mono text-terminal-muted">
-            Actionable remediation guidance for every finding.
-          </p>
-        </div>
-        <div>
-          <h2 className="font-mono text-lg font-semibold text-terminal-fg">A clear score</h2>
-          <p className="mt-2 font-mono text-terminal-muted">
-            An overall 0–100 score with a pass, partial, or fail result.
-          </p>
-        </div>
+      <section className="mt-20 grid gap-8 md:grid-cols-2" aria-label="What you get">
+        {cards.map((card) => (
+          <div key={card.title}>
+            <h2 className="font-mono text-lg font-semibold text-terminal-fg">{card.title}</h2>
+            <p className="mt-2 font-mono text-terminal-muted">{card.body}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="mt-20" aria-label="How it works">
+        <h2 className="font-mono text-xl font-semibold text-terminal-fg">
+          Three layers. One defensible result.
+        </h2>
+        <p className="mt-3 font-mono leading-7 text-terminal-muted">
+          Automated → AI-assisted → independent human verification. Most tools stop at automated
+          detection and leave the remainder &ldquo;needs review&rdquo;. We close that gap and document it —
+          so your accessibility position is auditable, not assumed.
+        </p>
+        <p className="mt-3 font-mono leading-7 text-terminal-muted">
+          Digital accessibility is the &ldquo;S&rdquo; in ESG.{" "}
+          <Link href="/esg" className="underline underline-offset-4 hover:text-terminal-fg">
+            See how the report maps to GRI, ESRS, and SASB
+          </Link>
+          .
+        </p>
       </section>
     </div>
   );

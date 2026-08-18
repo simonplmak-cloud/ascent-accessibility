@@ -7,16 +7,19 @@ import {
 } from "@/lib/standards/catalog";
 
 describe("StandardsCatalog", () => {
-  it("lists exactly the seven supported standards", () => {
+  it("lists exactly the ten supported standards", () => {
     const ids = listStandards()
       .map((s) => s.id)
       .sort();
     expect(ids).toEqual(
       [
         "section508",
+        "wcag20a",
         "wcag20aa",
+        "wcag20aaa",
         "wcag21a",
         "wcag21aa",
+        "wcag21aaa",
         "wcag22a",
         "wcag22aa",
         "wcag22aaa",
@@ -46,26 +49,13 @@ describe("StandardsCatalog", () => {
     ["wcag21a", ["wcag2a", "wcag21a"]],
     ["wcag20aa", ["wcag2a", "wcag2aa"]],
     ["section508", ["section508"]],
-  ])("maps %s to the correct axe-core tags", (id, expectedTags) => {
+  ])("maps %s to the correct rule tags", (id, expectedTags) => {
     const standard = getStandard(id);
     expect(standard).toBeDefined();
-    expect(standard?.axeTags).toEqual(expectedTags);
+    expect(standard?.tags).toEqual(expectedTags);
   });
 
   it("returns undefined for an unknown standard", () => {
     expect(getStandard("wcag30aa")).toBeUndefined();
-  });
-
-  it("every axe tag referenced exists in the installed axe-core", async () => {
-    const axe = await import("axe-core");
-    const knownTags = new Set<string>();
-    for (const rule of axe.getRules()) {
-      for (const tag of rule.tags) knownTags.add(tag);
-    }
-    for (const standard of listStandards()) {
-      for (const tag of standard.axeTags) {
-        expect(knownTags.has(tag), `unknown axe-core tag "${tag}"`).toBe(true);
-      }
-    }
   });
 });

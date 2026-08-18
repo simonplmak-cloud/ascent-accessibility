@@ -1,4 +1,5 @@
 export type WcagLevel = "A" | "AA" | "AAA";
+export type WcagVersion = "2.0" | "2.1" | "2.2";
 
 export interface WcagSc {
   num: string;
@@ -6,11 +7,32 @@ export interface WcagSc {
   level: WcagLevel;
   principle: 1 | 2 | 3 | 4;
   slug: string;
+  introducedIn: WcagVersion;
+  removedIn?: WcagVersion;
 }
+
+// SCs added in WCAG 2.1 (17) and 2.2 (9); everything else is 2.0. 4.1.1 Parsing
+// was removed in 2.2.
+const SC_INTRODUCED: Record<string, WcagVersion> = {
+  // 2.1 additions
+  "1.3.4": "2.1", "1.3.5": "2.1", "1.3.6": "2.1",
+  "1.4.10": "2.1", "1.4.11": "2.1", "1.4.12": "2.1", "1.4.13": "2.1",
+  "2.1.4": "2.1", "2.2.6": "2.1", "2.3.3": "2.1",
+  "2.5.1": "2.1", "2.5.2": "2.1", "2.5.3": "2.1", "2.5.4": "2.1",
+  "2.5.5": "2.1", "2.5.6": "2.1", "4.1.3": "2.1",
+  // 2.2 additions
+  "2.4.11": "2.2", "2.4.12": "2.2", "2.4.13": "2.2",
+  "2.5.7": "2.2", "2.5.8": "2.2",
+  "3.2.6": "2.2", "3.3.7": "2.2", "3.3.8": "2.2", "3.3.9": "2.2",
+};
+
+const SC_REMOVED: Record<string, WcagVersion> = {
+  "4.1.1": "2.2",
+};
 
 // Authoritative WCAG 2.2 success criteria (excludes the obsolete 4.1.1 Parsing).
 // Sourced from https://www.w3.org/TR/WCAG22/.
-export const WCAG_SCS: WcagSc[] = [
+const RAW_SCS: Omit<WcagSc, "introducedIn" | "removedIn">[] = [
   { num: "1.1.1", title: "Non-text Content", level: "A", principle: 1, slug: "non-text-content" },
   { num: "1.2.1", title: "Audio-only and Video-only (Prerecorded)", level: "A", principle: 1, slug: "audio-only-and-video-only-prerecorded" },
   { num: "1.2.2", title: "Captions (Prerecorded)", level: "A", principle: 1, slug: "captions-prerecorded" },
@@ -99,6 +121,21 @@ export const WCAG_SCS: WcagSc[] = [
   { num: "4.1.3", title: "Status Messages", level: "AA", principle: 4, slug: "status-messages" },
 ];
 
+// 4.1.1 Parsing exists in 2.0/2.1 only (removed in 2.2).
+const PARSING_411: Omit<WcagSc, "introducedIn" | "removedIn"> = {
+  num: "4.1.1",
+  title: "Parsing",
+  level: "A",
+  principle: 4,
+  slug: "parsing",
+};
+
+export const WCAG_SCS: WcagSc[] = [...RAW_SCS, PARSING_411].map((sc) => ({
+  ...sc,
+  introducedIn: SC_INTRODUCED[sc.num] ?? "2.0",
+  ...(SC_REMOVED[sc.num] ? { removedIn: SC_REMOVED[sc.num] } : {}),
+}));
+
 const BY_NUM = new Map(WCAG_SCS.map((sc) => [sc.num, sc]));
 
 export function getSc(num: string): WcagSc | undefined {
@@ -113,8 +150,8 @@ export function understandingUrl(sc: WcagSc): string {
   return `https://www.w3.org/WAI/WCAG22/Understanding/${sc.slug}.html`;
 }
 
-// Maps an axe-core rule tag like "wcag143" to SC number "1.4.3".
-export function scFromAxeTag(tag: string): string | null {
+// Maps a rule tag like "wcag143" to SC number "1.4.3".
+export function scFromTag(tag: string): string | null {
   const match = /^wcag(\d{3,4})$/.exec(tag);
   const digits = match?.[1];
   if (!digits) return null;
@@ -124,7 +161,7 @@ export function scFromAxeTag(tag: string): string | null {
 export function scsForTags(tags: readonly string[]): string[] {
   const out = new Set<string>();
   for (const tag of tags) {
-    const sc = scFromAxeTag(tag);
+    const sc = scFromTag(tag);
     if (sc && getSc(sc)) out.add(sc);
   }
   return [...out];

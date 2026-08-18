@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   affectedSuccessCriteria,
   groupFindingsBySeverity,
-  passBandColor,
+  outcomeColor,
   severityColor,
   severityCounts,
   severityRank,
@@ -40,20 +40,20 @@ describe("severityCounts", () => {
   });
 });
 
-describe("severityColor / passBandColor / severityRank", () => {
+describe("severityColor / outcomeColor / severityRank", () => {
   it("maps known values", () => {
     expect(severityColor("critical")).toBe("#d1242f");
     expect(severityColor("serious")).toBe("#bc4c00");
-    expect(passBandColor("pass")).toBe("#1a7f37");
-    expect(passBandColor("partial")).toBe("#9a6700");
-    expect(passBandColor("fail")).toBe("#d1242f");
+    expect(outcomeColor("conforms")).toBe("#1a7f37");
+    expect(outcomeColor("undetermined")).toBe("#9a6700");
+    expect(outcomeColor("does-not-conform")).toBe("#d1242f");
     expect(severityRank("critical")).toBe(0);
     expect(severityRank("minor")).toBe(3);
   });
 
   it("falls back for unknown values", () => {
     expect(severityColor("nope")).toBe("#59636e");
-    expect(passBandColor("nope")).toBe("#59636e");
+    expect(outcomeColor("nope")).toBe("#59636e");
     expect(severityRank("nope")).toBe(4);
   });
 });

@@ -14,20 +14,13 @@ export interface ReportFinding {
 }
 
 export interface ReportComparison {
-  lighthouse?: { score: number };
-  ibm?: {
-    violation: number;
-    potentialViolation: number;
-    recommendation: number;
-    pass: number;
-    manual: number;
-  };
+  audit?: { score: number };
   conformance?: {
     total: number;
     passed: number;
     failed: number;
-    notApplicable: number;
-    needsReview: number;
+    notPresent: number;
+    cannotTell: number;
     coverage: number;
     levelAttained: string;
   };
@@ -36,8 +29,9 @@ export interface ReportComparison {
 export interface ReportData {
   url: string;
   standard: string;
-  score: number;
-  passBand: string;
+  outcome: "conforms" | "does-not-conform" | "undetermined";
+  scsMet: number;
+  scsApplicable: number;
   pagesScanned: number;
   findings: ReportFinding[];
   generatedAt?: string;

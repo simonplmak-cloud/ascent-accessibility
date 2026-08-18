@@ -2,15 +2,13 @@ import type { AssessmentResult } from "@/components/assessment/types";
 
 export function buildReportSummary(result: AssessmentResult): string {
   const url = result.url ?? "This website";
-  const score = result.score ?? "n/a";
-  const band = (result.passBand ?? "unknown").toLowerCase();
   const pages = result.pagesScanned;
   const findingCount = result.findings.length;
   const conformance = result.comparison?.conformance;
 
   let conformancePart = "";
   if (conformance) {
-    const fails = conformance.rows.filter((row) => row.result === "fail");
+    const fails = conformance.rows.filter((row) => row.result === "Failed");
     if (fails.length > 0) {
       const listed = fails
         .slice(0, 3)
@@ -20,17 +18,26 @@ export function buildReportSummary(result: AssessmentResult): string {
       conformancePart = ` It fails ${fails.length} success ${
         fails.length === 1 ? "criterion" : "criteria"
       } — ${listed}${more}.`;
-    } else if (conformance.needsReview > 0) {
-      conformancePart = ` No criteria failed, but ${conformance.needsReview} need manual review.`;
+    } else if (conformance.cannotTell > 0) {
+      conformancePart = ` No criteria failed, but ${conformance.cannotTell} cannot be determined and need human review.`;
     } else {
       conformancePart = " No success criteria failed.";
     }
   }
 
+  const outcome = conformance?.outcome;
+  const outcomePart =
+    outcome === "conforms"
+      ? " It conforms to the selected standard."
+      : outcome === "does-not-conform"
+        ? " It does not conform to the selected standard."
+        : " Conformance has not yet been determined.";
+
   return (
-    `Summary: ${url} scores ${score} out of 100, a ${band} result. ` +
-    `It found ${findingCount} ${findingCount === 1 ? "finding" : "findings"} across ` +
-    `${pages} ${pages === 1 ? "page" : "pages"}.${conformancePart} ` +
-    "See the findings below for what to fix."
+    `Summary: ${url} was assessed across ${pages} ${pages === 1 ? "page" : "pages"} with ` +
+    `${findingCount} ${findingCount === 1 ? "finding" : "findings"}.` +
+    conformancePart +
+    outcomePart +
+    " See the findings below for what to fix."
   );
 }

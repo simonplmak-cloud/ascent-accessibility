@@ -1,4 +1,4 @@
-import type { Impact } from "@/lib/scoring";
+import type { Impact, ConformanceOutcome } from "@/lib/scoring";
 
 export type AssessmentStatus = "queued" | "running" | "completed" | "failed";
 export type PassBand = "pass" | "partial" | "fail";
@@ -6,7 +6,7 @@ export type ApiKeyStatus = "active" | "revoked";
 export type FindingConfidence = "confirmed" | "single-source";
 
 export interface FindingSource {
-  tool: "axe" | "lighthouse" | "ibm";
+  tool: "engine" | "ai";
   ruleId: string;
   impact: string;
   message: string;
@@ -52,6 +52,14 @@ export interface Assessment {
   partial: boolean;
   score: number | null;
   passBand: PassBand | null;
+  conformance: ConformanceOutcome | null;
+  scsMet: number | null;
+  scsApplicable: number | null;
+  reviewStatus: string | null;
+  reviewClaim: string | null;
+  reviewResults: string | null;
+  snapshotAt: string | null;
+  pageSnapshots: string | null;
   depth: number;
   pageCap: number;
   pagesScanned: number;
@@ -146,6 +154,14 @@ DEFINE FIELD status ON assessment TYPE string DEFAULT "queued";
 DEFINE FIELD partial ON assessment TYPE bool DEFAULT false;
 DEFINE FIELD score ON assessment TYPE option<int>;
 DEFINE FIELD passBand ON assessment TYPE option<string>;
+DEFINE FIELD conformance ON assessment TYPE option<string>;
+DEFINE FIELD scsMet ON assessment TYPE option<int>;
+DEFINE FIELD scsApplicable ON assessment TYPE option<int>;
+DEFINE FIELD reviewStatus ON assessment TYPE option<string>;
+DEFINE FIELD reviewClaim ON assessment TYPE option<string>;
+DEFINE FIELD reviewResults ON assessment TYPE option<string>;
+DEFINE FIELD snapshotAt ON assessment TYPE option<datetime>;
+DEFINE FIELD pageSnapshots ON assessment TYPE option<string>;
 DEFINE FIELD depth ON assessment TYPE int DEFAULT 3;
 DEFINE FIELD pageCap ON assessment TYPE int DEFAULT 100;
 DEFINE FIELD pagesScanned ON assessment TYPE int DEFAULT 0;
@@ -204,6 +220,7 @@ DEFINE INDEX subscription_user_idx ON subscription FIELDS userId UNIQUE;`,
 DEFINE FIELD name ON user TYPE string;
 DEFINE FIELD email ON user TYPE string;
 DEFINE FIELD password ON user TYPE string PERMISSIONS FOR select NONE;
+DEFINE FIELD role ON user TYPE option<string> DEFAULT NONE;
 DEFINE FIELD createdAt ON user TYPE datetime DEFAULT time::now();
 DEFINE INDEX user_email_idx ON user FIELDS email UNIQUE;`,
 

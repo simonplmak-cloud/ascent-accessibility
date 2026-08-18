@@ -59,6 +59,17 @@ DEFINE INDEX OVERWRITE assessment_owner_created_idx ON assessment FIELDS ownerId
 
   `DEFINE FIELD OVERWRITE userId ON api_key TYPE option<string> DEFAULT NONE;
 DEFINE INDEX OVERWRITE api_key_user_idx ON api_key FIELDS userId;`,
+
+  // Conformance outcome + human-review workflow + snapshot fields.
+  `DEFINE FIELD OVERWRITE conformance ON assessment TYPE option<string>;
+DEFINE FIELD OVERWRITE scsMet ON assessment TYPE option<int>;
+DEFINE FIELD OVERWRITE scsApplicable ON assessment TYPE option<int>;
+DEFINE FIELD OVERWRITE reviewStatus ON assessment TYPE option<string>;
+DEFINE FIELD OVERWRITE reviewClaim ON assessment TYPE option<string>;
+DEFINE FIELD OVERWRITE reviewResults ON assessment TYPE option<string>;
+DEFINE FIELD OVERWRITE snapshotAt ON assessment TYPE option<datetime>;
+DEFINE FIELD OVERWRITE pageSnapshots ON assessment TYPE option<string>;
+DEFINE FIELD OVERWRITE role ON user TYPE option<string> DEFAULT NONE;`,
 ];
 
 async function main() {

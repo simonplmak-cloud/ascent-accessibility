@@ -15,8 +15,7 @@ export default function SeverityLearnPage() {
       <PageHeading>Understanding severity</PageHeading>
 
       <MutedText className="mt-4">
-        Each finding is graded by its impact on real users. We use the same scale as the
-        axe-core engine.
+        Each finding is graded by its impact on real users, from critical to minor.
       </MutedText>
 
       <ul className="mt-6 space-y-3">

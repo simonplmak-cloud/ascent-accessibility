@@ -11,18 +11,18 @@ export const SEVERITY_COLORS: Record<string, string> = {
   minor: "#59636e",
 };
 
-export const BAND_COLORS: Record<string, string> = {
-  pass: "#1a7f37",
-  partial: "#9a6700",
-  fail: "#d1242f",
+export const OUTCOME_COLORS: Record<string, string> = {
+  conforms: "#1a7f37",
+  "does-not-conform": "#d1242f",
+  undetermined: "#9a6700",
 };
 
 export function severityColor(impact: string): string {
   return SEVERITY_COLORS[impact] ?? "#59636e";
 }
 
-export function passBandColor(passBand: string): string {
-  return BAND_COLORS[passBand] ?? "#59636e";
+export function outcomeColor(outcome: string): string {
+  return OUTCOME_COLORS[outcome] ?? "#59636e";
 }
 
 export function severityRank(impact: string): number {

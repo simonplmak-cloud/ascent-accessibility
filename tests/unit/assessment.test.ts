@@ -12,11 +12,19 @@ import type { Impact } from "@/lib/scoring";
 interface RepoState {
   status: string;
   findings: Finding[];
-  completed: { score: number; passBand: string; pagesScanned: number; partial: boolean } | null;
+  completed: { conformance: string; scsMet: number; scsApplicable: number; pagesScanned: number; partial: boolean } | null;
+  comparison: unknown;
+  backfillComparison: unknown;
 }
 
 function makeRepo(assessment: AssessmentRecord) {
-  const state: RepoState = { status: assessment.status, findings: [], completed: null };
+  const state: RepoState = {
+    status: assessment.status,
+    findings: [],
+    completed: null,
+    comparison: undefined,
+    backfillComparison: undefined,
+  };
   const repo: AssessmentRepositoryPort = {
     async findById() {
       return { ...assessment, status: state.status };
@@ -32,6 +40,7 @@ function makeRepo(assessment: AssessmentRecord) {
       state.status = "completed";
       state.completed = input;
       state.findings = input.findings;
+      state.comparison = input.comparison;
     },
     async fail() {
       state.status = "failed";
@@ -39,7 +48,9 @@ function makeRepo(assessment: AssessmentRecord) {
     async insertFindings(_id, items) {
       state.findings = items;
     },
-    async insertComparison() {},
+    async insertComparison(_id, comparison) {
+      state.backfillComparison = comparison;
+    },
     async appendLog() {},
     async setLog() {},
   };
@@ -63,7 +74,7 @@ const scanOk = async (url: string) => ({
       impact: "serious" as Impact,
       description: "Elements must meet minimum color contrast ratio thresholds",
       help: "Color contrast",
-      helpUrl: "https://dequeuniversity.com/rules/axe/4.10/color-contrast",
+      helpUrl: "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
       tags: ["wcag2aa", "wcag143"],
       nodes: [
         { html: "<a>", target: ["a"], failureSummary: "" },
@@ -100,10 +111,9 @@ const createScanner = async () => ({
     fullPageMime: "image/jpeg",
     elements: [],
   }),
-  scanIbm: async () => ({
-    counts: { violation: 0, potentialViolation: 0, recommendation: 0, pass: 0, manual: 0 },
-    findings: [],
-  }),
+  screenshotPage: async () => Buffer.alloc(0),
+  snapshotPage: async () => ({ html: "<html></html>", screenshot: Buffer.alloc(0) }),
+  interactionScan: async () => [],
   close: async () => {},
   discard: async () => {},
 });
@@ -146,7 +156,9 @@ describe("runAssessment", () => {
     });
     expect(state.findings[0]!.recommendation.length).toBeGreaterThan(0);
     expect(state.findings[0]!.wcagSc).toEqual(["1.4.3"]);
-    expect(state.completed).toMatchObject({ passBand: "pass", pagesScanned: 1 });
+    expect(state.completed).toMatchObject({ pagesScanned: 1 });
+    expect(typeof state.completed?.conformance).toBe("string");
+    expect(typeof state.completed?.scsApplicable).toBe("number");
   });
 
   it("fails when the standard is unknown", async () => {
@@ -185,5 +197,57 @@ describe("runAssessment", () => {
       }),
     );
     expect(state.status).toBe("completed");
+  });
+
+  it("uses the real site audit when an audit dep is provided", async () => {
+    const { repo, state } = makeRepo(assessment);
+    const deps = {
+      ...makeDeps(repo, async () => ({
+        urls: ["https://example.com/"],
+        pagesScanned: 1,
+        partial: false,
+        sitemapUsed: false,
+        sitemapUrlCount: 0,
+      })),
+      siteAudit: async () => ({
+        score: 81,
+        failedAudits: [{ id: "color-contrast", weight: 7 }],
+        signals: { accessibility: 81, performance: 90, seo: 95, bestPractices: 88, pwa: 50 },
+        auditVersion: "12.0.0",
+      }),
+    };
+
+    await runAssessment("a1", deps);
+
+    // The accessibility result is finalized without the audit; the audit is
+    // backfilled via insertComparison afterward.
+    expect((state.comparison as { audit?: unknown }).audit).toBeUndefined();
+    expect(state.backfillComparison).toMatchObject({
+      audit: {
+        score: 81,
+        failedAudits: [{ id: "color-contrast", weight: 7 }],
+        auditVersion: "12.0.0",
+      },
+    });
+  });
+
+  it("omits the audit backfill when the audit dep errors", async () => {
+    const { repo, state } = makeRepo(assessment);
+    const deps = {
+      ...makeDeps(repo, async () => ({
+        urls: ["https://example.com/"],
+        pagesScanned: 1,
+        partial: false,
+        sitemapUsed: false,
+        sitemapUrlCount: 0,
+      })),
+      siteAudit: async () => {
+        throw new Error("browserless down");
+      },
+    };
+
+    await runAssessment("a1", deps);
+
+    expect(state.backfillComparison).toBeUndefined();
   });
 });

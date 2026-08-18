@@ -39,10 +39,10 @@ test("api keys page lists keys with prefix and status (AC-2)", async ({ page }) 
   await page.goto("/api-keys");
 
   await expect(page.getByRole("heading", { name: "API access" })).toBeVisible();
-  await expect(page.getByText("CI")).toBeVisible();
-  await expect(page.getByText("ak_ci_1234…")).toBeVisible();
-  await expect(page.getByText("ACTIVE")).toBeVisible();
-  await expect(page.getByText("REVOKED")).toBeVisible();
+  await expect(page.getByText("CI", { exact: true })).toBeVisible();
+  await expect(page.getByText("ak_ci_1234…", { exact: true })).toBeVisible();
+  await expect(page.getByText("ACTIVE", { exact: true })).toBeVisible();
+  await expect(page.getByText("REVOKED", { exact: true })).toBeVisible();
 });
 
 test("api keys page shows the raw key exactly once on create (AC-2)", async ({ page }) => {

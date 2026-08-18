@@ -1,16 +1,33 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { HistoryTable } from "@/components/history/history-table";
 import { ScoreComparison } from "@/components/history/score-comparison";
 import type { HistoryItem } from "@/lib/history";
 
-export function HistoryPageClient({ items }: { items: HistoryItem[] }) {
-  const router = useRouter();
+export function HistoryPageClient() {
+  const [items, setItems] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
+
+  async function load() {
+    try {
+      const res = await fetch("/api/v1/assessments");
+      if (!res.ok) throw new Error("load failed");
+      const data = (await res.json()) as { assessments: HistoryItem[] };
+      setItems(data.assessments ?? []);
+    } catch {
+      setError("Could not load history.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void load();
+  }, []);
 
   async function reRun(item: HistoryItem) {
     setError(null);
@@ -24,7 +41,7 @@ export function HistoryPageClient({ items }: { items: HistoryItem[] }) {
       });
       if (!res.ok) throw new Error("re-run failed");
       setNotice(`Re-run queued for ${item.url}`);
-      router.refresh();
+      await load();
     } catch {
       setError("Could not re-run that assessment.");
     } finally {
@@ -45,7 +62,7 @@ export function HistoryPageClient({ items }: { items: HistoryItem[] }) {
       const res = await fetch(`/api/v1/assessments/${item.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("delete failed");
       setNotice("Assessment deleted.");
-      router.refresh();
+      await load();
     } catch {
       setError("Could not delete that assessment.");
     } finally {
@@ -55,6 +72,15 @@ export function HistoryPageClient({ items }: { items: HistoryItem[] }) {
         return next;
       });
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <h1 className="font-mono text-2xl font-bold text-terminal-fg">Assessments</h1>
+        <p className="mt-1 font-mono text-sm text-terminal-muted">Loading…</p>
+      </div>
+    );
   }
 
   const completed = items.filter((item) => item.status === "completed").length;

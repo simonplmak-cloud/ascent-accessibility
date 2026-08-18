@@ -69,11 +69,12 @@ test("history page lists assessments with URL, standard, status, score and date 
   await page.goto("/history");
 
   await expect(page.getByRole("heading", { name: "Assessments" })).toBeVisible();
-  await expect(page.getByText("ascent-partners.com").first()).toBeVisible();
-  await expect(page.getByText("checkout.northwind-retail.com")).toBeVisible();
-  await expect(page.getByText("FAILED")).toBeVisible();
-  await expect(page.getByText("QUEUED")).toBeVisible();
-  await expect(page.getByText("94", { exact: true })).toBeVisible();
+  const table = page.locator("tbody");
+  await expect(table.getByText("ascent-partners.com").first()).toBeVisible();
+  await expect(table.getByText("checkout.northwind-retail.com")).toBeVisible();
+  await expect(table.getByText("FAILED", { exact: true })).toBeVisible();
+  await expect(table.getByText("QUEUED", { exact: true })).toBeVisible();
+  await expect(table.getByText("94", { exact: true })).toBeVisible();
 });
 
 test("history page filters by status (AC-6)", async ({ page }) => {
@@ -81,8 +82,9 @@ test("history page filters by status (AC-6)", async ({ page }) => {
   await page.goto("/history");
 
   await page.getByLabel("Filter").selectOption("failed");
-  await expect(page.getByText("app.fintrack.io/dashboard")).toBeVisible();
-  await expect(page.getByText("ascent-partners.com").first()).not.toBeVisible();
+  const table = page.locator("tbody");
+  await expect(table.getByText("app.fintrack.io/dashboard")).toBeVisible();
+  await expect(table.getByText("ascent-partners.com")).toHaveCount(0);
 });
 
 test("history page sorts by score descending (AC-6)", async ({ page }) => {

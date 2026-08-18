@@ -46,8 +46,7 @@ export function Report({ result }: { result: AssessmentResult }) {
 
       <div className="mt-4">
         <ScoreSummary
-          score={result.score}
-          passBand={result.passBand}
+          conformance={result.comparison?.conformance}
           findings={result.findings}
         />
       </div>
@@ -55,6 +54,13 @@ export function Report({ result }: { result: AssessmentResult }) {
       {result.partial && (
         <p className="mt-3 font-mono text-sm text-terminal-moderate">
           Note: crawl limits reached — this report covers a subset of pages.
+        </p>
+      )}
+
+      {result.reviewStatus === "reviewed" && result.snapshotAt && (
+        <p className="mt-3 font-mono text-xs text-terminal-muted">
+          Conformance evaluated as at {new Date(result.snapshotAt).toUTCString()}. This report is a
+          professional opinion, not a certified audit or legal advice.
         </p>
       )}
 

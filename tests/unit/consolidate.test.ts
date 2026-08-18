@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
-import {
-  axeViolationsToFindings,
-  consolidateFindings,
-  type ToolFinding,
-} from "@/lib/comparison/consolidate";
+import { violationsToFindings, consolidateFindings } from "@/lib/comparison/consolidate";
 
-const axeViolation = {
+const engineViolation = {
   id: "color-contrast",
   impact: "serious" as const,
   description: "desc",
@@ -16,26 +12,11 @@ const axeViolation = {
   nodeCount: 1,
 };
 
-function ibmFinding(ruleId: string, sc: string, pageUrl = "https://x.com/"): ToolFinding {
-  return {
-    tool: "ibm",
-    ruleId,
-    impact: "serious",
-    message: "message",
-    help: "",
-    helpUrl: "",
-    wcagSc: [sc],
-    wcagLevel: "AA",
-    pageUrl,
-    nodes: [{ target: "/html", html: "<body>", failureSummary: "", evidenceId: null }],
-  };
-}
-
-describe("axeViolationsToFindings", () => {
-  it("chains axe violations to WCAG SCs", () => {
-    const findings = axeViolationsToFindings("https://x.com/", [axeViolation]);
+describe("violationsToFindings", () => {
+  it("chains engine violations to WCAG SCs", () => {
+    const findings = violationsToFindings("https://x.com/", [engineViolation]);
     expect(findings[0]).toMatchObject({
-      tool: "axe",
+      tool: "engine",
       ruleId: "color-contrast",
       wcagSc: ["1.4.3"],
       wcagLevel: "AA",
@@ -44,37 +25,31 @@ describe("axeViolationsToFindings", () => {
 });
 
 describe("consolidateFindings", () => {
-  it("merges same-SC findings and marks them confirmed", () => {
-    const axe = axeViolationsToFindings("https://x.com/", [axeViolation]);
-    const ibm = [ibmFinding("IBMa_Color_Contrast", "1.4.3")];
-    const result = consolidateFindings(axe, ibm);
+  it("groups findings by SC + page and marks them single-source", () => {
+    const engine = violationsToFindings("https://x.com/", [engineViolation]);
+    const result = consolidateFindings(engine);
 
     expect(result).toHaveLength(1);
-    expect(result[0]!.confidence).toBe("confirmed");
-    const tools = new Set(result[0]!.sources.map((s) => s.tool));
-    expect(tools).toEqual(new Set(["axe", "lighthouse", "ibm"]));
+    expect(result[0]!.confidence).toBe("single-source");
+    expect(result[0]!.sources.map((s) => s.tool)).toEqual(["engine"]);
   });
 
-  it("keeps single-source IBM findings separate", () => {
-    const axe = axeViolationsToFindings("https://x.com/", [axeViolation]);
-    const ibm = [ibmFinding("IBMa_Spacing", "1.4.12")];
-    const result = consolidateFindings(axe, ibm);
-
+  it("keeps distinct SCs separate", () => {
+    const engine = violationsToFindings("https://x.com/", [
+      engineViolation,
+      { ...engineViolation, id: "button-name", tags: ["wcag2a", "wcag412"] },
+    ]);
+    const result = consolidateFindings(engine);
     expect(result).toHaveLength(2);
-    const spacing = result.find((f) => f.ruleId === "IBMa_Spacing");
-    expect(spacing?.confidence).toBe("single-source");
-    expect(spacing?.wcagSc).toEqual(["1.4.12"]);
   });
 
-  it("dedupes duplicate sources from the same tool and rule", () => {
-    const ibm = [
-      ibmFinding("IBMa_Color_Contrast", "1.4.3"),
-      ibmFinding("IBMa_Color_Contrast", "1.4.3"),
-    ];
-    const result = consolidateFindings([], ibm);
-
+  it("dedupes repeated findings for the same SC and page", () => {
+    const engine = violationsToFindings("https://x.com/", [
+      engineViolation,
+      { ...engineViolation },
+    ]);
+    const result = consolidateFindings(engine);
     expect(result).toHaveLength(1);
     expect(result[0]!.sources).toHaveLength(1);
-    expect(result[0]!.sources[0]).toMatchObject({ tool: "ibm", ruleId: "IBMa_Color_Contrast" });
   });
 });

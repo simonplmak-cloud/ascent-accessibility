@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   filterByStatus,
+  outcomeLabel,
   sortHistory,
   type HistoryItem,
   type HistorySortKey,
@@ -104,11 +105,11 @@ export function HistoryTable({ items, busyIds, onReRun, onDelete }: HistoryTable
             <tr className="border-b border-terminal-border text-left text-terminal-muted">
               <th
                 scope="col"
-                aria-sort={sortKey === "score" ? (sortDir === "desc" ? "descending" : "ascending") : "none"}
+                aria-sort={sortKey === "conformance" ? (sortDir === "desc" ? "descending" : "ascending") : "none"}
                 className="px-3 py-2 font-medium"
               >
-                <button type="button" onClick={() => toggleSort("score")} className="hover:text-terminal-fg">
-                  Score <span aria-hidden="true">{indicator("score")}</span>
+                <button type="button" onClick={() => toggleSort("conformance")} className="hover:text-terminal-fg">
+                  Conformance <span aria-hidden="true">{indicator("conformance")}</span>
                 </button>
               </th>
               <th scope="col" className="px-3 py-2 font-medium">URL</th>
@@ -131,7 +132,7 @@ export function HistoryTable({ items, busyIds, onReRun, onDelete }: HistoryTable
               const busy = busyIds.has(item.id);
               return (
                 <tr key={item.id} className="border-b border-terminal-border last:border-b-0">
-                  <td className="px-3 py-2 text-terminal-fg">{item.score ?? "—"}</td>
+                  <td className="px-3 py-2 text-terminal-fg">{outcomeLabel(item.conformance)}</td>
                   <td className="max-w-[260px] truncate px-3 py-2 text-terminal-fg" title={item.url}>
                     {item.url}
                   </td>
