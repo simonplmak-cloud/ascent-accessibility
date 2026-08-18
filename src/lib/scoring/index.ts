@@ -1,28 +1,51 @@
-import { WCAG_SCS, getSc, type WcagLevel } from "@/lib/standards/wcag-sc";
+import { getSc, type WcagLevel, type WcagSc } from "@/lib/standards/wcag-sc";
 import { checkScApplicability, type PageFeatures } from "@/lib/standards/sc-applicability";
 
 export type Impact = "critical" | "serious" | "moderate" | "minor";
 export type PassBand = "pass" | "partial" | "fail";
-export type ScResult = "pass" | "fail" | "not-applicable" | "needs-review";
+
+// Stage 4 — the machine verdict (deterministic rules + applicability).
+export type MachineVerdict = "compliant" | "violate" | "need-checking" | "not-applicable";
+
+// Stage 6 — the final verdict (machine + AI, folded per SC).
+export type FinalVerdict = "compliant" | "violate" | "need-human-checking" | "not-applicable";
 
 export interface ScoreResult {
   score: number;
   passBand: PassBand;
 }
 
+export interface MachineRow {
+  num: string;
+  title: string;
+  level: WcagLevel;
+  result: MachineVerdict;
+}
+
+export interface MachineConformanceResult {
+  total: number;
+  compliant: number;
+  violate: number;
+  notApplicable: number;
+  needChecking: number;
+  coverage: number;
+  rows: MachineRow[];
+}
+
 export interface ScConformanceRow {
   num: string;
   title: string;
   level: WcagLevel;
-  result: ScResult;
+  result: FinalVerdict;
+  machineResult: MachineVerdict;
 }
 
 export interface ConformanceResult {
   total: number;
-  passed: number;
-  failed: number;
+  compliant: number;
+  violate: number;
   notApplicable: number;
-  needsReview: number;
+  needHumanChecking: number;
   coverage: number;
   levelAttained: "A" | "AA" | "AAA" | "none";
   rows: ScConformanceRow[];
@@ -55,12 +78,13 @@ export function computeScore(
   return { score, passBand };
 }
 
+// Stage 4 — machine verdict per applicable SC.
 export function computeConformance(
+  scs: readonly WcagSc[],
   findings: readonly { wcagSc: string[] }[],
   passedScs: ReadonlySet<string>,
   features: PageFeatures,
-  targetLevel: WcagLevel,
-): ConformanceResult {
+): MachineConformanceResult {
   const failed = new Set<string>();
   for (const finding of findings) {
     for (const sc of finding.wcagSc) {
@@ -68,44 +92,66 @@ export function computeConformance(
     }
   }
 
-  const applicable = WCAG_SCS.filter((sc) => LEVEL_RANK[sc.level] <= LEVEL_RANK[targetLevel]);
-
-  const rows: ScConformanceRow[] = applicable.map((sc) => {
-    let result: ScResult;
-    if (failed.has(sc.num)) result = "fail";
-    else if (passedScs.has(sc.num)) result = "pass";
+  const rows: MachineRow[] = scs.map((sc) => {
+    let result: MachineVerdict;
+    if (failed.has(sc.num)) result = "violate";
+    else if (passedScs.has(sc.num)) result = "compliant";
     else if (checkScApplicability(sc.num, features) === "not-applicable") {
       result = "not-applicable";
     } else {
-      result = "needs-review";
+      result = "need-checking";
     }
     return { num: sc.num, title: sc.title, level: sc.level, result };
   });
 
-  const passed = rows.filter((row) => row.result === "pass").length;
-  const failedCount = rows.filter((row) => row.result === "fail").length;
-  const notApplicable = rows.filter((row) => row.result === "not-applicable").length;
-  const needsReview = rows.filter((row) => row.result === "needs-review").length;
-  const machineTested = passed + failedCount;
-  const coverage = applicable.length === 0 ? 0 : Math.round((machineTested / applicable.length) * 100);
+  const compliant = rows.filter((r) => r.result === "compliant").length;
+  const violate = rows.filter((r) => r.result === "violate").length;
+  const notApplicable = rows.filter((r) => r.result === "not-applicable").length;
+  const needChecking = rows.filter((r) => r.result === "need-checking").length;
+  const tested = compliant + violate;
+  const coverage = scs.length === 0 ? 0 : Math.round((tested / scs.length) * 100);
 
-  // A conformance level is only claimed when every applicable SC at that level
-  // (and below) is satisfied — no failures and nothing awaiting manual review.
+  return { total: scs.length, compliant, violate, notApplicable, needChecking, coverage, rows };
+}
+
+// Stage 6 — fold AI verdicts into the final verdict per SC.
+export function finalizeConformance(
+  machine: MachineConformanceResult,
+  resolved: ReadonlyMap<string, "compliant" | "violate">,
+): ConformanceResult {
+  const rows: ScConformanceRow[] = machine.rows.map((row) => {
+    let result: FinalVerdict;
+    if (row.result === "need-checking") {
+      result = resolved.get(row.num) ?? "need-human-checking";
+    } else {
+      result = row.result;
+    }
+    return { num: row.num, title: row.title, level: row.level, result, machineResult: row.result };
+  });
+
+  const compliant = rows.filter((r) => r.result === "compliant").length;
+  const violate = rows.filter((r) => r.result === "violate").length;
+  const notApplicable = rows.filter((r) => r.result === "not-applicable").length;
+  const needHumanChecking = rows.filter((r) => r.result === "need-human-checking").length;
+  const tested = compliant + violate;
+  const coverage = rows.length === 0 ? 0 : Math.round((tested / rows.length) * 100);
+
   let levelAttained: ConformanceResult["levelAttained"] = "none";
+  const maxRank = rows.reduce((m, r) => Math.max(m, LEVEL_RANK[r.level]), 0);
   for (const level of ["A", "AA", "AAA"] as const) {
-    if (LEVEL_RANK[level] > LEVEL_RANK[targetLevel]) break;
-    const relevant = rows.filter((row) => LEVEL_RANK[row.level] <= LEVEL_RANK[level]);
-    const hasFail = relevant.some((row) => row.result === "fail");
-    const hasReview = relevant.some((row) => row.result === "needs-review");
-    if (!hasFail && !hasReview) levelAttained = level;
+    if (LEVEL_RANK[level] > maxRank) break;
+    const relevant = rows.filter((r) => LEVEL_RANK[r.level] <= LEVEL_RANK[level]);
+    const hasViolate = relevant.some((r) => r.result === "violate");
+    const hasReview = relevant.some((r) => r.result === "need-human-checking");
+    if (!hasViolate && !hasReview) levelAttained = level;
   }
 
   return {
-    total: applicable.length,
-    passed,
-    failed: failedCount,
+    total: rows.length,
+    compliant,
+    violate,
     notApplicable,
-    needsReview,
+    needHumanChecking,
     coverage,
     levelAttained,
     rows,

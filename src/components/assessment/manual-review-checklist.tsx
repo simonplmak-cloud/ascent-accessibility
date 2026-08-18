@@ -2,7 +2,7 @@ import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import type { Conformance } from "./types";
 
 export function ManualReviewChecklist({ conformance }: { conformance: Conformance }) {
-  const rows = conformance?.rows?.filter((row) => row.result === "needs-review") ?? [];
+  const rows = conformance?.rows?.filter((row) => row.result === "need-human-checking") ?? [];
   if (rows.length === 0) return null;
 
   return (

@@ -17,10 +17,10 @@ export interface ReportComparison {
   audit?: { score: number };
   conformance?: {
     total: number;
-    passed: number;
-    failed: number;
+    compliant: number;
+    violate: number;
     notApplicable: number;
-    needsReview: number;
+    needHumanChecking: number;
     coverage: number;
     levelAttained: string;
   };

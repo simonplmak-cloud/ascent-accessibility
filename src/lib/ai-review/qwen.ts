@@ -1,18 +1,25 @@
 import { z } from "zod";
-import type { AiReview, VisionModel } from "./types";
+import type { AiReview, AiVerdict, VisionModel } from "./types";
 
-const AiVerdictEnum = z.enum(["pass", "fail", "needs-review"]);
+// The model's raw vocabulary stays pass/fail/needs-review (its JSON contract);
+// we map to the pipeline's verdicts at the boundary.
+const RawVerdictEnum = z.enum(["pass", "fail", "needs-review"]);
+type RawVerdict = z.infer<typeof RawVerdictEnum>;
 
 export const AiReviewSchema = z.object({
   verdicts: z.array(
     z.object({
       sc: z.string(),
-      verdict: AiVerdictEnum,
+      verdict: RawVerdictEnum,
       confidence: z.number().min(0).max(1),
       reasoning: z.string(),
     }),
   ),
 });
+
+function mapVerdict(v: RawVerdict): AiVerdict {
+  return v === "pass" ? "compliant" : v === "fail" ? "violate" : "need-human-checking";
+}
 
 export class ImageTooLargeError extends Error {
   constructor() {
@@ -107,6 +114,12 @@ export class QwenVisionClient implements VisionModel {
     const content = json.choices?.[0]?.message?.content;
     const text = typeof content === "string" ? content : JSON.stringify(content ?? "{}");
     const parsed = AiReviewSchema.parse(JSON.parse(text));
-    return parsed.verdicts.map((v) => ({ ...v, evidenceId: null }));
+    return parsed.verdicts.map((v) => ({
+      sc: v.sc,
+      verdict: mapVerdict(v.verdict),
+      confidence: v.confidence,
+      reasoning: v.reasoning,
+      evidenceId: null,
+    }));
   }
 }

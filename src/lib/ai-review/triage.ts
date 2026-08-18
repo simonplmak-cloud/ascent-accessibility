@@ -12,9 +12,9 @@ export function resolveVerdict(
   threshold: number = AI_CONFIDENCE_THRESHOLD,
 ): AiReview {
   const found = verdicts.find((v) => v.sc === sc);
-  if (!found) return { sc, verdict: "needs-review", confidence: 0, reasoning: "no verdict returned" };
-  if (found.verdict === "needs-review") return found;
-  if (found.confidence < threshold) return { ...found, verdict: "needs-review" };
+  if (!found) return { sc, verdict: "need-human-checking", confidence: 0, reasoning: "no verdict returned" };
+  if (found.verdict === "need-human-checking") return found;
+  if (found.confidence < threshold) return { ...found, verdict: "need-human-checking" };
   return found;
 }
 
@@ -64,8 +64,8 @@ export function applyAiVerdicts(
   const nextFindings = [...findings];
   const nextPassed = new Set(passedScs);
   for (const review of verdicts) {
-    if (review.verdict === "pass") nextPassed.add(review.sc);
-    else if (review.verdict === "fail") nextFindings.push(aiFailToFinding(review, pageUrl));
+    if (review.verdict === "compliant") nextPassed.add(review.sc);
+    else if (review.verdict === "violate") nextFindings.push(aiFailToFinding(review, pageUrl));
   }
   return { findings: nextFindings, passedScs: nextPassed };
 }
@@ -98,11 +98,11 @@ export async function runTriage(input: TriageInput): Promise<TriageOutput> {
   try {
     raw = await input.model.review({ image: input.image, prompt });
   } catch {
-    // Fail-safe: any model/parse/oversize error leaves every SC in needs-review.
+    // Fail-safe: any model/parse/oversize error leaves every SC in need-human-checking.
     return {
       reviews: unresolved.map((sc) => ({
         sc,
-        verdict: "needs-review",
+        verdict: "need-human-checking",
         confidence: 0,
         reasoning: "model or parse error",
       })),

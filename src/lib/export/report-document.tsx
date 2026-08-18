@@ -120,15 +120,15 @@ function SeverityBars({ counts }: { counts: SeverityCounts }) {
   );
 }
 
-function ConformanceBar({ c }: { c: { passed: number; failed: number; notApplicable: number; needsReview: number } }) {
-  const total = c.passed + c.failed + c.notApplicable + c.needsReview;
+function ConformanceBar({ c }: { c: { compliant: number; violate: number; notApplicable: number; needHumanChecking: number } }) {
+  const total = c.compliant + c.violate + c.notApplicable + c.needHumanChecking;
   if (total <= 0) return <Text style={styles.empty}>No conformance data.</Text>;
 
   const segments = [
-    { label: "Pass", value: c.passed, color: "#1a7f37" },
-    { label: "Fail", value: c.failed, color: "#d1242f" },
+    { label: "Compliant", value: c.compliant, color: "#1a7f37" },
+    { label: "Violation", value: c.violate, color: "#d1242f" },
     { label: "Not applicable", value: c.notApplicable, color: "#d0d7de" },
-    { label: "Needs review", value: c.needsReview, color: "#9a6700" },
+    { label: "Needs human check", value: c.needHumanChecking, color: "#9a6700" },
   ].filter((s) => s.value > 0);
 
   return (
@@ -255,7 +255,7 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
           {conformance ? (
             <View>
               <Text>
-                {conformance.passed} pass · {conformance.failed} fail · {conformance.notApplicable} not applicable · {conformance.needsReview} need review · {conformance.coverage}% machine-tested · level attained: <Text style={{ fontWeight: 700 }}>{conformance.levelAttained}</Text>
+                {conformance.compliant} compliant · {conformance.violate} violation · {conformance.notApplicable} not applicable · {conformance.needHumanChecking} need human check · {conformance.coverage}% tested · level attained: <Text style={{ fontWeight: 700 }}>{conformance.levelAttained}</Text>
               </Text>
               <View style={{ marginTop: 8 }}>
                 <ConformanceBar c={conformance} />

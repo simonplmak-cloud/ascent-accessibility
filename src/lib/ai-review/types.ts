@@ -1,4 +1,4 @@
-export type AiVerdict = "pass" | "fail" | "needs-review";
+export type AiVerdict = "compliant" | "violate" | "need-human-checking";
 
 export interface AiReview {
   sc: string;

@@ -1,4 +1,9 @@
-import { computeConformance, computeScore, type ConformanceResult } from "@/lib/scoring";
+import {
+  computeConformance,
+  computeScore,
+  finalizeConformance,
+  type ConformanceResult,
+} from "@/lib/scoring";
 import { type CrawlOptions, type CrawlResult } from "@/lib/crawler";
 import { ScanFailedError, type ScanResult, type ScanViolation } from "@/lib/scanner";
 import type { CapturedEvidence } from "@/lib/evidence/screenshot";
@@ -9,6 +14,7 @@ import {
 } from "@/lib/comparison/consolidate";
 import type { SiteAuditReport } from "@/lib/comparison/site-audit";
 import { scsForTags } from "@/lib/standards/wcag-sc";
+import { scsForStandard } from "@/lib/standards/version";
 import {
   EMPTY_FEATURES,
   mergeFeatures,
@@ -181,16 +187,17 @@ export async function runAssessment(
     const aiBudget: AiBudget = { calls: 0, images: 0 };
     const aiVerdicts: AiReview[] = [];
 
-    let conformance = computeConformance(
+    const applicableScs = scsForStandard(standard.version, standard.level ?? "AA");
+    let machineConformance = computeConformance(
+      applicableScs,
       findings,
       passedScs,
       output.features,
-      standard.level ?? "AA",
     );
 
     if (ENABLE_AI_REVIEW && deps.visionModel && output.aiScreenshot) {
-      const unresolved = conformance.rows
-        .filter((row) => row.result === "needs-review")
+      const unresolved = machineConformance.rows
+        .filter((row) => row.result === "need-checking")
         .map((row) => row.num);
       if (unresolved.length > 0) {
         const triage = await runTriage({
@@ -206,20 +213,21 @@ export async function runAssessment(
         const applied = applyAiVerdicts(findings, passedScs, triage.reviews, seed.href);
         findings = applied.findings;
         passedScs = applied.passedScs;
-        conformance = computeConformance(
+        machineConformance = computeConformance(
+          applicableScs,
           findings,
           passedScs,
           output.features,
-          standard.level ?? "AA",
         );
       }
     }
 
+    const conformance = finalizeConformance(machineConformance, new Map());
     const score = computeScore(findings);
 
     await log(
       "info",
-      `WCAG conformance: ${conformance.passed} pass / ${conformance.failed} fail / ${conformance.notApplicable} not applicable / ${conformance.needsReview} needs review (${conformance.coverage}% machine-tested)`,
+      `WCAG conformance: ${conformance.compliant} compliant / ${conformance.violate} violate / ${conformance.notApplicable} not applicable / ${conformance.needHumanChecking} need human checking (${conformance.coverage}% tested)`,
     );
     await log("info", `score: ${score.score}/100 (${score.passBand})`);
 

@@ -16,58 +16,58 @@ const model = (reviews: AiReview[]): VisionModel => ({
 describe("resolveVerdict (fail-safe)", () => {
   it("promotes a high-confidence pass", () => {
     expect(
-      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "pass", confidence: 0.9, reasoning: "r" }]),
-    ).toMatchObject({ verdict: "pass" });
+      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "compliant", confidence: 0.9, reasoning: "r" }]),
+    ).toMatchObject({ verdict: "compliant" });
   });
 
   it("promotes a high-confidence fail", () => {
     expect(
-      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "fail", confidence: 0.85, reasoning: "r" }]),
-    ).toMatchObject({ verdict: "fail" });
+      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "violate", confidence: 0.85, reasoning: "r" }]),
+    ).toMatchObject({ verdict: "violate" });
   });
 
-  it("degrades a below-threshold verdict to needs-review", () => {
+  it("degrades a below-threshold verdict to need-human-checking", () => {
     expect(
-      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "pass", confidence: 0.5, reasoning: "r" }]),
-    ).toMatchObject({ verdict: "needs-review" });
+      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "compliant", confidence: 0.5, reasoning: "r" }]),
+    ).toMatchObject({ verdict: "need-human-checking" });
   });
 
-  it("keeps an explicit needs-review as needs-review regardless of confidence", () => {
+  it("keeps an explicit need-human-checking as need-human-checking regardless of confidence", () => {
     expect(
-      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "needs-review", confidence: 0.99, reasoning: "r" }]),
-    ).toMatchObject({ verdict: "needs-review" });
+      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "need-human-checking", confidence: 0.99, reasoning: "r" }]),
+    ).toMatchObject({ verdict: "need-human-checking" });
   });
 
-  it("defaults to needs-review when no verdict is returned", () => {
-    expect(resolveVerdict("1.1.1", [])).toMatchObject({ verdict: "needs-review" });
+  it("defaults to need-human-checking when no verdict is returned", () => {
+    expect(resolveVerdict("1.1.1", [])).toMatchObject({ verdict: "need-human-checking" });
   });
 });
 
 describe("runTriage", () => {
-  it("returns all-needs-review when the model errors (AC-E3)", async () => {
+  it("returns all-need-human-checking when the model errors (AC-E3)", async () => {
     const failing: VisionModel = { review: async () => Promise.reject(new Error("boom")) };
     const result = await runTriage({
       model: failing,
       image: Buffer.alloc(0),
       unresolvedScs: ["1.1.1", "2.4.4"],
     });
-    expect(result.reviews.map((r) => r.verdict)).toEqual(["needs-review", "needs-review"]);
+    expect(result.reviews.map((r) => r.verdict)).toEqual(["need-human-checking", "need-human-checking"]);
   });
 
   it("applies the confidence threshold across every unresolved SC", async () => {
     const result = await runTriage({
       model: model([
-        { sc: "1.1.1", verdict: "pass", confidence: 0.9, reasoning: "r" },
-        { sc: "2.4.4", verdict: "fail", confidence: 0.5, reasoning: "r" },
+        { sc: "1.1.1", verdict: "compliant", confidence: 0.9, reasoning: "r" },
+        { sc: "2.4.4", verdict: "violate", confidence: 0.5, reasoning: "r" },
       ]),
       image: Buffer.alloc(0),
       unresolvedScs: ["1.1.1", "2.4.4", "3.1.1"],
     });
     expect(result.reviews).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ sc: "1.1.1", verdict: "pass" }),
-        expect.objectContaining({ sc: "2.4.4", verdict: "needs-review" }),
-        expect.objectContaining({ sc: "3.1.1", verdict: "needs-review" }),
+        expect.objectContaining({ sc: "1.1.1", verdict: "compliant" }),
+        expect.objectContaining({ sc: "2.4.4", verdict: "need-human-checking" }),
+        expect.objectContaining({ sc: "3.1.1", verdict: "need-human-checking" }),
       ]),
     );
   });
@@ -101,11 +101,11 @@ describe("AI_CONFIDENCE_THRESHOLD", () => {
 });
 
 describe("applyAiVerdicts", () => {
-  it("promotes ai-pass into passedScs and ai-fail into a finding, leaves needs-review alone", () => {
+  it("promotes ai-compliant into passedScs and ai-violate into a finding, leaves need-human-checking alone", () => {
     const verdicts: AiReview[] = [
-      { sc: "1.1.1", verdict: "pass", confidence: 0.9, reasoning: "r" },
-      { sc: "2.4.4", verdict: "fail", confidence: 0.9, reasoning: "unclear links" },
-      { sc: "3.1.1", verdict: "needs-review", confidence: 0.5, reasoning: "r" },
+      { sc: "1.1.1", verdict: "compliant", confidence: 0.9, reasoning: "r" },
+      { sc: "2.4.4", verdict: "violate", confidence: 0.9, reasoning: "unclear links" },
+      { sc: "3.1.1", verdict: "need-human-checking", confidence: 0.5, reasoning: "r" },
     ];
     const result = applyAiVerdicts([], new Set(["9.9.9"]), verdicts, "https://example.com/");
     expect(result.passedScs.has("1.1.1")).toBe(true);
@@ -122,7 +122,7 @@ describe("applyAiVerdicts", () => {
 describe("aiFailToFinding", () => {
   it("maps level A to serious and tags the source as ai (AC-7)", () => {
     const finding = aiFailToFinding(
-      { sc: "1.1.1", verdict: "fail", confidence: 0.9, reasoning: "meaningless alt" },
+      { sc: "1.1.1", verdict: "violate", confidence: 0.9, reasoning: "meaningless alt" },
       "https://example.com/",
     );
     expect(finding.impact).toBe("serious");

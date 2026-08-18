@@ -39,15 +39,16 @@ export interface ConformanceRow {
   num: string;
   title: string;
   level: string;
-  result: "pass" | "fail" | "not-applicable" | "needs-review";
+  result: "compliant" | "violate" | "not-applicable" | "need-human-checking";
+  machineResult?: "compliant" | "violate" | "need-checking" | "not-applicable";
 }
 
 export interface Conformance {
   total: number;
-  passed: number;
-  failed: number;
+  compliant: number;
+  violate: number;
   notApplicable: number;
-  needsReview: number;
+  needHumanChecking: number;
   coverage: number;
   levelAttained: string;
   rows: ConformanceRow[];
@@ -71,7 +72,7 @@ export interface ComparisonData {
     model: string;
     verdicts: Array<{
       sc: string;
-      verdict: "pass" | "fail" | "needs-review";
+      verdict: "compliant" | "violate" | "need-human-checking";
       confidence: number;
       reasoning: string;
       evidenceId?: string | null;

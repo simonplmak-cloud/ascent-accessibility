@@ -9,11 +9,11 @@ const PRINCIPLES: Record<string, string> = {
 
 function resultClass(result: string): string {
   switch (result) {
-    case "pass":
+    case "compliant":
       return "text-terminal-pass";
-    case "fail":
+    case "violate":
       return "text-terminal-fail";
-    case "needs-review":
+    case "need-human-checking":
       return "text-terminal-serious";
     default:
       return "text-terminal-muted";
@@ -22,8 +22,9 @@ function resultClass(result: string): string {
 
 function resultLabel(result: string): string {
   if (result === "not-applicable") return "not applicable";
-  if (result === "needs-review") return "needs review";
-  return result.toUpperCase();
+  if (result === "need-human-checking") return "needs human check";
+  if (result === "violate") return "violation";
+  return result;
 }
 
 export function ConformanceTable({ conformance }: { conformance: Conformance }) {
@@ -43,9 +44,10 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
         WCAG conformance
       </h2>
       <p className="mt-1 font-mono text-sm text-terminal-muted">
-        {conformance.passed} pass · {conformance.failed} fail · {conformance.notApplicable} not
-        applicable · {conformance.needsReview} needs review · {conformance.coverage}% machine-tested ·
-        level attained: <span className="text-terminal-fg">{conformance.levelAttained}</span>
+        {conformance.compliant} compliant · {conformance.violate} violation ·{" "}
+        {conformance.notApplicable} not applicable · {conformance.needHumanChecking} needs human
+        check · {conformance.coverage}% tested · level attained:{" "}
+        <span className="text-terminal-fg">{conformance.levelAttained}</span>
       </p>
 
       {[...grouped.entries()].map(([principle, rows]) => (
