@@ -20,7 +20,7 @@ DEFINE FIELD OVERWRITE emailVerificationToken ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE passkeys ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE qwenApiKey ON user TYPE option<string>;
 DEFINE INDEX OVERWRITE user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
-  `DEFINE ACCESS user_google ON DATABASE TYPE RECORD
+  `DEFINE ACCESS user_google ON DATABASE TYPE RECORD OVERWRITE
   SIGNUP (
     CREATE user CONTENT {
       name: $name,
@@ -33,7 +33,7 @@ DEFINE INDEX OVERWRITE user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
   SIGNIN (
     SELECT * FROM user WHERE googleSub = $googleSub
   )
-  DURATION FOR SESSION 24h OVERWRITE;`,
+  DURATION FOR SESSION 24h;`,
 ];
 
 async function main() {
