@@ -192,7 +192,7 @@ export async function crawl(
 ): Promise<CrawlResult> {
   const maxDepth = options.maxDepth ?? 3;
   const maxPages = options.maxPages ?? 100;
-  const delayMs = options.politenessDelayMs ?? 500;
+  const delayMs = options.politenessDelayMs ?? Number(process.env.CRAWL_DELAY_MS ?? 200);
   const userAgent = options.userAgent ?? "APF-AccessibilityScanner/1.0";
 
   const origin = new URL(seed.origin);

@@ -298,6 +298,13 @@ async function scanAndConsolidate(
             await withTimeout(
               async () => {
                 log("info", `scanning ${url} with the Ascent Access engine`);
+                // Fire the site audit (independent HTTP) concurrently with the
+                // CDP-bound engine + interaction scans — identical output,
+                // shorter per-page wall-clock.
+                const auditPromise = deps.siteAudit
+                  ? deps.siteAudit(url).catch(() => undefined)
+                  : Promise.resolve(undefined);
+
                 const scan = await scanner.scan(url, standard.tags);
                 log("info", `engine: ${scan.violations.length} violation(s) on ${url}`);
 
@@ -337,24 +344,20 @@ async function scanAndConsolidate(
                   /* interaction checks unavailable — continue with the engine alone */
                 }
 
-                if (deps.siteAudit) {
-                  try {
-                    const audit = await deps.siteAudit(url);
-                    if (audit.signals) {
-                      for (const [key, value] of Object.entries(audit.signals)) {
-                        if (typeof value === "number") {
-                          signalSums.set(key, (signalSums.get(key) ?? 0) + value);
-                        }
+                const audit = await auditPromise;
+                if (audit) {
+                  if (audit.signals) {
+                    for (const [key, value] of Object.entries(audit.signals)) {
+                      if (typeof value === "number") {
+                        signalSums.set(key, (signalSums.get(key) ?? 0) + value);
                       }
-                      auditRuns += 1;
                     }
-                    for (const failed of audit.failedAudits) {
-                      failedAudits.set(failed.id, failed.weight);
-                    }
-                    if (audit.auditVersion) auditVersion = audit.auditVersion;
-                  } catch {
-                    /* site audit unavailable — continue with the engine alone */
+                    auditRuns += 1;
                   }
+                  for (const failed of audit.failedAudits) {
+                    failedAudits.set(failed.id, failed.weight);
+                  }
+                  if (audit.auditVersion) auditVersion = audit.auditVersion;
                 }
 
                 if (!aiScreenshot) {
