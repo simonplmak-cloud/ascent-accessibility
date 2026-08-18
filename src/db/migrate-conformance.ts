@@ -20,7 +20,7 @@ DEFINE FIELD OVERWRITE emailVerificationToken ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE passkeys ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE qwenApiKey ON user TYPE option<string>;
 DEFINE INDEX OVERWRITE user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
-  `DEFINE ACCESS user_google ON DATABASE TYPE RECORD OVERWRITE
+  `DEFINE ACCESS user_google ON DATABASE TYPE RECORD
   SIGNUP (
     CREATE user CONTENT {
       name: $name,
@@ -39,8 +39,17 @@ DEFINE INDEX OVERWRITE user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
 async function main() {
   const db = await getDb();
   for (const statement of STATEMENTS) {
-    await db.query(statement).collect();
-    console.log("Applied:", statement.split("\n")[0]);
+    try {
+      await db.query(statement).collect();
+      console.log("Applied:", statement.split("\n")[0]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (/already exists/i.test(message)) {
+        console.log("Skipped (already exists):", statement.split("\n")[0]);
+        continue;
+      }
+      throw error;
+    }
   }
   await db.close();
   console.log("Conformance migration complete");
