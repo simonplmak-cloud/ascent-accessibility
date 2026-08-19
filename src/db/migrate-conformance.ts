@@ -16,6 +16,7 @@ DEFINE FIELD OVERWRITE pageSnapshots ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE role ON user TYPE option<string> DEFAULT NONE;
 DEFINE FIELD OVERWRITE verified ON user TYPE bool DEFAULT false;
 DEFINE FIELD OVERWRITE googleSub ON user TYPE option<string>;
+DEFINE FIELD OVERWRITE oauthSubject ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE emailVerificationToken ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE passkeys ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE qwenApiKey ON user TYPE option<string>;
@@ -32,6 +33,20 @@ DEFINE INDEX OVERWRITE user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
   )
   SIGNIN (
     SELECT * FROM user WHERE googleSub = $googleSub
+  )
+  DURATION FOR SESSION 24h;`,
+  `DEFINE ACCESS user_oauth ON DATABASE TYPE RECORD
+  SIGNUP (
+    CREATE user CONTENT {
+      name: $name,
+      email: $email,
+      password: crypto::argon2::generate($password),
+      oauthSubject: $oauthSubject,
+      verified: true
+    }
+  )
+  SIGNIN (
+    SELECT * FROM user WHERE oauthSubject = $oauthSubject
   )
   DURATION FOR SESSION 24h;`,
 ];

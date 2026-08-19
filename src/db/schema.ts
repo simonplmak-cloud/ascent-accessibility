@@ -223,6 +223,7 @@ DEFINE FIELD password ON user TYPE string PERMISSIONS FOR select NONE;
 DEFINE FIELD role ON user TYPE option<string> DEFAULT NONE;
 DEFINE FIELD verified ON user TYPE bool DEFAULT false;
 DEFINE FIELD googleSub ON user TYPE option<string>;
+DEFINE FIELD oauthSubject ON user TYPE option<string>;
 DEFINE FIELD emailVerificationToken ON user TYPE option<string>;
 DEFINE FIELD passkeys ON user TYPE option<string>;
 DEFINE FIELD qwenApiKey ON user TYPE option<string>;
@@ -256,6 +257,21 @@ DEFINE INDEX user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
   )
   SIGNIN (
     SELECT * FROM user WHERE googleSub = $googleSub
+  )
+  DURATION FOR SESSION 24h;`,
+
+  `DEFINE ACCESS user_oauth ON DATABASE TYPE RECORD
+  SIGNUP (
+    CREATE user CONTENT {
+      name: $name,
+      email: $email,
+      password: crypto::argon2::generate($password),
+      oauthSubject: $oauthSubject,
+      verified: true
+    }
+  )
+  SIGNIN (
+    SELECT * FROM user WHERE oauthSubject = $oauthSubject
   )
   DURATION FOR SESSION 24h;`,
 

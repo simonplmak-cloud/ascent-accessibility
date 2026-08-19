@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { GoogleSignInButton } from "@/components/auth/google-button";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const router = useRouter();
@@ -133,6 +134,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
             <span className="h-px flex-1 bg-terminal-border" />
           </div>
           <GoogleSignInButton />
+          <OAuthButtons />
         </>
       )}
 
