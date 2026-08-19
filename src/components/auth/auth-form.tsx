@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { GoogleSignInButton } from "@/components/auth/google-button";
 
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const router = useRouter();
@@ -123,6 +124,17 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           {loading ? "Please wait…" : submitLabel}
         </Button>
       </form>
+
+      {!isSignUp && (
+        <>
+          <div className="my-4 flex items-center gap-3">
+            <span className="h-px flex-1 bg-terminal-border" />
+            <span className="font-mono text-xs text-terminal-muted">or</span>
+            <span className="h-px flex-1 bg-terminal-border" />
+          </div>
+          <GoogleSignInButton />
+        </>
+      )}
 
       <p className="mt-6 font-mono text-sm text-terminal-muted">
         {isSignUp ? (
