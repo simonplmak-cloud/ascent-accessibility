@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
 import { issueSession, verifySession, SESSION_MAX_AGE_SECONDS } from "@/lib/auth/session";
 
@@ -24,13 +25,12 @@ describe("session (HMAC-JWT)", () => {
   });
 
   it("rejects an expired token", () => {
-    const secret = process.env.SESSION_SECRET;
-    const { createHmac } = require("node:crypto") as typeof import("node:crypto");
+    const secret = process.env.SESSION_SECRET!;
     const b64 = (s: string) => Buffer.from(s).toString("base64url");
     const now = Math.floor(Date.now() / 1000) - SESSION_MAX_AGE_SECONDS - 10;
     const header = b64(JSON.stringify({ alg: "HS256", typ: "JWT" }));
     const body = b64(JSON.stringify({ sub: "user:abc123", iat: now - 100, exp: now }));
-    const sig = createHmac("sha256", secret!).update(`${header}.${body}`).digest("base64url");
+    const sig = createHmac("sha256", secret).update(`${header}.${body}`).digest("base64url");
     expect(verifySession(`${header}.${body}.${sig}`)).toBeNull();
   });
 });

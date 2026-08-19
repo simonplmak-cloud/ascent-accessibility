@@ -1,14 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { SESSION_MAX_AGE_SECONDS } from "./constants";
 
-export const SESSION_COOKIE = "wcag_session";
-export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24; // 24h
-
-export interface SessionUser {
-  id: string;
-  email: string;
-  name: string;
-  role: string | null;
-}
+export { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS, type SessionUser } from "./constants";
 
 function secret(): string {
   return process.env.SESSION_SECRET ?? "";
