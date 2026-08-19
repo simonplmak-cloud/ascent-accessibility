@@ -26,7 +26,10 @@ export async function GET(
   const next = store.get("oauth_next")?.value ?? "/site";
 
   if (!code || !state || state !== cookieState) {
-    logger.warn("oauth: state mismatch");
+    logger.warn(
+      { hasCode: Boolean(code), urlState: state, cookieState: cookieState ?? null },
+      "oauth: state mismatch",
+    );
     return NextResponse.redirect(failUrl);
   }
 
