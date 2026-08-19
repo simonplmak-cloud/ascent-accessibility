@@ -56,5 +56,5 @@ export function GoogleSignInButton() {
   }, [clientId]);
 
   if (!clientId) return null;
-  return <div ref={ref} className="mt-4 flex justify-center" />;
+  return <div ref={ref} className="flex justify-center" />;
 }
