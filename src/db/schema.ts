@@ -221,7 +221,7 @@ DEFINE FIELD name ON user TYPE string;
 DEFINE FIELD email ON user TYPE string;
 DEFINE FIELD password ON user TYPE string PERMISSIONS FOR select NONE;
 DEFINE FIELD role ON user TYPE option<string> DEFAULT NONE;
-DEFINE FIELD verified ON user TYPE bool DEFAULT false;
+DEFINE FIELD verified ON user TYPE option<bool> DEFAULT false;
 DEFINE FIELD googleSub ON user TYPE option<string>;
 DEFINE FIELD oauthSubject ON user TYPE option<string>;
 DEFINE FIELD emailVerificationToken ON user TYPE option<string>;

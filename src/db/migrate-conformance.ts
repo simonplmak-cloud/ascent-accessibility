@@ -14,7 +14,7 @@ DEFINE FIELD OVERWRITE reviewResults ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE snapshotAt ON assessment TYPE option<datetime>;
 DEFINE FIELD OVERWRITE pageSnapshots ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE role ON user TYPE option<string> DEFAULT NONE;
-DEFINE FIELD OVERWRITE verified ON user TYPE bool DEFAULT false;
+DEFINE FIELD OVERWRITE verified ON user TYPE option<bool> DEFAULT false;
 DEFINE FIELD OVERWRITE googleSub ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE oauthSubject ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE emailVerificationToken ON user TYPE option<string>;
