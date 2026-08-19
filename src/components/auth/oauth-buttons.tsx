@@ -18,6 +18,18 @@ export function OAuthButtons({ next }: { next?: string }) {
       >
         Sign in with Microsoft
       </Link>
+      <Link
+        href={`/api/auth/oauth/wechat${suffix}`}
+        className="rounded border border-terminal-border px-4 py-2 text-center font-mono text-sm text-terminal-fg hover:border-terminal-serious"
+      >
+        Sign in with WeChat
+      </Link>
+      <Link
+        href={`/api/auth/oauth/alipay${suffix}`}
+        className="rounded border border-terminal-border px-4 py-2 text-center font-mono text-sm text-terminal-fg hover:border-terminal-serious"
+      >
+        Sign in with Alipay
+      </Link>
     </div>
   );
 }

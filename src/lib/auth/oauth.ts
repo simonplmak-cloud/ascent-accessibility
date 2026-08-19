@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { createSign, randomBytes } from "node:crypto";
 import type { Surreal } from "surrealdb";
 import { query } from "@/db";
 import { logger } from "@/lib/observability/logger";
@@ -216,7 +216,141 @@ const microsoftProvider: OAuthProvider = {
   },
 };
 
+// WeChat (Open Platform "Website Application") — QR-code login. No email is
+// provided, so a synthetic address is derived from the subject.
+const wechatProvider: OAuthProvider = {
+  id: "wechat",
+  authorizeUrl(redirectUri, state) {
+    const appId = process.env.WECHAT_APP_ID ?? "";
+    const params = new URLSearchParams({
+      appid: appId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: "snsapi_login",
+      state,
+    });
+    return `https://open.weixin.qq.com/connect/qrconnect?${params.toString()}#wechat_redirect`;
+  },
+  async exchange(code, _redirectUri, fetchFn = fetch) {
+    const appId = process.env.WECHAT_APP_ID ?? "";
+    const secret = process.env.WECHAT_APP_SECRET ?? "";
+    const tokenRes = await fetchFn(
+      `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${secret}&code=${code}&grant_type=authorization_code`,
+    );
+    const tokenData = (await tokenRes.json()) as {
+      access_token?: string;
+      openid?: string;
+      unionid?: string;
+      errcode?: number;
+    };
+    if (!tokenData.access_token || !tokenData.openid) throw new Error("wechat: no token");
+
+    const userRes = await fetchFn(
+      `https://api.weixin.qq.com/sns/userinfo?access_token=${tokenData.access_token}&openid=${tokenData.openid}`,
+    );
+    const user = (await userRes.json()) as { openid?: string; nickname?: string; unionid?: string };
+    const subject = user.unionid ?? tokenData.unionid ?? tokenData.openid;
+    return {
+      provider: "wechat",
+      subject,
+      email: `wechat-${subject}@oauth.local`,
+      name: user.nickname ?? "WeChat user",
+      verified: true,
+    };
+  },
+};
+
+function alipayTimestamp(): string {
+  return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 19).replace("T", " ");
+}
+
+function alipaySign(params: Record<string, string>, privateKey: string): string {
+  const content = Object.keys(params)
+    .sort()
+    .filter((key) => params[key] !== undefined && params[key] !== null && params[key] !== "")
+    .map((key) => `${key}=${params[key]}`)
+    .join("&");
+  const signer = createSign("RSA-SHA256");
+  signer.update(content, "utf8");
+  signer.end();
+  return signer.sign(privateKey, "base64");
+}
+
+// Alipay Open Platform — no email provided, so a synthetic address is derived
+// from the user_id. Requires an RSA2 private key for API signing.
+const alipayProvider: OAuthProvider = {
+  id: "alipay",
+  authorizeUrl(redirectUri, state) {
+    const appId = process.env.ALIPAY_APP_ID ?? "";
+    const params = new URLSearchParams({
+      app_id: appId,
+      scope: "auth_user",
+      redirect_uri: redirectUri,
+      state,
+    });
+    return `https://openauth.alipay.com/oauth2/publicAppAuthorize.htm?${params.toString()}`;
+  },
+  async exchange(code, _redirectUri, fetchFn = fetch) {
+    const appId = process.env.ALIPAY_APP_ID ?? "";
+    const privateKey = process.env.ALIPAY_PRIVATE_KEY ?? "";
+
+    const tokenBase = {
+      app_id: appId,
+      method: "alipay.system.oauth.token",
+      format: "JSON",
+      charset: "utf-8",
+      sign_type: "RSA2",
+      timestamp: alipayTimestamp(),
+      version: "1.0",
+      grant_type: "authorization_code",
+      code,
+    };
+    const tokenParams = new URLSearchParams({ ...tokenBase, sign: alipaySign(tokenBase, privateKey) });
+    const tokenRes = await fetchFn("https://openapi.alipay.com/gateway.do", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+      body: tokenParams.toString(),
+    });
+    const tokenData = (await tokenRes.json()) as {
+      alipay_system_oauth_token_response?: { access_token?: string; user_id?: string; code?: string };
+    };
+    const token = tokenData.alipay_system_oauth_token_response;
+    if (!token?.access_token || !token?.user_id) throw new Error("alipay: no token");
+
+    const infoBase = {
+      app_id: appId,
+      method: "alipay.user.info.share",
+      format: "JSON",
+      charset: "utf-8",
+      sign_type: "RSA2",
+      timestamp: alipayTimestamp(),
+      version: "1.0",
+      auth_token: token.access_token,
+    };
+    const infoParams = new URLSearchParams({ ...infoBase, sign: alipaySign(infoBase, privateKey) });
+    const infoRes = await fetchFn("https://openapi.alipay.com/gateway.do", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+      body: infoParams.toString(),
+    });
+    const infoData = (await infoRes.json()) as {
+      alipay_user_info_share_response?: { user_id?: string; nick_name?: string };
+    };
+    const info = infoData.alipay_user_info_share_response;
+    const subject = info?.user_id ?? token.user_id;
+    return {
+      provider: "alipay",
+      subject,
+      email: `alipay-${subject}@oauth.local`,
+      name: info?.nick_name ?? "Alipay user",
+      verified: true,
+    };
+  },
+};
+
 export const providers: Record<string, OAuthProvider> = {
   github: githubProvider,
   microsoft: microsoftProvider,
+  wechat: wechatProvider,
+  alipay: alipayProvider,
 };
