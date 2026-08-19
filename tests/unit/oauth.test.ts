@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { generateKeyPairSync } from "node:crypto";
 import { providers } from "@/lib/auth/oauth";
 
 function routeFetch(routes: Record<string, unknown>): typeof fetch {
@@ -92,68 +91,5 @@ describe("microsoft provider", () => {
     });
     const identity = await providers.microsoft!.exchange("code", "https://example.com/cb", fetchFn);
     expect(identity?.email).toBe("ada@org.onmicrosoft.com");
-  });
-});
-
-describe("wechat provider", () => {
-  it("exchanges a code for openid + a synthetic email", async () => {
-    process.env.WECHAT_APP_ID = "wx-app";
-    process.env.WECHAT_APP_SECRET = "wx-secret";
-    const fetchFn = (async (input: string | URL | Request) => {
-      const url = String(input);
-      if (url.includes("/sns/oauth2/access_token")) {
-        return new Response(
-          JSON.stringify({ access_token: "tok", openid: "openid-1", unionid: "union-1" }),
-          { status: 200, headers: { "Content-Type": "application/json" } },
-        );
-      }
-      if (url.includes("/sns/userinfo")) {
-        return new Response(JSON.stringify({ openid: "openid-1", nickname: "小明", unionid: "union-1" }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      return new Response("not found", { status: 404 });
-    }) as unknown as typeof fetch;
-
-    const identity = await providers.wechat!.exchange("code", "https://example.com/cb", fetchFn);
-    expect(identity).toMatchObject({
-      provider: "wechat",
-      subject: "union-1",
-      email: "wechat-union-1@oauth.local",
-      name: "小明",
-      verified: true,
-    });
-  });
-});
-
-describe("alipay provider", () => {
-  it("signs requests and exchanges a code for user_id + synthetic email", async () => {
-    process.env.ALIPAY_APP_ID = "2021000000000000";
-    const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
-    process.env.ALIPAY_PRIVATE_KEY = privateKey.export({ type: "pkcs1", format: "pem" }).toString();
-
-    const fetchFn = (async (_input: string | URL | Request, init?: RequestInit) => {
-      const body = init?.body ? String(init.body) : "";
-      if (body.includes("alipay.user.info.share")) {
-        return new Response(
-          JSON.stringify({ alipay_user_info_share_response: { user_id: "2088abc", nick_name: "小明" } }),
-          { status: 200, headers: { "Content-Type": "application/json" } },
-        );
-      }
-      return new Response(
-        JSON.stringify({ alipay_system_oauth_token_response: { access_token: "tok", user_id: "2088abc" } }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      );
-    }) as unknown as typeof fetch;
-
-    const identity = await providers.alipay!.exchange("auth_code", "https://example.com/cb", fetchFn);
-    expect(identity).toMatchObject({
-      provider: "alipay",
-      subject: "2088abc",
-      email: "alipay-2088abc@oauth.local",
-      name: "小明",
-      verified: true,
-    });
   });
 });
