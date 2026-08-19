@@ -13,7 +13,7 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://accounts.google.com",
-      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://accounts.google.com",
       "img-src 'self' data: blob: https://*.stripe.com https://*.stripecdn.com",
       "font-src 'self' data:",
       "connect-src 'self' https://*.stripe.com https://accounts.google.com",
