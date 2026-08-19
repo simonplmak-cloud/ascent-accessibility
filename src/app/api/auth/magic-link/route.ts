@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requestMagicLink } from "@/lib/auth/magic-link";
+import { requestMagicLink } from "@/lib/auth/identity";
 import { sendMagicLinkEmail } from "@/lib/auth/email";
 
 const schema = z.object({

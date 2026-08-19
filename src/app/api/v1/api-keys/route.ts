@@ -9,9 +9,6 @@ export async function POST(req: Request) {
   if (!user) {
     return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
-  if (!user.verified) {
-    return NextResponse.json({ code: "VERIFY_EMAIL" }, { status: 403 });
-  }
 
   const body = await req.json().catch(() => null);
   const parsed = apiKeyCreateSchema.safeParse(body);
@@ -22,7 +19,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const issued = await apiKeyService.issue(parsed.data.name, parsed.data.rateLimit ?? 60, user.email);
+  const issued = await apiKeyService.issue(parsed.data.name, parsed.data.rateLimit ?? 60, user.id);
   return NextResponse.json(issued, { status: 201 });
 }
 
@@ -31,10 +28,7 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
-  if (!user.verified) {
-    return NextResponse.json({ code: "VERIFY_EMAIL" }, { status: 403 });
-  }
-  const keys = await apiKeyRepository.list(user.email);
+  const keys = await apiKeyRepository.list(user.id);
   return NextResponse.json(
     keys.map((key) => ({
       id: key.id,

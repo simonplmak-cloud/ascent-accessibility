@@ -6,5 +6,5 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
-  return NextResponse.json({ email: user.email, verified: user.verified });
+  return NextResponse.json({ id: user.id, email: user.email, name: user.name, role: user.role });
 }

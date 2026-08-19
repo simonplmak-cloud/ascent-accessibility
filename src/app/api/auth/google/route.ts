@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createConnection, dbConfig } from "@/db";
-import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from "@/lib/auth/session";
-import { signInWithGoogle, verifyGoogleToken } from "@/lib/auth/google";
+import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS, issueSession } from "@/lib/auth/session";
+import { linkOrCreateOAuth } from "@/lib/auth/identity";
+import { verifyGoogleToken } from "@/lib/auth/google";
 import { logger } from "@/lib/observability/logger";
 
 const schema = z.object({
@@ -24,25 +24,22 @@ export async function POST(req: Request) {
   }
   logger.info({ sub: identity.sub, email: identity.email }, "google-signin: verified");
 
-  const db = await createConnection();
-  try {
-    const result = await signInWithGoogle(db, dbConfig(), identity);
-    if (!result.ok) {
-      logger.warn({ error: result.error }, "google-signin: sign-in failed");
-      return NextResponse.json({ error: result.error }, { status: 401 });
-    }
+  const userId = await linkOrCreateOAuth({
+    provider: "google",
+    subject: identity.sub,
+    email: identity.email,
+    name: identity.name,
+    verified: identity.emailVerified,
+  });
 
-    logger.info({ email: identity.email }, "google-signin: session minted");
-    const res = NextResponse.json({ ok: true, verified: identity.emailVerified });
-    res.cookies.set(SESSION_COOKIE, result.token!, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: SESSION_MAX_AGE_SECONDS,
-    });
-    return res;
-  } finally {
-    await db.close();
-  }
+  logger.info({ email: identity.email }, "google-signin: session issued");
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set(SESSION_COOKIE, issueSession(userId), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: SESSION_MAX_AGE_SECONDS,
+  });
+  return res;
 }

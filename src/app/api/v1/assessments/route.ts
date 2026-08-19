@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const authHeader = req.headers.get("authorization");
   const rawKey = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
   let apiKeyUserId: string | null = null;
-  let sessionEmail: string | null = null;
+  let sessionUserId: string | null = null;
   if (rawKey) {
     const auth = await apiKeyService.authenticate(rawKey);
     if (!auth.ok) {
@@ -31,19 +31,16 @@ export async function POST(req: Request) {
     }
     apiKeyUserId = auth.userId;
   } else {
-    // Session auth: every scan requires a verified account (identity-gated).
+    // Session auth: every scan requires a signed-in account (identity-gated).
     const sessionUser = await getSessionUser();
     if (!sessionUser) {
       return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
-    }
-    if (!sessionUser.verified) {
-      return NextResponse.json({ code: "VERIFY_EMAIL" }, { status: 403 });
     }
     const limited = await rateLimiter.check(ip, IP_RATE_LIMIT, RATE_WINDOW_MS);
     if (!limited.allowed) {
       return NextResponse.json({ code: "RATE_LIMITED" }, { status: 429 });
     }
-    sessionEmail = sessionUser.email;
+    sessionUserId = sessionUser.id;
   }
 
   const body = await req.json().catch(() => null);
@@ -58,14 +55,14 @@ export async function POST(req: Request) {
   const { url, standard, depth, pageCap, scope } = parsed.data;
 
   // Per-account daily scan limits (bound the slow whole-site path).
-  if (sessionEmail) {
+  if (sessionUserId) {
     const day = new Date().toISOString().slice(0, 10);
     const dailyLimit =
       scope === "site"
         ? Number(process.env.SCAN_SITE_DAILY_LIMIT ?? 3)
         : Number(process.env.SCAN_PAGE_DAILY_LIMIT ?? 20);
     const accountLimited = await rateLimiter.check(
-      `account:${sessionEmail}:${scope}:${day}`,
+      `account:${sessionUserId}:${scope}:${day}`,
       dailyLimit,
       24 * 60 * 60 * 1000,
     );
@@ -98,8 +95,8 @@ export async function POST(req: Request) {
 
   const crawlScope = resolveCrawlScope(scope, depth, pageCap);
 
-  // Owner: API-key user's email > signed-in user's email. No anonymous path.
-  const ownerId = apiKeyUserId ?? sessionEmail;
+  // Owner: API-key account id > signed-in account id. No anonymous path.
+  const ownerId = apiKeyUserId ?? sessionUserId;
 
   const assessment = await assessmentRepository.create({
     url: ssrf.url.href,
@@ -122,6 +119,6 @@ export async function GET() {
   if (!sessionUser) {
     return NextResponse.json({ assessments: [] });
   }
-  const assessments = await assessmentRepository.list(sessionUser.email);
+  const assessments = await assessmentRepository.list(sessionUser.id);
   return NextResponse.json({ assessments });
 }

@@ -9,7 +9,6 @@ interface SessionUser {
   id: string;
   email: string;
   name: string;
-  verified: boolean;
 }
 
 export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
@@ -46,7 +45,7 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
         Whole-website assessment
       </h1>
       <p className="mt-2 font-mono leading-7 text-terminal-muted">
-        Scan every page of your site — the full sitemap and link crawl. Free for verified
+        Scan every page of your site — the full sitemap and link crawl. Free for signed-in
         accounts.
       </p>
 
@@ -63,13 +62,6 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
               Sign in
             </Link>
           </div>
-        </div>
-      ) : !user.verified ? (
-        <div className="mt-8 rounded border border-terminal-border bg-terminal-surface p-6">
-          <p className="font-mono text-sm text-terminal-fg">
-            Please verify your email before running scans. Check your inbox for the
-            verification link.
-          </p>
         </div>
       ) : (
         <div className="mt-8">

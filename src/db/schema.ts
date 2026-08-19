@@ -218,69 +218,31 @@ DEFINE INDEX subscription_user_idx ON subscription FIELDS userId UNIQUE;`,
   FOR select WHERE id = $auth.id
   FOR create, update, delete NONE;
 DEFINE FIELD name ON user TYPE string;
-DEFINE FIELD email ON user TYPE string;
-DEFINE FIELD password ON user TYPE string PERMISSIONS FOR select NONE;
 DEFINE FIELD role ON user TYPE option<string> DEFAULT NONE;
-DEFINE FIELD verified ON user TYPE option<bool> DEFAULT false;
-DEFINE FIELD googleSub ON user TYPE option<string>;
-DEFINE FIELD oauthSubject ON user TYPE option<string>;
-DEFINE FIELD emailVerificationToken ON user TYPE option<string>;
-DEFINE FIELD magicLinkToken ON user TYPE option<string>;
-DEFINE FIELD passkeys ON user TYPE option<string>;
 DEFINE FIELD qwenApiKey ON user TYPE option<string>;
-DEFINE FIELD createdAt ON user TYPE datetime DEFAULT time::now();
-DEFINE INDEX user_email_idx ON user FIELDS email UNIQUE;
-DEFINE INDEX user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
+DEFINE FIELD createdAt ON user TYPE datetime DEFAULT time::now();`,
 
-  `DEFINE ACCESS user ON DATABASE TYPE RECORD
-  SIGNUP (
-    CREATE user CONTENT {
-      name: $name,
-      email: $email,
-      password: crypto::argon2::generate($password)
-    }
-  )
-  SIGNIN (
-    SELECT * FROM user WHERE email = $email
-      AND crypto::argon2::compare(password, $password)
-  )
-  DURATION FOR SESSION 24h;`,
+  `DEFINE TABLE user_email SCHEMAFULL PERMISSIONS
+  FOR select WHERE user = $auth.id
+  FOR create, update, delete NONE;
+DEFINE FIELD user ON user_email TYPE record<user>;
+DEFINE FIELD email ON user_email TYPE string;
+DEFINE FIELD verified ON user_email TYPE bool DEFAULT false;
+DEFINE FIELD primary ON user_email TYPE bool DEFAULT false;
+DEFINE FIELD magicLinkToken ON user_email TYPE option<string>;
+DEFINE FIELD createdAt ON user_email TYPE datetime DEFAULT time::now();
+DEFINE INDEX user_email_email_idx ON user_email FIELDS email UNIQUE;
+DEFINE INDEX user_email_user_idx ON user_email FIELDS user;`,
 
-  `DEFINE ACCESS user_google ON DATABASE TYPE RECORD
-  SIGNUP (
-    CREATE user CONTENT {
-      name: $name,
-      email: $email,
-      password: crypto::argon2::generate($password),
-      googleSub: $googleSub,
-      verified: true
-    }
-  )
-  SIGNIN (
-    SELECT * FROM user WHERE googleSub = $googleSub
-  )
-  DURATION FOR SESSION 24h;`,
-
-  `DEFINE ACCESS user_oauth ON DATABASE TYPE RECORD
-  SIGNUP (
-    CREATE user CONTENT {
-      name: $name,
-      email: $email,
-      password: crypto::argon2::generate($password),
-      oauthSubject: $oauthSubject,
-      verified: true
-    }
-  )
-  SIGNIN (
-    SELECT * FROM user WHERE oauthSubject = $oauthSubject
-  )
-  DURATION FOR SESSION 24h;`,
-
-  `DEFINE ACCESS user_magic ON DATABASE TYPE RECORD
-  SIGNIN (
-    SELECT * FROM user WHERE magicLinkToken = $magicToken
-  )
-  DURATION FOR SESSION 24h;`,
+  `DEFINE TABLE user_oauth_link SCHEMAFULL PERMISSIONS
+  FOR select WHERE user = $auth.id
+  FOR create, update, delete NONE;
+DEFINE FIELD user ON user_oauth_link TYPE record<user>;
+DEFINE FIELD provider ON user_oauth_link TYPE string;
+DEFINE FIELD subject ON user_oauth_link TYPE string;
+DEFINE FIELD createdAt ON user_oauth_link TYPE datetime DEFAULT time::now();
+DEFINE INDEX user_oauth_link_provider_subject_idx ON user_oauth_link FIELDS provider, subject UNIQUE;
+DEFINE INDEX user_oauth_link_user_idx ON user_oauth_link FIELDS user;`,
 
   `DEFINE TABLE subscription PERMISSIONS
   FOR select WHERE userId = type::string($auth.id)

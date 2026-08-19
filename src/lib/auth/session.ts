@@ -1,8 +1,6 @@
-import type { Surreal } from "surrealdb";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const SESSION_COOKIE = "wcag_session";
-export const ANON_COOKIE = "wcag_anon";
-export const ACCESS_METHOD = "user";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24; // 24h
 
 export interface SessionUser {
@@ -10,104 +8,46 @@ export interface SessionUser {
   email: string;
   name: string;
   role: string | null;
-  verified: boolean;
 }
 
-export interface AuthConfig {
-  namespace: string;
-  database: string;
+function secret(): string {
+  return process.env.SESSION_SECRET ?? "";
 }
 
-export interface AuthInput {
-  name?: string;
-  email: string;
-  password: string;
+function sign(payload: string): string {
+  return createHmac("sha256", secret()).update(payload).digest("base64url");
 }
 
-export interface AuthResult {
-  ok: boolean;
-  token?: string;
-  error?: string;
+function b64url(data: string): string {
+  return Buffer.from(data).toString("base64url");
 }
 
-function extractToken(result: unknown): string | null {
-  if (typeof result === "string") return result;
-  if (result && typeof result === "object") {
-    const r = result as Record<string, unknown>;
-    if (typeof r.access === "string") return r.access;
-    if (typeof r.token === "string") return r.token;
+// Own HMAC-JWT session (replaces SurrealDB record-access sessions).
+export function issueSession(userId: string): string {
+  const header = b64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const now = Math.floor(Date.now() / 1000);
+  const body = b64url(
+    JSON.stringify({ sub: userId, iat: now, exp: now + SESSION_MAX_AGE_SECONDS }),
+  );
+  return `${header}.${body}.${sign(`${header}.${body}`)}`;
+}
+
+export function verifySession(token: string): { userId: string } | null {
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  const [header, body, sig] = parts as [string, string, string];
+  const expected = sign(`${header}.${body}`);
+  if (sig.length !== expected.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
+    return null;
   }
-  return null;
-}
-
-export async function signUpWithPassword(
-  db: Surreal,
-  cfg: AuthConfig,
-  input: AuthInput,
-): Promise<AuthResult> {
   try {
-    const tokens = await db.signup({
-      namespace: cfg.namespace,
-      database: cfg.database,
-      access: ACCESS_METHOD,
-      variables: {
-        name: input.name ?? input.email.split("@")[0] ?? "",
-        email: input.email,
-        password: input.password,
-      },
-    });
-    const token = extractToken(tokens);
-    if (!token) return { ok: false, error: "Sign-up failed. Please try again." };
-    return { ok: true, token };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (/already contains|duplicate|already exists/i.test(message)) {
-      return { ok: false, error: "An account with this email already exists." };
-    }
-    return { ok: false, error: "Sign-up failed. Please try again." };
-  }
-}
-
-export async function signInWithPassword(
-  db: Surreal,
-  cfg: AuthConfig,
-  input: AuthInput,
-): Promise<AuthResult> {
-  try {
-    const tokens = await db.signin({
-      namespace: cfg.namespace,
-      database: cfg.database,
-      access: ACCESS_METHOD,
-      variables: { email: input.email, password: input.password },
-    });
-    const token = extractToken(tokens);
-    if (!token) return { ok: false, error: "Invalid email or password." };
-    return { ok: true, token };
-  } catch {
-    return { ok: false, error: "Invalid email or password." };
-  }
-}
-
-export async function verifySessionToken(
-  db: Surreal,
-  token: string,
-): Promise<SessionUser | null> {
-  try {
-    await db.authenticate(token);
-    const results = await db
-      .query("SELECT id, email, name, role, verified FROM user WHERE id = $auth.id LIMIT 1")
-      .json()
-      .collect();
-    const rows = (results as unknown[])[0] as Array<Record<string, unknown>> | undefined;
-    const record = rows?.[0];
-    if (!record?.id) return null;
-    return {
-      id: String(record.id),
-      email: typeof record.email === "string" ? record.email : "",
-      name: typeof record.name === "string" ? record.name : "",
-      role: typeof record.role === "string" ? record.role : null,
-      verified: record.verified === true,
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as {
+      sub?: unknown;
+      exp?: unknown;
     };
+    if (typeof payload.sub !== "string" || typeof payload.exp !== "number") return null;
+    if (payload.exp * 1000 < Date.now()) return null;
+    return { userId: payload.sub };
   } catch {
     return null;
   }

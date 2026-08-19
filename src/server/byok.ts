@@ -66,12 +66,12 @@ export async function validateKey(
   }
 }
 
-// Resolves a user's stored (encrypted) Qwen key by email, returning plaintext
-// or null. Used by the worker to build the per-assessment AI model.
+// Resolves an account's stored (encrypted) Qwen key by account id, returning
+// plaintext or null. Used by the worker to build the per-assessment AI model.
 export async function resolveOwnerApiKey(ownerId: string): Promise<string | null> {
   const rows = await query<{ qwenApiKey: string | null }>(
-    "SELECT qwenApiKey FROM user WHERE email = $email LIMIT 1",
-    { email: ownerId },
+    "SELECT qwenApiKey FROM user WHERE id = type::record($id) LIMIT 1",
+    { id: ownerId },
   );
   const raw = rows[0]?.qwenApiKey;
   if (!raw) return null;

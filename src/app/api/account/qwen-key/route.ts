@@ -3,20 +3,11 @@ import { query } from "@/db";
 import { getSessionUser } from "@/server/auth";
 import { decryptKey, encryptKey, maskKey, validateKey, type EncryptedKey } from "@/server/byok";
 
-function requireVerified() {
-  return getSessionUser().then((user) => {
-    if (!user) return { ok: false as const, status: 401, user: null };
-    if (!user.verified) return { ok: false as const, status: 403, user: null };
-    return { ok: true as const, status: 200, user };
-  });
-}
-
 export async function POST(req: Request) {
-  const gate = await requireVerified();
-  if (!gate.ok) {
-    return NextResponse.json({ code: gate.status === 403 ? "VERIFY_EMAIL" : "UNAUTHORIZED" }, { status: gate.status });
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
-  const user = gate.user!;
 
   const body = (await req.json().catch(() => ({}))) as { apiKey?: unknown };
   const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
@@ -30,9 +21,9 @@ export async function POST(req: Request) {
   }
 
   const encrypted = encryptKey(apiKey);
-  await query("UPDATE user SET qwenApiKey = $enc WHERE email = $email", {
+  await query("UPDATE user SET qwenApiKey = $enc WHERE id = type::record($id)", {
     enc: JSON.stringify(encrypted),
-    email: user.email,
+    id: user.id,
   });
   return NextResponse.json({ set: true, masked: maskKey(apiKey) });
 }
@@ -43,8 +34,8 @@ export async function GET() {
     return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
   const rows = await query<{ qwenApiKey: string | null }>(
-    "SELECT qwenApiKey FROM user WHERE email = $email LIMIT 1",
-    { email: user.email },
+    "SELECT qwenApiKey FROM user WHERE id = type::record($id) LIMIT 1",
+    { id: user.id },
   );
   const raw = rows[0]?.qwenApiKey;
   if (!raw) return NextResponse.json({ set: false });
@@ -61,6 +52,6 @@ export async function DELETE() {
   if (!user) {
     return NextResponse.json({ code: "UNAUTHORIZED" }, { status: 401 });
   }
-  await query("UPDATE user SET qwenApiKey = NONE WHERE email = $email", { email: user.email });
+  await query("UPDATE user SET qwenApiKey = NONE WHERE id = type::record($id)", { id: user.id });
   return NextResponse.json({ set: false });
 }

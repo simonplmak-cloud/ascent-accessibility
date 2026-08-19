@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { createConnection, dbConfig } from "@/db";
-import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from "@/lib/auth/session";
-import { providers, signInWithOAuth, verifyOauthState, type OAuthIdentity } from "@/lib/auth/oauth";
+import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS, issueSession } from "@/lib/auth/session";
+import { linkOrCreateOAuth } from "@/lib/auth/identity";
+import { providers, verifyOauthState, type OAuthIdentity } from "@/lib/auth/oauth";
 import { logger } from "@/lib/observability/logger";
 
 export async function GET(
@@ -42,25 +42,16 @@ export async function GET(
     return NextResponse.redirect(failUrl);
   }
 
-  const db = await createConnection();
-  try {
-    const result = await signInWithOAuth(db, dbConfig(), identity);
-    if (!result.ok) {
-      logger.warn({ error: result.error }, "oauth: sign-in failed");
-      return NextResponse.redirect(failUrl);
-    }
+  const userId = await linkOrCreateOAuth(identity);
 
-    logger.info({ provider: providerId, email: identity.email }, "oauth: session minted");
-    const res = NextResponse.redirect(`${siteUrl}${verifiedState.next}`);
-    res.cookies.set(SESSION_COOKIE, result.token!, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: SESSION_MAX_AGE_SECONDS,
-    });
-    return res;
-  } finally {
-    await db.close();
-  }
+  logger.info({ provider: providerId, email: identity.email }, "oauth: session issued");
+  const res = NextResponse.redirect(`${siteUrl}${verifiedState.next}`);
+  res.cookies.set(SESSION_COOKIE, issueSession(userId), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: SESSION_MAX_AGE_SECONDS,
+  });
+  return res;
 }
