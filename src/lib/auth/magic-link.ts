@@ -15,7 +15,7 @@ export async function requestMagicLink(email: string): Promise<string> {
   const existing = await query("SELECT id FROM user WHERE email = $email LIMIT 1", { email });
   if (existing.length === 0) {
     await query(
-      "CREATE user SET name = $name, email = $email, password = crypto::argon2::generate($password)",
+      "CREATE user SET name = $name, email = $email, password = crypto::argon2::generate($password), verified = false",
       {
         name: email.split("@")[0] ?? "",
         email,
