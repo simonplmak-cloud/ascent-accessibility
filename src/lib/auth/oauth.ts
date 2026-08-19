@@ -1,7 +1,42 @@
-import { randomBytes } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import type { Surreal } from "surrealdb";
 import { query } from "@/db";
 import { logger } from "@/lib/observability/logger";
+
+function stateSecret(): string {
+  return process.env.OAUTH_STATE_SECRET ?? process.env.BYOK_ENCRYPTION_SECRET ?? "dev-secret";
+}
+
+// Stateless, signed OAuth state. Carries the redirect target (`next`) plus a
+// nonce, HMAC-signed so the callback can verify it without a cookie round-trip.
+export function createOauthState(next: string): string {
+  const nonce = randomBytes(16).toString("hex");
+  const payload = Buffer.from(JSON.stringify({ n: nonce, next })).toString("base64url");
+  const sig = createHmac("sha256", stateSecret()).update(payload).digest("base64url");
+  return `${payload}.${sig}`;
+}
+
+export function verifyOauthState(state: string): { next: string } | null {
+  const parts = state.split(".");
+  if (parts.length !== 2) return null;
+  const [payload, sig] = parts as [string, string];
+  const expected = createHmac("sha256", stateSecret()).update(payload).digest("base64url");
+  if (sig.length !== expected.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
+    return null;
+  }
+  try {
+    const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
+      next?: unknown;
+    };
+    const next =
+      typeof data.next === "string" && data.next.startsWith("/") && !data.next.startsWith("//")
+        ? data.next
+        : "/site";
+    return { next };
+  } catch {
+    return null;
+  }
+}
 
 export interface OAuthIdentity {
   provider: string; // "github" | "microsoft" | ...

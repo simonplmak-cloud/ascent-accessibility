@@ -1,5 +1,24 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { providers } from "@/lib/auth/oauth";
+import { providers, createOauthState, verifyOauthState } from "@/lib/auth/oauth";
+
+describe("oauth state (signed, stateless)", () => {
+  it("round-trips the next value", () => {
+    const state = createOauthState("/site");
+    expect(verifyOauthState(state)).toEqual({ next: "/site" });
+  });
+
+  it("rejects a tampered state", () => {
+    const state = createOauthState("/site");
+    const [payload] = state.split(".");
+    const forged = `${payload}.${"a".repeat(43)}`;
+    expect(verifyOauthState(forged)).toBeNull();
+  });
+
+  it("rejects a malformed state", () => {
+    expect(verifyOauthState("not-a-valid-state")).toBeNull();
+    expect(verifyOauthState("a.b.c")).toBeNull();
+  });
+});
 
 function routeFetch(routes: Record<string, unknown>): typeof fetch {
   return (async (input: string | URL | Request) => {

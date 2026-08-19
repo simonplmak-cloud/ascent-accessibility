@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { createConnection, dbConfig } from "@/db";
 import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from "@/lib/auth/session";
-import { providers, signInWithOAuth, type OAuthIdentity } from "@/lib/auth/oauth";
+import { providers, signInWithOAuth, verifyOauthState, type OAuthIdentity } from "@/lib/auth/oauth";
 import { logger } from "@/lib/observability/logger";
 
 export async function GET(
@@ -21,15 +20,15 @@ export async function GET(
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
-  const store = await cookies();
-  const cookieState = store.get("oauth_state")?.value;
-  const next = store.get("oauth_next")?.value ?? "/site";
 
-  if (!code || !state || state !== cookieState) {
-    logger.warn(
-      { hasCode: Boolean(code), urlState: state, cookieState: cookieState ?? null },
-      "oauth: state mismatch",
-    );
+  if (!code || !state) {
+    logger.warn({ hasCode: Boolean(code) }, "oauth: missing code or state");
+    return NextResponse.redirect(failUrl);
+  }
+
+  const verifiedState = verifyOauthState(state);
+  if (!verifiedState) {
+    logger.warn("oauth: invalid state signature");
     return NextResponse.redirect(failUrl);
   }
 
@@ -52,7 +51,7 @@ export async function GET(
     }
 
     logger.info({ provider: providerId, email: identity.email }, "oauth: session minted");
-    const res = NextResponse.redirect(`${siteUrl}${next}`);
+    const res = NextResponse.redirect(`${siteUrl}${verifiedState.next}`);
     res.cookies.set(SESSION_COOKIE, result.token!, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -60,8 +59,6 @@ export async function GET(
       path: "/",
       maxAge: SESSION_MAX_AGE_SECONDS,
     });
-    res.cookies.set("oauth_state", "", { httpOnly: true, path: "/", maxAge: 0 });
-    res.cookies.set("oauth_next", "", { httpOnly: true, path: "/", maxAge: 0 });
     return res;
   } finally {
     await db.close();
