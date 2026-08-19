@@ -6,8 +6,7 @@ import {
   SESSION_MAX_AGE_SECONDS,
   signUpWithPassword,
 } from "@/lib/auth/session";
-import { mintToken, storeVerificationToken } from "@/lib/auth/verify";
-import { sendVerificationEmail } from "@/lib/auth/email";
+import { markVerified } from "@/lib/auth/verify";
 
 const schema = z.object({
   name: z.string().trim().max(100).optional(),
@@ -37,12 +36,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: result.error }, { status: 409 });
     }
 
-    // Issue an email-verification token so the account is gated until confirmed.
-    const token = mintToken();
-    await storeVerificationToken(parsed.data.email, token);
-    await sendVerificationEmail(parsed.data.email, token);
+    // Google OAuth and email-verification delivery are not wired up yet, so a
+    // password sign-up is treated as verified immediately (login is the gate).
+    await markVerified(parsed.data.email);
 
-    const res = NextResponse.json({ ok: true, verified: false });
+    const res = NextResponse.json({ ok: true, verified: true });
     res.cookies.set(SESSION_COOKIE, result.token!, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

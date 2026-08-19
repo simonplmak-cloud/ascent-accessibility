@@ -23,3 +23,9 @@ export async function verifyEmail(token: string): Promise<boolean> {
   );
   return rows.length > 0;
 }
+
+// Marks an account verified without an email round-trip. Used while email
+// delivery (n8n) and Google OAuth are not yet wired up, so sign-ups can scan.
+export async function markVerified(email: string): Promise<void> {
+  await query("UPDATE user SET verified = true WHERE email = $email", { email });
+}
