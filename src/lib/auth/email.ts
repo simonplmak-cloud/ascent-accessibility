@@ -12,7 +12,7 @@ export async function sendMagicLinkEmail(email: string, token: string, next = "/
     return;
   }
 
-  await fetch("https://api.resend.com/emails", {
+  const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
@@ -23,4 +23,9 @@ export async function sendMagicLinkEmail(email: string, token: string, next = "/
       html: `<p>Click the button below to sign in:</p><p><a href="${link}">Sign in to Ascent Accessibility</a></p><p>This link can be used once and expires shortly. If you didn't request it, you can ignore this email.</p>`,
     }),
   });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Resend API ${res.status}: ${body.slice(0, 300)}`);
+  }
 }
