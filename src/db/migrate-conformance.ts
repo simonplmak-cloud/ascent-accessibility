@@ -18,6 +18,7 @@ DEFINE FIELD OVERWRITE verified ON user TYPE bool DEFAULT false;
 DEFINE FIELD OVERWRITE googleSub ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE oauthSubject ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE emailVerificationToken ON user TYPE option<string>;
+DEFINE FIELD OVERWRITE magicLinkToken ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE passkeys ON user TYPE option<string>;
 DEFINE FIELD OVERWRITE qwenApiKey ON user TYPE option<string>;
 DEFINE INDEX OVERWRITE user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
@@ -47,6 +48,11 @@ DEFINE INDEX OVERWRITE user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
   )
   SIGNIN (
     SELECT * FROM user WHERE oauthSubject = $oauthSubject
+  )
+  DURATION FOR SESSION 24h;`,
+  `DEFINE ACCESS user_magic ON DATABASE TYPE RECORD
+  SIGNIN (
+    SELECT * FROM user WHERE magicLinkToken = $token
   )
   DURATION FOR SESSION 24h;`,
 ];

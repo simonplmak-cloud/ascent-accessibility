@@ -225,6 +225,7 @@ DEFINE FIELD verified ON user TYPE bool DEFAULT false;
 DEFINE FIELD googleSub ON user TYPE option<string>;
 DEFINE FIELD oauthSubject ON user TYPE option<string>;
 DEFINE FIELD emailVerificationToken ON user TYPE option<string>;
+DEFINE FIELD magicLinkToken ON user TYPE option<string>;
 DEFINE FIELD passkeys ON user TYPE option<string>;
 DEFINE FIELD qwenApiKey ON user TYPE option<string>;
 DEFINE FIELD createdAt ON user TYPE datetime DEFAULT time::now();
@@ -272,6 +273,12 @@ DEFINE INDEX user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
   )
   SIGNIN (
     SELECT * FROM user WHERE oauthSubject = $oauthSubject
+  )
+  DURATION FOR SESSION 24h;`,
+
+  `DEFINE ACCESS user_magic ON DATABASE TYPE RECORD
+  SIGNIN (
+    SELECT * FROM user WHERE magicLinkToken = $token
   )
   DURATION FOR SESSION 24h;`,
 

@@ -62,12 +62,6 @@ export function SiteScanClient({ standards }: { standards: StandardOption[] }) {
             >
               Sign in
             </Link>
-            <Link
-              href="/sign-up"
-              className="rounded border border-terminal-border px-4 py-2 font-mono text-sm text-terminal-fg"
-            >
-              Create an account
-            </Link>
           </div>
         </div>
       ) : !user.verified ? (
