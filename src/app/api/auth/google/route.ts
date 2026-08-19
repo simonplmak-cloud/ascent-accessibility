@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createConnection, dbConfig } from "@/db";
 import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from "@/lib/auth/session";
 import { signInWithGoogle, verifyGoogleToken } from "@/lib/auth/google";
+import { logger } from "@/lib/observability/logger";
 
 const schema = z.object({
   credential: z.string().min(1),
@@ -12,21 +13,26 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
+    logger.warn("google-signin: missing credential");
     return NextResponse.json({ error: "Missing Google credential." }, { status: 400 });
   }
 
   const identity = await verifyGoogleToken(parsed.data.credential);
   if (!identity) {
+    logger.warn("google-signin: verification failed");
     return NextResponse.json({ code: "INVALID_TOKEN" }, { status: 401 });
   }
+  logger.info({ sub: identity.sub, email: identity.email }, "google-signin: verified");
 
   const db = await createConnection();
   try {
     const result = await signInWithGoogle(db, dbConfig(), identity);
     if (!result.ok) {
+      logger.warn({ error: result.error }, "google-signin: sign-in failed");
       return NextResponse.json({ error: result.error }, { status: 401 });
     }
 
+    logger.info({ email: identity.email }, "google-signin: session minted");
     const res = NextResponse.json({ ok: true, verified: identity.emailVerified });
     res.cookies.set(SESSION_COOKIE, result.token!, {
       httpOnly: true,
