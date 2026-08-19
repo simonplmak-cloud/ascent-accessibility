@@ -278,7 +278,7 @@ DEFINE INDEX user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
 
   `DEFINE ACCESS user_magic ON DATABASE TYPE RECORD
   SIGNIN (
-    SELECT * FROM user WHERE magicLinkToken = $token
+    SELECT * FROM user WHERE magicLinkToken = $magicToken
   )
   DURATION FOR SESSION 24h;`,
 

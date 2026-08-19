@@ -35,7 +35,7 @@ export async function GET(req: Request) {
         namespace: cfg.namespace,
         database: cfg.database,
         access: "user_magic",
-        variables: { token: hashToken(token) },
+        variables: { magicToken: hashToken(token) },
       });
       sessionToken = extractToken(signin);
     } catch (error) {

@@ -50,9 +50,10 @@ DEFINE INDEX OVERWRITE user_google_sub_idx ON user FIELDS googleSub UNIQUE;`,
     SELECT * FROM user WHERE oauthSubject = $oauthSubject
   )
   DURATION FOR SESSION 24h;`,
-  `DEFINE ACCESS user_magic ON DATABASE TYPE RECORD
+  `REMOVE ACCESS user_magic ON DATABASE;
+DEFINE ACCESS user_magic ON DATABASE TYPE RECORD
   SIGNIN (
-    SELECT * FROM user WHERE magicLinkToken = $token
+    SELECT * FROM user WHERE magicLinkToken = $magicToken
   )
   DURATION FOR SESSION 24h;`,
 ];
