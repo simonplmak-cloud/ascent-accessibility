@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type { Surreal } from "surrealdb";
+import { query } from "@/db";
 import { logger } from "@/lib/observability/logger";
 
 export interface GoogleIdentity {
@@ -84,7 +85,8 @@ export async function verifyGoogleToken(
   }
 }
 
-// Signs a Google identity in: sign-in by googleSub, else sign-up (find-or-create).
+// Signs a Google identity in: sign-in by googleSub, else sign-up, else link the
+// Google identity to an existing password account (same email).
 export async function signInWithGoogle(
   db: Surreal,
   cfg: AuthConfig,
@@ -118,7 +120,29 @@ export async function signInWithGoogle(
     const token = extractToken(signup);
     if (!token) return { ok: false, error: "Sign-in failed. Please try again." };
     return { ok: true, token };
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (/already exists|already contains/i.test(message)) {
+      // The email already belongs to a password account — link the Google
+      // identity to it and sign in.
+      await query(
+        "UPDATE user SET googleSub = $sub, verified = true WHERE email = $email",
+        { sub: identity.sub, email: identity.email },
+      );
+      try {
+        const signin = await db.signin({
+          namespace: cfg.namespace,
+          database: cfg.database,
+          access: "user_google",
+          variables: { googleSub: identity.sub },
+        });
+        const token = extractToken(signin);
+        if (token) return { ok: true, token };
+      } catch {
+        /* fall through to error */
+      }
+    }
+    logger.warn({ error: message }, "google-signin: signup failed");
     return { ok: false, error: "Sign-in failed. Please try again." };
   }
 }
