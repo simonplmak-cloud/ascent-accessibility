@@ -2,7 +2,7 @@ import type { Impact } from "@/lib/scoring";
 import type { Finding } from "@/db/schema";
 import { getSc, specUrl } from "@/lib/standards/wcag-sc";
 import type { AiBudget, AiReview, VisionModel } from "./types";
-import { buildTriagePrompt, buildTriageScs } from "./prompt";
+import { buildTriagePrompt, buildTriageScs, buildTriageSystemPrompt } from "./prompt";
 
 export const AI_CONFIDENCE_THRESHOLD = 0.8;
 const TRIAGE_CHUNK_SIZE = 6;
@@ -102,7 +102,11 @@ export async function runTriage(input: TriageInput): Promise<TriageOutput> {
     const prompt = buildTriagePrompt(buildTriageScs(chunk), incompleteContext);
     calls += 1;
     try {
-      const raw = await input.model.review({ image: input.image, prompt });
+      const raw = await input.model.review({
+        image: input.image,
+        prompt,
+        system: buildTriageSystemPrompt(),
+      });
       reviews.push(...chunk.map((sc) => resolveVerdict(sc, raw, threshold)));
     } catch {
       // Fail-safe: a model/parse error leaves this chunk's SCs as Cannot tell.

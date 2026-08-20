@@ -14,5 +14,5 @@ export interface AiBudget {
 }
 
 export interface VisionModel {
-  review(input: { image: Buffer; prompt: string }): Promise<AiReview[]>;
+  review(input: { image: Buffer; prompt: string; system?: string }): Promise<AiReview[]>;
 }

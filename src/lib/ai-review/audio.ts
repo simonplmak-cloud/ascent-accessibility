@@ -1,7 +1,13 @@
 import type { AiReview } from "./types";
+import { buildTriageSystemPrompt } from "./prompt";
 
 export interface AudioModel {
-  review(input: { mediaUrls: string[]; scs: string[]; prompt: string }): Promise<AiReview[]>;
+  review(input: {
+    mediaUrls: string[];
+    scs: string[];
+    prompt: string;
+    system?: string;
+  }): Promise<AiReview[]>;
 }
 
 // Time-based-media SCs resolved by a Qwen omni/audio model. Fired only when the
@@ -22,6 +28,7 @@ export async function runAudioReview(
     return await model.review({
       mediaUrls,
       scs,
+      system: buildTriageSystemPrompt(),
       prompt:
         "Assess each WCAG time-based-media criterion against the provided media. " +
         "Return Passed / Failed / Cannot tell with a confidence from 0.0 to 1.0 " +

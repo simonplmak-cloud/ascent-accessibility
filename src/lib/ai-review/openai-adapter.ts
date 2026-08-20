@@ -16,7 +16,12 @@ async function chatCompletions(
   model: string,
   content: Array<Record<string, unknown>>,
   fetchFn: typeof fetch,
+  system?: string,
 ): Promise<AiReview[]> {
+  const messages = [
+    ...(system ? [{ role: "system", content: system }] : []),
+    { role: "user", content },
+  ];
   const res = await fetchFn(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
@@ -27,7 +32,7 @@ async function chatCompletions(
       model,
       temperature: 0,
       max_tokens: 2048,
-      messages: [{ role: "user", content }],
+      messages,
       response_format: { type: "json_object" },
     }),
     signal: AbortSignal.timeout(Number(process.env.AI_REVIEW_TIMEOUT_MS ?? 60_000)),
@@ -52,13 +57,13 @@ export class OpenAiVisionClient implements VisionModel {
     this.fetchFn = opts.fetchFn ?? fetch;
   }
 
-  async review(input: { image: Buffer; prompt: string }): Promise<AiReview[]> {
+  async review(input: { image: Buffer; prompt: string; system?: string }): Promise<AiReview[]> {
     const base64 = input.image.toString("base64");
     const content = [
       { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64}` } },
       { type: "text", text: input.prompt },
     ];
-    return chatCompletions(this.baseUrl, this.apiKey, this.model, content, this.fetchFn);
+    return chatCompletions(this.baseUrl, this.apiKey, this.model, content, this.fetchFn, input.system);
   }
 }
 
@@ -79,6 +84,7 @@ export class OpenAiAudioClient implements AudioModel {
     mediaUrls: string[];
     scs: string[];
     prompt: string;
+    system?: string;
   }): Promise<AiReview[]> {
     const content: Array<Record<string, unknown>> = [{ type: "text", text: input.prompt }];
     for (const url of input.mediaUrls.slice(0, 5)) {
@@ -87,6 +93,6 @@ export class OpenAiAudioClient implements AudioModel {
         content.push({ type: "input_audio", input_audio: { data: media.data, format: media.format } });
       }
     }
-    return chatCompletions(this.baseUrl, this.apiKey, this.model, content, this.fetchFn);
+    return chatCompletions(this.baseUrl, this.apiKey, this.model, content, this.fetchFn, input.system);
   }
 }

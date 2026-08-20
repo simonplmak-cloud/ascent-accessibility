@@ -22,7 +22,7 @@ export class AnthropicVisionClient implements VisionModel {
     this.fetchFn = opts.fetchFn ?? fetch;
   }
 
-  async review(input: { image: Buffer; prompt: string }): Promise<AiReview[]> {
+  async review(input: { image: Buffer; prompt: string; system?: string }): Promise<AiReview[]> {
     const base64 = input.image.toString("base64");
     const res = await this.fetchFn(`${this.baseUrl}/messages`, {
       method: "POST",
@@ -34,6 +34,7 @@ export class AnthropicVisionClient implements VisionModel {
       body: JSON.stringify({
         model: this.model,
         max_tokens: 4096,
+        ...(input.system ? { system: input.system } : {}),
         messages: [
           {
             role: "user",

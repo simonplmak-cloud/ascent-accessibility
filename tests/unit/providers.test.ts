@@ -59,4 +59,29 @@ describe("parseVerdicts", () => {
   it("returns null for garbage", () => {
     expect(parseVerdicts("no json here")).toBeNull();
   });
+
+  it("drops a truncated tail verdict but keeps complete ones", () => {
+    const truncated =
+      '{"verdicts":[{"sc":"1.1.1","verdict":"pass","confidence":0.9,"reasoning":"ok"},' +
+      '{"sc":"1.4.3","verdict":"pass","confidence":0.8';
+    const out = parseVerdicts(truncated);
+    expect(out?.map((v) => v.sc)).toEqual(["1.1.1"]);
+  });
+
+  it("ignores appended non-verdict content (summary)", () => {
+    const appended =
+      '{"verdicts":[{"sc":"1.1.1","verdict":"pass","confidence":0.9,"reasoning":"ok"}],' +
+      '"passed":1,"failed":0,"duration":"10 minutes"}';
+    const out = parseVerdicts(appended);
+    expect(out?.map((v) => v.sc)).toEqual(["1.1.1"]);
+  });
+
+  it("dedupes repeated verdict objects by SC", () => {
+    const dup =
+      '{"verdicts":[{"sc":"1.1.1","verdict":"pass","confidence":0.9,"reasoning":"a"}]}' +
+      '{"verdicts":[{"sc":"1.1.1","verdict":"fail","confidence":0.9,"reasoning":"b"}]}';
+    const out = parseVerdicts(dup);
+    expect(out).toHaveLength(1);
+    expect(out?.[0]?.verdict).toBe("Passed");
+  });
 });

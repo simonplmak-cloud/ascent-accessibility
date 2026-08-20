@@ -16,6 +16,7 @@ async function generateContent(
   model: string,
   parts: Array<Record<string, unknown>>,
   fetchFn: typeof fetch,
+  system?: string,
 ): Promise<AiReview[]> {
   const res = await fetchFn(`${baseUrl}/models/${model}:generateContent`, {
     method: "POST",
@@ -23,7 +24,10 @@ async function generateContent(
       "Content-Type": "application/json",
       "x-goog-api-key": apiKey,
     },
-    body: JSON.stringify({ contents: [{ parts }] }),
+    body: JSON.stringify({
+      ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
+      contents: [{ parts }],
+    }),
     signal: AbortSignal.timeout(Number(process.env.AI_REVIEW_TIMEOUT_MS ?? 60_000)),
   });
   if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
@@ -49,13 +53,13 @@ export class GeminiVisionClient implements VisionModel {
     this.fetchFn = opts.fetchFn ?? fetch;
   }
 
-  async review(input: { image: Buffer; prompt: string }): Promise<AiReview[]> {
+  async review(input: { image: Buffer; prompt: string; system?: string }): Promise<AiReview[]> {
     const base64 = input.image.toString("base64");
     const parts = [
       { inlineData: { mimeType: "image/jpeg", data: base64 } },
       { text: input.prompt },
     ];
-    return generateContent(this.baseUrl, this.apiKey, this.model, parts, this.fetchFn);
+    return generateContent(this.baseUrl, this.apiKey, this.model, parts, this.fetchFn, input.system);
   }
 }
 
@@ -76,6 +80,7 @@ export class GeminiAudioClient implements AudioModel {
     mediaUrls: string[];
     scs: string[];
     prompt: string;
+    system?: string;
   }): Promise<AiReview[]> {
     const parts: Array<Record<string, unknown>> = [{ text: input.prompt }];
     for (const url of input.mediaUrls.slice(0, 5)) {
@@ -84,6 +89,6 @@ export class GeminiAudioClient implements AudioModel {
         parts.push({ inlineData: { mimeType: media.mimeType, data: media.data } });
       }
     }
-    return generateContent(this.baseUrl, this.apiKey, this.model, parts, this.fetchFn);
+    return generateContent(this.baseUrl, this.apiKey, this.model, parts, this.fetchFn, input.system);
   }
 }
