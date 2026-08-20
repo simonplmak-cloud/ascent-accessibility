@@ -1,22 +1,4 @@
-import { getManualTest } from "@/lib/standards/sc-manual-tests";
-import { getSc } from "@/lib/standards/wcag-sc";
-
-export interface TriageSc {
-  sc: string;
-  title: string;
-  instruction: string;
-}
-
-export function buildTriageScs(unresolvedScs: readonly string[]): TriageSc[] {
-  return unresolvedScs.map((sc) => {
-    const info = getSc(sc);
-    return {
-      sc,
-      title: info?.title ?? sc,
-      instruction: getManualTest(sc),
-    };
-  });
-}
+import type { ScAiConfig } from "./sc-config";
 
 // Stable policy + output contract — the SYSTEM message. Separating this from the
 // per-assessment task keeps the output contract constant across calls, which
@@ -43,30 +25,36 @@ export function buildTriageSystemPrompt(): string {
   ].join("\n");
 }
 
-// Task-specific prompt — the USER message: the criteria list (as data) plus any
-// engine "incomplete" context. The system prompt carries the output contract.
-export function buildTriagePrompt(
-  scs: readonly TriageSc[],
-  incompleteContext: readonly string[],
-): string {
-  const scLines = scs
-    .map((s) => `- ${s.sc} ${s.title}: ${s.instruction}`)
-    .join("\n");
+// Per-criterion USER prompt built from a rule's config (one call per criterion).
+export function buildScPrompt(config: ScAiConfig): string {
+  const lines: string[] = [];
+  lines.push(`Assess WCAG ${config.sc} against the attached ${config.modality === "audio" ? "media" : "screenshot"}.`);
+  lines.push("");
+  lines.push(`What to evaluate: ${config.instruction}`);
 
-  const contextLines = incompleteContext.length
-    ? `\nThe engine could not decide the following items and left them "incomplete":\n${incompleteContext
-        .map((c) => `- ${c}`)
-        .join("\n")}\n`
-    : "";
+  if (config.whatToLookFor.length > 0) {
+    lines.push("");
+    lines.push("Look specifically for:");
+    for (const item of config.whatToLookFor) lines.push(`- ${item}`);
+  }
 
-  return [
-    "Assess the following WCAG success criteria against the attached screenshot.",
-    contextLines,
-    "Success criteria:",
-    scLines,
-    "",
-    "Return JSON only.",
-  ]
-    .filter(Boolean)
-    .join("\n");
+  if (config.passRequires.length > 0 || config.failRequires.length > 0) {
+    lines.push("");
+    lines.push("Decision rules:");
+    for (const p of config.passRequires) lines.push(`- PASS only if: ${p}`);
+    for (const f of config.failRequires) lines.push(`- FAIL only if: ${f}`);
+  }
+  lines.push("- Otherwise return needs-review — do not guess.");
+
+  if (config.examples?.fail) {
+    lines.push("");
+    lines.push(`Example of failure: ${config.examples.fail}`);
+  }
+  if (config.examples?.pass) {
+    lines.push(`Example of passing: ${config.examples.pass}`);
+  }
+
+  lines.push("");
+  lines.push("Return JSON only.");
+  return lines.filter(Boolean).join("\n");
 }

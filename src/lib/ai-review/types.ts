@@ -1,3 +1,5 @@
+import type { AiSettings } from "./settings";
+
 export type AiVerdict = "Passed" | "Failed" | "CannotTell";
 
 export interface AiReview {
@@ -14,5 +16,10 @@ export interface AiBudget {
 }
 
 export interface VisionModel {
-  review(input: { image: Buffer; prompt: string; system?: string }): Promise<AiReview[]>;
+  review(input: {
+    image: Buffer;
+    prompt: string;
+    system?: string;
+    settings?: AiSettings;
+  }): Promise<AiReview[]>;
 }

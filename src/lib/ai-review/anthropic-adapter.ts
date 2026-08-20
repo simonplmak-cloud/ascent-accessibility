@@ -1,5 +1,6 @@
 import type { AiReview, VisionModel } from "./types";
 import { parseVerdicts } from "./parse";
+import { resolveSettings, type AiSettings } from "./settings";
 
 export interface AnthropicOptions {
   apiKey: string;
@@ -22,7 +23,13 @@ export class AnthropicVisionClient implements VisionModel {
     this.fetchFn = opts.fetchFn ?? fetch;
   }
 
-  async review(input: { image: Buffer; prompt: string; system?: string }): Promise<AiReview[]> {
+  async review(input: {
+    image: Buffer;
+    prompt: string;
+    system?: string;
+    settings?: AiSettings;
+  }): Promise<AiReview[]> {
+    const s = resolveSettings(input.settings);
     const base64 = input.image.toString("base64");
     const res = await this.fetchFn(`${this.baseUrl}/messages`, {
       method: "POST",
@@ -33,7 +40,9 @@ export class AnthropicVisionClient implements VisionModel {
       },
       body: JSON.stringify({
         model: this.model,
-        max_tokens: 4096,
+        max_tokens: s.maxTokens,
+        temperature: s.temperature,
+        top_p: s.topP,
         ...(input.system ? { system: input.system } : {}),
         messages: [
           {
@@ -45,7 +54,7 @@ export class AnthropicVisionClient implements VisionModel {
           },
         ],
       }),
-      signal: AbortSignal.timeout(Number(process.env.AI_REVIEW_TIMEOUT_MS ?? 60_000)),
+      signal: AbortSignal.timeout(s.timeoutMs),
     });
     if (!res.ok) throw new Error(`Anthropic HTTP ${res.status}`);
     const json = (await res.json()) as {

@@ -2,6 +2,7 @@ import type { AiReview, VisionModel } from "./types";
 import type { AudioModel } from "./audio";
 import { parseVerdicts } from "./parse";
 import { fetchMedia } from "./media";
+import { resolveSettings, type AiSettings } from "./settings";
 
 export interface GeminiOptions {
   apiKey: string;
@@ -17,7 +18,9 @@ async function generateContent(
   parts: Array<Record<string, unknown>>,
   fetchFn: typeof fetch,
   system?: string,
+  settings?: AiSettings,
 ): Promise<AiReview[]> {
+  const s = resolveSettings(settings);
   const res = await fetchFn(`${baseUrl}/models/${model}:generateContent`, {
     method: "POST",
     headers: {
@@ -26,9 +29,15 @@ async function generateContent(
     },
     body: JSON.stringify({
       ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
+      generationConfig: {
+        temperature: s.temperature,
+        topP: s.topP,
+        maxOutputTokens: s.maxTokens,
+        seed: s.seed,
+      },
       contents: [{ parts }],
     }),
-    signal: AbortSignal.timeout(Number(process.env.AI_REVIEW_TIMEOUT_MS ?? 60_000)),
+    signal: AbortSignal.timeout(s.timeoutMs),
   });
   if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
   const json = (await res.json()) as {
@@ -53,13 +62,18 @@ export class GeminiVisionClient implements VisionModel {
     this.fetchFn = opts.fetchFn ?? fetch;
   }
 
-  async review(input: { image: Buffer; prompt: string; system?: string }): Promise<AiReview[]> {
+  async review(input: {
+    image: Buffer;
+    prompt: string;
+    system?: string;
+    settings?: AiSettings;
+  }): Promise<AiReview[]> {
     const base64 = input.image.toString("base64");
     const parts = [
       { inlineData: { mimeType: "image/jpeg", data: base64 } },
       { text: input.prompt },
     ];
-    return generateContent(this.baseUrl, this.apiKey, this.model, parts, this.fetchFn, input.system);
+    return generateContent(this.baseUrl, this.apiKey, this.model, parts, this.fetchFn, input.system, input.settings);
   }
 }
 
@@ -81,6 +95,7 @@ export class GeminiAudioClient implements AudioModel {
     scs: string[];
     prompt: string;
     system?: string;
+    settings?: AiSettings;
   }): Promise<AiReview[]> {
     const parts: Array<Record<string, unknown>> = [{ text: input.prompt }];
     for (const url of input.mediaUrls.slice(0, 5)) {
@@ -89,6 +104,6 @@ export class GeminiAudioClient implements AudioModel {
         parts.push({ inlineData: { mimeType: media.mimeType, data: media.data } });
       }
     }
-    return generateContent(this.baseUrl, this.apiKey, this.model, parts, this.fetchFn, input.system);
+    return generateContent(this.baseUrl, this.apiKey, this.model, parts, this.fetchFn, input.system, input.settings);
   }
 }

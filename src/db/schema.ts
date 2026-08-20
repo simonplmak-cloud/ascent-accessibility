@@ -257,4 +257,25 @@ DEFINE FIELD key ON rate_limit TYPE string;
 DEFINE FIELD windowStart ON rate_limit TYPE int;
 DEFINE FIELD count ON rate_limit TYPE int DEFAULT 0;
 DEFINE INDEX rate_limit_key_window_idx ON rate_limit FIELDS key, windowStart UNIQUE;`,
+
+  `DEFINE TABLE ai_sc_config SCHEMAFULL;
+DEFINE FIELD sc ON ai_sc_config TYPE string;
+DEFINE FIELD instructionId ON ai_sc_config TYPE string;
+DEFINE FIELD modality ON ai_sc_config TYPE string;
+DEFINE FIELD judgeable ON ai_sc_config TYPE bool DEFAULT false;
+DEFINE FIELD instruction ON ai_sc_config TYPE string;
+DEFINE FIELD whatToLookFor ON ai_sc_config TYPE option<string>;
+DEFINE FIELD passRequires ON ai_sc_config TYPE option<string>;
+DEFINE FIELD failRequires ON ai_sc_config TYPE option<string>;
+DEFINE FIELD examples ON ai_sc_config TYPE option<string>;
+DEFINE FIELD ruleId ON ai_sc_config TYPE string;
+DEFINE FIELD description ON ai_sc_config TYPE string;
+DEFINE FIELD recommendation ON ai_sc_config TYPE string;
+DEFINE FIELD help ON ai_sc_config TYPE string;
+DEFINE FIELD source ON ai_sc_config TYPE string;
+DEFINE FIELD notes ON ai_sc_config TYPE string;
+DEFINE FIELD settings ON ai_sc_config TYPE option<string>;
+DEFINE FIELD enabled ON ai_sc_config TYPE bool DEFAULT true;
+DEFINE FIELD updatedAt ON ai_sc_config TYPE datetime DEFAULT time::now();
+DEFINE INDEX ai_sc_config_sc_idx ON ai_sc_config FIELDS sc UNIQUE;`,
 ];

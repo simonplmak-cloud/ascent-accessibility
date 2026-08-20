@@ -9,7 +9,7 @@ import { naturesOf } from "@/lib/standards/nature";
 import type { WcagLevel } from "@/lib/standards/wcag-sc";
 import type { AiBudget, AiReview, VisionModel } from "@/lib/ai-review/types";
 import { mediaScsFor, runAudioReview, type AudioModel } from "@/lib/ai-review/audio";
-import { applyAiVerdicts, runTriage } from "@/lib/ai-review/triage";
+import { applyAiVerdicts, runTriage, type GetConfig } from "@/lib/ai-review/triage";
 import type { Finding } from "@/db/schema";
 
 export interface EvaluateInput {
@@ -29,6 +29,7 @@ export interface EvaluateDeps {
   mediaUrls?: string[];
   aiEnabled?: boolean;
   threshold?: number;
+  getConfig?: GetConfig;
 }
 
 export interface EvaluateOutput {
@@ -69,12 +70,13 @@ export async function evaluateStandard(
         unresolvedScs: eligible,
         incompleteContext: deps.incompleteContext ?? [],
         threshold: deps.threshold,
+        getConfig: deps.getConfig,
       });
       aiBudget.calls += triage.budget.calls;
       aiBudget.images += triage.budget.images;
       aiVerdicts.push(...triage.reviews);
 
-      const applied = applyAiVerdicts(findings, passedScs, triage.reviews, input.pageUrl);
+      const applied = await applyAiVerdicts(findings, passedScs, triage.reviews, input.pageUrl, deps.getConfig);
       findings = applied.findings;
       passedScs = applied.passedScs;
 
@@ -95,7 +97,7 @@ export async function evaluateStandard(
     });
     if (mediaScs.length > 0) {
       const audioVerdicts = await runAudioReview(deps.audioModel, mediaScs, deps.mediaUrls);
-      const applied = applyAiVerdicts(findings, passedScs, audioVerdicts, input.pageUrl);
+      const applied = await applyAiVerdicts(findings, passedScs, audioVerdicts, input.pageUrl, deps.getConfig);
       findings = applied.findings;
       passedScs = applied.passedScs;
       aiVerdicts.push(...audioVerdicts);

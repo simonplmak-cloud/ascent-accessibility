@@ -1,4 +1,5 @@
 import type { AiReview } from "./types";
+import type { AiSettings } from "./settings";
 import { buildTriageSystemPrompt } from "./prompt";
 
 export interface AudioModel {
@@ -7,6 +8,7 @@ export interface AudioModel {
     scs: string[];
     prompt: string;
     system?: string;
+    settings?: AiSettings;
   }): Promise<AiReview[]>;
 }
 

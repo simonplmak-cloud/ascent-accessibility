@@ -2,10 +2,14 @@ import type { Impact } from "@/lib/scoring";
 import type { Finding } from "@/db/schema";
 import { getSc, specUrl } from "@/lib/standards/wcag-sc";
 import type { AiBudget, AiReview, VisionModel } from "./types";
-import { buildTriagePrompt, buildTriageScs, buildTriageSystemPrompt } from "./prompt";
+import { buildScPrompt, buildTriageSystemPrompt } from "./prompt";
+import { getAiConfig } from "./config-store";
+import type { ScAiConfig } from "./sc-config";
+import { resolveSettings } from "./settings";
 
 export const AI_CONFIDENCE_THRESHOLD = 0.8;
-const TRIAGE_CHUNK_SIZE = 6;
+
+export type GetConfig = (sc: string) => Promise<ScAiConfig>;
 
 export function resolveVerdict(
   sc: string,
@@ -26,25 +30,26 @@ export function impactForScLevel(sc: string): Impact {
   return "minor";
 }
 
-export function aiFailToFinding(review: AiReview, pageUrl: string): Finding {
-  const sc = getSc(review.sc);
-  const impact = impactForScLevel(review.sc);
+// Build a finding that matches the engine `Finding` shape: curated rule id,
+// description, recommendation, and help from the config; the model's reasoning
+// is preserved as evidence (instances/sources), never as prose.
+export function aiFailToFinding(config: ScAiConfig, review: AiReview, pageUrl: string): Finding {
+  const sc = getSc(config.sc);
+  const impact = impactForScLevel(config.sc);
   return {
-    ruleId: `ai-${review.sc}`,
+    ruleId: config.ruleId,
     impact,
-    description: `AI review failed WCAG ${review.sc}${sc ? ` (${sc.title})` : ""}: ${review.reasoning}`,
+    description: config.description,
     pageUrl,
     elementCount: 1,
-    recommendation: `Address WCAG ${review.sc}${sc ? ` (${sc.title})` : ""}: ${review.reasoning}`,
-    help: `WCAG ${review.sc}`,
+    recommendation: config.recommendation,
+    help: config.help,
     helpUrl: sc ? specUrl(sc) : "",
-    wcagSc: [review.sc],
+    wcagSc: [config.sc],
     wcagLevel: sc?.level ?? null,
-    scTitle: sc?.title ?? "AI review",
+    scTitle: sc?.title ?? config.sc,
     confidence: "single-source",
-    sources: [
-      { tool: "ai", ruleId: `ai-${review.sc}`, impact, message: review.reasoning },
-    ],
+    sources: [{ tool: "ai", ruleId: config.ruleId, impact, message: review.reasoning }],
     instances: [
       {
         target: "",
@@ -56,17 +61,21 @@ export function aiFailToFinding(review: AiReview, pageUrl: string): Finding {
   };
 }
 
-export function applyAiVerdicts(
+export async function applyAiVerdicts(
   findings: Finding[],
   passedScs: ReadonlySet<string>,
   verdicts: readonly AiReview[],
   pageUrl: string,
-): { findings: Finding[]; passedScs: Set<string> } {
+  getConfig: GetConfig = getAiConfig,
+): Promise<{ findings: Finding[]; passedScs: Set<string> }> {
   const nextFindings = [...findings];
   const nextPassed = new Set(passedScs);
   for (const review of verdicts) {
     if (review.verdict === "Passed") nextPassed.add(review.sc);
-    else if (review.verdict === "Failed") nextFindings.push(aiFailToFinding(review, pageUrl));
+    else if (review.verdict === "Failed") {
+      const config = await getConfig(review.sc);
+      nextFindings.push(aiFailToFinding(config, review, pageUrl));
+    }
   }
   return { findings: nextFindings, passedScs: nextPassed };
 }
@@ -77,6 +86,7 @@ export interface TriageInput {
   unresolvedScs: string[];
   incompleteContext?: string[];
   threshold?: number;
+  getConfig?: GetConfig;
 }
 
 export interface TriageOutput {
@@ -84,41 +94,49 @@ export interface TriageOutput {
   budget: AiBudget;
 }
 
+// One model call per judgeable criterion, each with its own config-driven
+// prompt + settings. Non-judgeable/disabled criteria are needs-review with zero
+// calls; a model/parse error retries once, then fails safe to CannotTell.
 export async function runTriage(input: TriageInput): Promise<TriageOutput> {
-  const threshold = input.threshold ?? AI_CONFIDENCE_THRESHOLD;
   const unresolved = input.unresolvedScs;
-  const incompleteContext = input.incompleteContext ?? [];
-
   if (unresolved.length === 0) {
     return { reviews: [], budget: { calls: 0, images: 0 } };
   }
 
-  // Batch the SCs into small chunks — one large call risks truncating the model
-  // response (dropping verdicts) and dilutes per-SC attention.
   const reviews: AiReview[] = [];
   let calls = 0;
-  for (let i = 0; i < unresolved.length; i += TRIAGE_CHUNK_SIZE) {
-    const chunk = unresolved.slice(i, i + TRIAGE_CHUNK_SIZE);
-    const prompt = buildTriagePrompt(buildTriageScs(chunk), incompleteContext);
-    calls += 1;
-    try {
-      const raw = await input.model.review({
-        image: input.image,
-        prompt,
-        system: buildTriageSystemPrompt(),
-      });
-      reviews.push(...chunk.map((sc) => resolveVerdict(sc, raw, threshold)));
-    } catch {
-      // Fail-safe: a model/parse error leaves this chunk's SCs as Cannot tell.
-      reviews.push(
-        ...chunk.map((sc) => ({
-          sc,
-          verdict: "CannotTell" as const,
-          confidence: 0,
-          reasoning: "model or parse error",
-        })),
-      );
+
+  for (const sc of unresolved) {
+    const config = await (input.getConfig ?? getAiConfig)(sc);
+
+    if (!config.enabled) {
+      reviews.push({ sc, verdict: "CannotTell", confidence: 0, reasoning: "config disabled" });
+      continue;
     }
+    if (!config.judgeable) {
+      reviews.push({ sc, verdict: "CannotTell", confidence: 0, reasoning: "not judgeable from available evidence" });
+      continue;
+    }
+
+    const settings = resolveSettings(config.settings);
+    const prompt = buildScPrompt(config);
+    const system = buildTriageSystemPrompt();
+
+    calls += 1;
+    let raw: AiReview[] | null = null;
+    for (let attempt = 0; attempt <= settings.retries && raw === null; attempt++) {
+      try {
+        raw = await input.model.review({ image: input.image, prompt, system, settings });
+      } catch {
+        raw = null;
+      }
+    }
+
+    if (raw === null) {
+      reviews.push({ sc, verdict: "CannotTell", confidence: 0, reasoning: "model or parse error" });
+      continue;
+    }
+    reviews.push(resolveVerdict(sc, raw, settings.confidenceThreshold));
   }
 
   return { reviews, budget: { calls, images: calls } };

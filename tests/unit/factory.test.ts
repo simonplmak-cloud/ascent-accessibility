@@ -52,3 +52,59 @@ describe("validateProviderKey", () => {
     await expect(validateProviderKey("nope", "k", undefined, ok)).resolves.toBe(false);
   });
 });
+
+describe("settings threading (AC-13)", () => {
+  const settings = { temperature: 0.2, topP: 0.9, maxTokens: 128, seed: 7 };
+
+  function captureFetch(json: unknown): { fn: typeof fetch; body: () => Record<string, unknown> } {
+    const captured: { body?: Record<string, unknown> } = {};
+    const fn = (async (_url: string, init?: RequestInit) => {
+      captured.body = JSON.parse(String(init?.body));
+      return new Response(JSON.stringify(json), { status: 200 });
+    }) as unknown as typeof fetch;
+    return { fn, body: () => captured.body ?? {} };
+  }
+
+  it("openai sends temperature/top_p/max_tokens/seed", async () => {
+    const { fn, body } = captureFetch({ choices: [{ message: { content: '{"verdicts":[]}' } }] });
+    const client = new OpenAiVisionClient({
+      apiKey: "k",
+      baseUrl: "https://x.example/v1",
+      model: "m",
+      fetchFn: fn,
+    });
+    await client.review({ image: Buffer.from("x"), prompt: "p", settings });
+    expect(body()).toMatchObject({ temperature: 0.2, top_p: 0.9, max_tokens: 128, seed: 7 });
+  });
+
+  it("anthropic sends max_tokens/temperature/top_p (no seed)", async () => {
+    const { fn, body } = captureFetch({ content: [{ type: "text", text: '{"verdicts":[]}' }] });
+    const client = new AnthropicVisionClient({
+      apiKey: "k",
+      baseUrl: "https://x.example/v1",
+      model: "m",
+      fetchFn: fn,
+    });
+    await client.review({ image: Buffer.from("x"), prompt: "p", settings });
+    expect(body()).toMatchObject({ temperature: 0.2, top_p: 0.9, max_tokens: 128 });
+  });
+
+  it("gemini sends generationConfig with temperature/topP/maxOutputTokens/seed", async () => {
+    const { fn, body } = captureFetch({
+      candidates: [{ content: { parts: [{ text: '{"verdicts":[]}' }] } }],
+    });
+    const client = new GeminiVisionClient({
+      apiKey: "k",
+      baseUrl: "https://x.example/v1",
+      model: "m",
+      fetchFn: fn,
+    });
+    await client.review({ image: Buffer.from("x"), prompt: "p", settings });
+    expect(body().generationConfig).toMatchObject({
+      temperature: 0.2,
+      topP: 0.9,
+      maxOutputTokens: 128,
+      seed: 7,
+    });
+  });
+});

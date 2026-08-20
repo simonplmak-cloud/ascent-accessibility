@@ -1,0 +1,341 @@
+import type { AiSettings } from "./settings";
+import { judgeableFromScreenshot } from "./testability";
+
+export interface ScAiConfig {
+  sc: string;
+  instructionId: string;
+  modality: "vision" | "audio";
+  judgeable: boolean;
+  instruction: string;
+  whatToLookFor: string[];
+  passRequires: string[];
+  failRequires: string[];
+  examples?: { pass?: string; fail?: string };
+  ruleId: string;
+  description: string;
+  recommendation: string;
+  help: string;
+  source: string;
+  notes: string;
+  settings?: AiSettings;
+  enabled: boolean;
+}
+
+// Vision SCs are `judgeable` when a screenshot alone can decide them; audio SCs
+// are always judgeable from the page's media (their presence is gated elsewhere).
+function cfg(
+  sc: string,
+  instructionId: string,
+  modality: "vision" | "audio",
+  body: Omit<ScAiConfig, "sc" | "instructionId" | "modality" | "judgeable" | "enabled">,
+): ScAiConfig {
+  return {
+    sc,
+    instructionId,
+    modality,
+    judgeable: modality === "vision" ? judgeableFromScreenshot(sc) : true,
+    enabled: true,
+    ...body,
+  };
+}
+
+const SOURCE = (sc: string) => `https://www.w3.org/WAI/WCAG22/Understanding/${sc}.html`;
+
+export const DEFAULT_AI_CONFIGS: Record<string, ScAiConfig> = {
+  // ---- vision (AI map) ----
+  "1.3.3": cfg("1.3.3", "1.3.3.1", "vision", {
+    instruction: "Instructions do not rely solely on sensory characteristics (shape, colour, position, sound).",
+    whatToLookFor: ["visible instructions that reference colour, shape, size, position, or sound alone"],
+    passRequires: ["any instruction referencing a visual/sensory trait is paired with a non-sensory cue or label"],
+    failRequires: ["a visible instruction relies on colour/shape/position alone (e.g. \"click the red button\")"],
+    ruleId: "ai-sensory-characteristics",
+    description: "Instructions rely on sensory characteristics alone",
+    recommendation: "Add a text label or name to the element so instructions need not reference colour, shape, or position.",
+    help: "Instructions must not rely on sensory characteristics alone",
+    source: SOURCE("sensory-characteristics"),
+    notes: "drafted 2026-08-20",
+  }),
+  "1.4.5": cfg("1.4.5", "1.4.5.1", "vision", {
+    instruction: "Text is not rendered as an image where real text could convey it.",
+    whatToLookFor: ["rasterised/graphic text embedded in images"],
+    passRequires: ["no text appears to be rendered as an image (or it is a logo/essential graphic)"],
+    failRequires: ["body/heading text is visibly rendered as an image rather than real text"],
+    ruleId: "ai-images-of-text",
+    description: "Text is rendered as an image instead of real text",
+    recommendation: "Replace the image of text with real, selectable text (reserve image-of-text for logos and essential graphics).",
+    help: "Images of text must not be used when real text would work",
+    source: SOURCE("images-of-text"),
+    notes: "drafted 2026-08-20",
+  }),
+  "1.4.9": cfg("1.4.9", "1.4.9.1", "vision", {
+    instruction: "Text is not rendered as an image (no exception).",
+    whatToLookFor: ["any text rendered as an image"],
+    passRequires: ["no text is rendered as an image"],
+    failRequires: ["text is visibly rendered as an image"],
+    ruleId: "ai-images-of-text-no-exception",
+    description: "Text is rendered as an image",
+    recommendation: "Use real text everywhere, including for logos and decorative graphics.",
+    help: "Images of text are not allowed (no exception)",
+    source: SOURCE("images-of-text-no-exception"),
+    notes: "drafted 2026-08-20",
+  }),
+  "2.4.9": cfg("2.4.9", "2.4.9.1", "vision", {
+    instruction: "Each link's purpose is clear from its link text alone.",
+    whatToLookFor: ["links whose visible text is ambiguous out of context (\"click here\", \"learn more\", \"read more\")"],
+    passRequires: ["every link's visible text clearly conveys its destination/purpose"],
+    failRequires: ["a link's text alone is ambiguous (e.g. multiple \"click here\" links to different targets)"],
+    ruleId: "ai-link-purpose",
+    description: "A link's purpose is not clear from its text alone",
+    recommendation: "Rewrite the link text to describe its destination (avoid generic phrases like \"click here\").",
+    help: "Link purpose must be clear from the link text alone",
+    source: SOURCE("link-purpose-link-only"),
+    notes: "drafted 2026-08-20",
+  }),
+  "3.1.3": cfg("3.1.3", "3.1.3.1", "vision", {
+    instruction: "Unusual words or jargon have a definition available.",
+    whatToLookFor: ["domain-specific jargon, technical terms, or idioms in the visible text"],
+    passRequires: ["no unusual words/jargon are visible, or each has a visible/adjacent definition"],
+    failRequires: ["unexplained jargon/technical terms are visible with no definition in sight"],
+    ruleId: "ai-unusual-words",
+    description: "Unusual words or jargon are used without a definition",
+    recommendation: "Provide a definition (inline, glossary link, or adjacent explanation) for each unusual term.",
+    help: "Unusual words and jargon must be defined",
+    source: SOURCE("unusual-words"),
+    notes: "drafted 2026-08-20",
+  }),
+  "3.1.4": cfg("3.1.4", "3.1.4.1", "vision", {
+    instruction: "Abbreviations have their expanded form available.",
+    whatToLookFor: ["abbreviations or acronyms in the visible text"],
+    passRequires: ["no abbreviations are visible, or each is expanded inline or via a definition"],
+    failRequires: ["an unexplained abbreviation/acronym is visible with no expansion"],
+    ruleId: "ai-abbreviations",
+    description: "An abbreviation is used without its expanded form",
+    recommendation: "Expand the abbreviation on first use or link it to a definition.",
+    help: "Abbreviations must be expanded",
+    source: SOURCE("abbreviations"),
+    notes: "drafted 2026-08-20",
+  }),
+  // ---- vision (MIXED ai instructions) ----
+  "1.4.1": cfg("1.4.1", "1.4.1.2", "vision", {
+    instruction: "Colour is not the only means of conveying information.",
+    whatToLookFor: ["information distinguished only by colour (e.g. required fields in red, links distinguished only by colour)"],
+    passRequires: ["colour differences are accompanied by a non-colour cue (underline, icon, text, pattern)"],
+    failRequires: ["information is conveyed by colour alone with no non-colour cue"],
+    ruleId: "ai-use-of-color",
+    description: "Colour is used as the only way to convey information",
+    recommendation: "Add a non-colour cue (underline, icon, label, or pattern) wherever colour carries meaning.",
+    help: "Colour must not be the only means of conveying information",
+    source: SOURCE("use-of-color"),
+    notes: "drafted 2026-08-20",
+  }),
+  "2.4.4": cfg("2.4.4", "2.4.4.2", "vision", {
+    instruction: "Each link's purpose is clear from its text in context.",
+    whatToLookFor: ["links whose purpose is unclear even with surrounding context"],
+    passRequires: ["every link's purpose is clear from its text plus surrounding context"],
+    failRequires: ["a link's purpose is unclear from its text and context"],
+    ruleId: "ai-link-purpose-context",
+    description: "A link's purpose is not clear from its context",
+    recommendation: "Clarify the link text or add surrounding context so the destination is unambiguous.",
+    help: "Link purpose must be clear in context",
+    source: SOURCE("link-purpose-in-context"),
+    notes: "drafted 2026-08-20",
+  }),
+  "2.4.6": cfg("2.4.6", "2.4.6.2", "vision", {
+    instruction: "Headings and labels are descriptive.",
+    whatToLookFor: ["headings/labels that are generic or misleading for their content"],
+    passRequires: ["visible headings and labels clearly describe their topic/purpose"],
+    failRequires: ["a heading or label is clearly non-descriptive (e.g. \"More\" for unrelated sections)"],
+    ruleId: "ai-descriptive-headings",
+    description: "A heading or label does not describe its content",
+    recommendation: "Rewrite the heading or label to describe the content it introduces.",
+    help: "Headings and labels must be descriptive",
+    source: SOURCE("headings-and-labels"),
+    notes: "drafted 2026-08-20",
+  }),
+  // ---- vision, NOT judgeable from screenshot (force needs-review) ----
+  "1.3.2": cfg("1.3.2", "1.3.2.1", "vision", {
+    instruction: "Content reads in a meaningful sequence when linearised.",
+    whatToLookFor: [],
+    passRequires: [],
+    failRequires: [],
+    ruleId: "ai-meaningful-sequence",
+    description: "Content order may not follow a meaningful sequence",
+    recommendation: "Review the DOM/source order so it matches the visual reading order.",
+    help: "Content must read in a meaningful order",
+    source: SOURCE("meaningful-sequence"),
+    notes: "not screenshot-judgeable — needs DOM order",
+  }),
+  "1.3.6": cfg("1.3.6", "1.3.6.1", "vision", {
+    instruction: "The purpose of icons, regions, and controls is programmatically identifiable.",
+    whatToLookFor: [],
+    passRequires: [],
+    failRequires: [],
+    ruleId: "ai-identify-purpose",
+    description: "Icon/region purpose may not be programmatically identifiable",
+    recommendation: "Expose the purpose via accessible name/role/landmarks.",
+    help: "Purpose must be programmatically identifiable",
+    source: SOURCE("identify-purpose"),
+    notes: "not screenshot-judgeable — needs programmatic inspection",
+  }),
+  "1.4.13": cfg("1.4.13", "1.4.13.1", "vision", {
+    instruction: "Content on hover or focus is dismissible, hoverable, and persistent.",
+    whatToLookFor: [],
+    passRequires: [],
+    failRequires: [],
+    ruleId: "ai-content-on-hover-focus",
+    description: "Hover/focus-revealed content may obscure or trap",
+    recommendation: "Ensure popovers can be dismissed, hovered, and persist while relevant.",
+    help: "Hover/focus content must be dismissible and persistent",
+    source: SOURCE("content-on-hover-or-focus"),
+    notes: "not screenshot-judgeable — needs focus/hover states",
+  }),
+  "2.3.3": cfg("2.3.3", "2.3.3.1", "vision", {
+    instruction: "Motion triggered by interaction can be disabled.",
+    whatToLookFor: [],
+    passRequires: [],
+    failRequires: [],
+    ruleId: "ai-animation-from-interactions",
+    description: "Interaction-triggered animation may not be preventable",
+    recommendation: "Provide a reduced-motion setting or a control to disable non-essential motion.",
+    help: "Interaction-triggered motion must be preventable",
+    source: SOURCE("animation-from-interactions"),
+    notes: "not screenshot-judgeable — needs interaction",
+  }),
+  "3.1.5": cfg("3.1.5", "3.1.5.1", "vision", {
+    instruction: "Text is written at a reading level appropriate for the audience.",
+    whatToLookFor: [],
+    passRequires: [],
+    failRequires: [],
+    ruleId: "ai-reading-level",
+    description: "Text may be more complex than the audience's reading level",
+    recommendation: "Provide a plain-language summary or simplify the prose.",
+    help: "Text should match the audience's reading level",
+    source: SOURCE("reading-level"),
+    notes: "not screenshot-judgeable — needs full-text extraction",
+  }),
+  "3.3.1": cfg("3.3.1", "3.3.1.1", "vision", {
+    instruction: "Input errors are identified in text and described to the user.",
+    whatToLookFor: [],
+    passRequires: [],
+    failRequires: [],
+    ruleId: "ai-error-identification",
+    description: "Input errors may not be identified in text",
+    recommendation: "Show a text error message next to each invalid field.",
+    help: "Errors must be identified and described",
+    source: SOURCE("error-identification"),
+    notes: "not screenshot-judgeable — needs an error state",
+  }),
+  "3.3.3": cfg("3.3.3", "3.3.3.1", "vision", {
+    instruction: "Error messages include a suggestion for how to fix the problem.",
+    whatToLookFor: [],
+    passRequires: [],
+    failRequires: [],
+    ruleId: "ai-error-suggestion",
+    description: "Error messages may not suggest how to correct the error",
+    recommendation: "Include a corrective suggestion in each error message.",
+    help: "Error messages must suggest a fix",
+    source: SOURCE("error-suggestion"),
+    notes: "not screenshot-judgeable — needs an error state",
+  }),
+  "1.1.1": cfg("1.1.1", "1.1.1.2", "vision", {
+    instruction: "Alternative text is meaningful (not just a filename or placeholder).",
+    whatToLookFor: [],
+    passRequires: [],
+    failRequires: [],
+    ruleId: "ai-meaningful-alt",
+    description: "Alternative text may not meaningfully describe the image",
+    recommendation: "Ensure the alt text describes the image's content and function.",
+    help: "Alternative text must be meaningful",
+    source: SOURCE("non-text-content"),
+    notes: "not screenshot-judgeable — needs the alt attribute",
+  }),
+  // ---- audio (judged from media, gated on media presence) ----
+  "1.2.1": cfg("1.2.1", "1.2.1.2", "audio", {
+    instruction: "A transcript conveys the same information as the audio/video.",
+    whatToLookFor: ["a linked or adjacent text transcript for the media"],
+    passRequires: ["a transcript is present and conveys the media's information"],
+    failRequires: ["media is present with no transcript, or the transcript omits key information"],
+    ruleId: "ai-media-transcript",
+    description: "Audio/video has no equivalent text transcript",
+    recommendation: "Provide a text transcript that conveys the full audio/video content.",
+    help: "Audio/video must have a text transcript",
+    source: SOURCE("audio-only-and-video-only-prerecorded"),
+    notes: "drafted 2026-08-20",
+  }),
+  "1.2.2": cfg("1.2.2", "1.2.2.2", "audio", {
+    instruction: "Captions are accurate and synchronised with the spoken audio.",
+    whatToLookFor: ["captions that match the spoken content and timing"],
+    passRequires: ["captions are present, accurate, and synchronised"],
+    failRequires: ["captions are missing, inaccurate, or out of sync"],
+    ruleId: "ai-captions-accurate",
+    description: "Captions are missing or inaccurate",
+    recommendation: "Provide accurate, synchronised captions for all spoken audio.",
+    help: "Captions must be accurate and synchronised",
+    source: SOURCE("captions-prerecorded"),
+    notes: "drafted 2026-08-20",
+  }),
+  "1.2.3": cfg("1.2.3", "1.2.3.1", "audio", {
+    instruction: "An audio description or text alternative conveys the visual information.",
+    whatToLookFor: ["an audio description track or a descriptive transcript for the video"],
+    passRequires: ["visual information is conveyed via audio description or a text alternative"],
+    failRequires: ["video has no audio description and visual info is not otherwise conveyed"],
+    ruleId: "ai-audio-description",
+    description: "Video lacks an audio description or text alternative",
+    recommendation: "Add an audio description or a descriptive transcript for the visual content.",
+    help: "Video must have an audio description or text alternative",
+    source: SOURCE("audio-description-or-media-alternative-prerecorded"),
+    notes: "drafted 2026-08-20",
+  }),
+  "1.2.5": cfg("1.2.5", "1.2.5.1", "audio", {
+    instruction: "An audio description describes the important visual content.",
+    whatToLookFor: ["an audio description track describing visual scenes/actions"],
+    passRequires: ["an audio description conveys the important visual content"],
+    failRequires: ["important visual content is not described"],
+    ruleId: "ai-audio-description-prerecorded",
+    description: "Video lacks an audio description of important visual content",
+    recommendation: "Provide an audio description for the important visual content.",
+    help: "Video must have an audio description",
+    source: SOURCE("audio-description-prerecorded"),
+    notes: "drafted 2026-08-20",
+  }),
+  "1.2.6": cfg("1.2.6", "1.2.6.1", "audio", {
+    instruction: "Sign-language interpretation is provided.",
+    whatToLookFor: ["a sign-language video or track"],
+    passRequires: ["sign-language interpretation is provided for the audio content"],
+    failRequires: ["no sign-language interpretation is present"],
+    ruleId: "ai-sign-language",
+    description: "Sign-language interpretation is not provided",
+    recommendation: "Provide a sign-language interpretation of the audio content.",
+    help: "Sign-language interpretation must be provided",
+    source: SOURCE("sign-language-prerecorded"),
+    notes: "drafted 2026-08-20",
+  }),
+  "1.2.7": cfg("1.2.7", "1.2.7.1", "audio", {
+    instruction: "Extended audio description conveys all visual detail.",
+    whatToLookFor: ["an extended audio description track"],
+    passRequires: ["all visual detail is conveyed via extended audio description"],
+    failRequires: ["visual detail is omitted from the audio description"],
+    ruleId: "ai-extended-audio-description",
+    description: "Visual detail is not fully described",
+    recommendation: "Provide an extended audio description conveying all visual detail.",
+    help: "Extended audio description must convey all visual detail",
+    source: SOURCE("extended-audio-description-prerecorded"),
+    notes: "drafted 2026-08-20",
+  }),
+  "1.4.7": cfg("1.4.7", "1.4.7.1", "audio", {
+    instruction: "Background audio is absent, can be turned off, or is 20dB below foreground speech.",
+    whatToLookFor: ["background music/sounds during speech"],
+    passRequires: ["no background audio, or it is clearly low/controllable"],
+    failRequires: ["background audio clearly interferes with the foreground speech"],
+    ruleId: "ai-low-background-audio",
+    description: "Background audio interferes with foreground speech",
+    recommendation: "Remove or lower background audio (or provide a control to turn it off).",
+    help: "Background audio must not interfere with speech",
+    source: SOURCE("low-or-no-background-audio"),
+    notes: "drafted 2026-08-20",
+  }),
+};
+
+export function getDefaultAiConfig(sc: string): ScAiConfig | undefined {
+  return DEFAULT_AI_CONFIGS[sc];
+}
