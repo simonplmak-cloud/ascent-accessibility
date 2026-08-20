@@ -46,3 +46,37 @@ export async function createCheckoutSession(
   }
   return { clientSecret: session.client_secret };
 }
+
+// Whole-website scan subscription checkout (embedded Payment Element). The
+// session carries the account id in `client_reference_id` and the resulting
+// subscription's metadata so the webhook can resolve entitlement.
+export async function createSiteSubscriptionCheckout(
+  userId: string,
+  stripe: Stripe = createStripe(),
+): Promise<{ clientSecret: string }> {
+  const siteUrl = getSiteUrl();
+  const priceUsd = Number(process.env.STRIPE_SITE_PRICE_USD ?? 28);
+  const session = await stripe.checkout.sessions.create({
+    mode: "subscription",
+    ui_mode: "elements",
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: { name: "Whole-website scan subscription" },
+          unit_amount: Math.round(priceUsd * 100),
+          recurring: { interval: "month" },
+        },
+        quantity: 1,
+      },
+    ],
+    client_reference_id: userId,
+    subscription_data: { metadata: { userId } },
+    return_url: `${siteUrl}/account?session_id={CHECKOUT_SESSION_ID}`,
+  });
+
+  if (!session.client_secret) {
+    throw new Error("Stripe did not return a client secret");
+  }
+  return { clientSecret: session.client_secret };
+}
