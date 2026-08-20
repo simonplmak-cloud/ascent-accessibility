@@ -5,7 +5,7 @@ import { assessmentRepository, evidenceRepository } from "@/db/repository";
 import { createPageScanner, warmBrowserPool } from "@/server/scanner-factory";
 import { runSiteAudit } from "@/lib/comparison/site-audit";
 import { createAudioModel, createVisionModel } from "@/lib/ai-review/factory";
-import { DEFAULT_AUDIO_MODEL, DEFAULT_VISION_MODEL } from "@/lib/ai-review/providers";
+import { DEFAULT_AUDIO_MODEL, DEFAULT_VISION_MODEL, getProvider } from "@/lib/ai-review/providers";
 import { resolveOwnerAi } from "@/server/byok";
 import { logger } from "@/lib/observability/logger";
 
@@ -48,8 +48,11 @@ async function processQueued() {
           resolveByokModel: async (ownerId) => {
             const owner = await resolveOwnerAi(ownerId);
             if (!owner) return null;
-            const visionModelId = owner.visionModelId ?? DEFAULT_VISION_MODEL;
-            const audioModelId = owner.audioModelId ?? DEFAULT_AUDIO_MODEL;
+            const provider = getProvider(owner.providerId);
+            const visionModelId =
+              owner.visionModelId ?? provider?.visionModels[0]?.id ?? DEFAULT_VISION_MODEL;
+            const audioModelId =
+              owner.audioModelId ?? provider?.audioModels[0]?.id ?? DEFAULT_AUDIO_MODEL;
             const modelReq = {
               providerId: owner.providerId,
               apiKey: owner.apiKey,

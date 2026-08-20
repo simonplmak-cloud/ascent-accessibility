@@ -1,12 +1,14 @@
 import { expect, test } from "@playwright/test";
 import { createMailtmInbox, extractLink, waitForMessage } from "./helpers/mailtm";
 
-// BYOK AI-review profile flow against the live domain: save an OpenRouter key,
-// pick a Qwen vision model, run an assessment, and assert AI review produced
-// verdicts. Gated on E2E_AI_KEY (the agent's OpenRouter key) + E2E_LIVE + E2E_RESEND.
+// BYOK AI-review profile flow against the live domain: save a key, pick a
+// vision model, run an assessment, and assert AI review produced verdicts.
+// Gated on E2E_AI_KEY + E2E_LIVE + E2E_RESEND. Provider/model are env-tunable.
 const live = !!process.env.E2E_LIVE;
 const resend = !!process.env.E2E_RESEND;
 const aiKey = process.env.E2E_AI_KEY;
+const provider = process.env.E2E_AI_PROVIDER ?? "dashscope";
+const model = process.env.E2E_AI_MODEL ?? "qwen-vl-plus";
 
 test.skip(!live || !resend || !aiKey, "requires E2E_LIVE, E2E_RESEND, E2E_AI_KEY");
 
@@ -23,7 +25,7 @@ test("saves a key + model and AI review resolves Cannot tell (BYOK)", async ({ p
   await signIn(page);
 
   const save = await page.request.post("/api/account/ai-key", {
-    data: { apiKey: aiKey, provider: "openrouter" },
+    data: { apiKey: aiKey, provider },
   });
   expect(save.status()).toBe(200);
   const saved = (await save.json()) as { set: boolean; masked: string };
@@ -31,7 +33,7 @@ test("saves a key + model and AI review resolves Cannot tell (BYOK)", async ({ p
   expect(saved.masked).toContain("••••");
 
   const models = await page.request.put("/api/account/models", {
-    data: { provider: "openrouter", visionModel: "qwen/qwen2.5-vl-72b-instruct" },
+    data: { provider, visionModel: model },
   });
   expect(models.status()).toBe(200);
 
@@ -56,6 +58,6 @@ test("saves a key + model and AI review resolves Cannot tell (BYOK)", async ({ p
     comparison?: { ai?: { provider: string; model: string } };
   };
   expect(final.comparison?.ai).toBeTruthy();
-  expect(final.comparison!.ai!.provider).toBe("openrouter");
+  expect(final.comparison!.ai!.provider).toBe(provider);
   expect(final.comparison!.ai!.model).toContain("qwen");
 });
