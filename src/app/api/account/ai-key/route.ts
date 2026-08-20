@@ -38,10 +38,19 @@ export async function POST(req: Request) {
   }
 
   const encrypted = encryptKey(apiKey);
-  await query(
-    "UPDATE user SET aiApiKey = $enc, aiProvider = $provider, aiBaseUrl = $baseUrl WHERE id = type::record($id)",
-    { enc: JSON.stringify(encrypted), provider: providerId, baseUrl: baseUrl ?? null, id: user.id },
-  );
+  const sets = ["aiApiKey = $enc", "aiProvider = $provider"];
+  const bindings: Record<string, unknown> = {
+    enc: JSON.stringify(encrypted),
+    provider: providerId,
+    id: user.id,
+  };
+  if (baseUrl) {
+    sets.push("aiBaseUrl = $baseUrl");
+    bindings.baseUrl = baseUrl;
+  } else {
+    sets.push("aiBaseUrl = NONE");
+  }
+  await query(`UPDATE user SET ${sets.join(", ")} WHERE id = type::record($id)`, bindings);
   return NextResponse.json({ set: true, masked: maskKey(apiKey), provider: providerId });
 }
 

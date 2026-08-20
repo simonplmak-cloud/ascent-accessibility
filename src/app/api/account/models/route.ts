@@ -63,9 +63,26 @@ export async function PUT(req: Request) {
     }
   }
 
-  await query(
-    "UPDATE user SET aiProvider = $provider, aiBaseUrl = $baseUrl, aiVisionModel = $visionModel, aiAudioModel = $audioModel WHERE id = type::record($id)",
-    { provider: providerId, baseUrl, visionModel, audioModel, id: user.id },
-  );
+  const sets = ["aiProvider = $provider"];
+  const bindings: Record<string, unknown> = { provider: providerId, id: user.id };
+  if (baseUrl) {
+    sets.push("aiBaseUrl = $baseUrl");
+    bindings.baseUrl = baseUrl;
+  } else {
+    sets.push("aiBaseUrl = NONE");
+  }
+  if (visionModel) {
+    sets.push("aiVisionModel = $visionModel");
+    bindings.visionModel = visionModel;
+  } else {
+    sets.push("aiVisionModel = NONE");
+  }
+  if (audioModel) {
+    sets.push("aiAudioModel = $audioModel");
+    bindings.audioModel = audioModel;
+  } else {
+    sets.push("aiAudioModel = NONE");
+  }
+  await query(`UPDATE user SET ${sets.join(", ")} WHERE id = type::record($id)`, bindings);
   return NextResponse.json({ provider: providerId, baseUrl, visionModel, audioModel });
 }
