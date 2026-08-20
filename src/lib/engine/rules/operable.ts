@@ -129,6 +129,11 @@ export const operableRules: Rule[] = [
             if (/:focus-visible/.test(sel)) hasFocusVisibleAlt = true;
             if (!/:focus(?![-\w])/.test(sel)) continue;
 
+            // [tabindex="-1"] targets are focused programmatically (skip-link
+            // destinations, JS-managed containers) — a suppressed outline here
+            // is intentional and does not indicate a missing focus indicator.
+            if (/\[tabindex\s*=\s*["']?-1["']?\]/i.test(sel)) continue;
+
             const s = css.style as CSSStyleDeclaration;
             const outline = s.outline || "";
             const outlineStyle = s.outlineStyle || "";

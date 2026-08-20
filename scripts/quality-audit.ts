@@ -4,13 +4,16 @@
 
 const BASE = process.env.AUDIT_BASE_URL ?? "https://accessibility.ascent.partners";
 
-const SITES = [
+const DEFAULT_SITES = [
   "https://example.com",
   "https://www.ascent.partners",
   "https://dialogue-experience.hk",
   "https://www.a11yproject.com",
   "https://www.gov.hk",
 ];
+
+const SITES = (process.env.AUDIT_SITES ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+const AUDIT_SCOPE = process.env.AUDIT_SCOPE ?? "site";
 
 interface MailtmInbox {
   address: string;
@@ -79,7 +82,7 @@ async function submitAssessment(cookie: string, url: string, pageCap?: number): 
   const res = await fetch(`${BASE}/api/v1/assessments`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Cookie: cookie },
-    body: JSON.stringify({ url, standard: "wcag22aa", scope: "site", ...(pageCap ? { pageCap } : {}) }),
+    body: JSON.stringify({ url, standard: "wcag22aa", scope: AUDIT_SCOPE, ...(pageCap ? { pageCap } : {}) }),
   });
   const body = (await res.json()) as { id?: string; code?: string };
   if (res.status !== 202 || !body.id) {
@@ -106,6 +109,7 @@ async function poll(id: string, timeoutMs = 600_000) {
 }
 
 async function main() {
+  const sites = SITES.length > 0 ? SITES : DEFAULT_SITES;
   // Sequential (one crawl at a time) to avoid overwhelming the co-located
   // Browserless. Two accounts because the site-scope daily limit is 3/account.
   const cookieA = await signIn();
@@ -113,11 +117,11 @@ async function main() {
   const cookieB = await signIn();
   console.log("account B signed in");
 
-  for (let i = 0; i < SITES.length; i++) {
+  for (let i = 0; i < sites.length; i++) {
     const cookie = i < 3 ? cookieA : cookieB;
-    const url = SITES[i]!;
+    const url = sites[i]!;
     // gov.hk is huge — cap the crawl so it finishes in reasonable time.
-    const pageCap = url.includes("gov.hk") ? 10 : undefined;
+    const pageCap = AUDIT_SCOPE === "site" && url.includes("gov.hk") ? 10 : undefined;
     console.log(`\n>>> submitting ${url} ...`);
     const id = await submitAssessment(cookie, url, pageCap);
     const status = await poll(id);
