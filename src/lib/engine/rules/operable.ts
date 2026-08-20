@@ -96,24 +96,14 @@ export const operableRules: Rule[] = [
     id: "focus-visible",
     description: "Ensures keyboard focus is visibly indicated",
     help: "Keyboard focus must be visibly indicated",
-    impact: "serious",
+    impact: "moderate",
     tags: ["wcag2aa", "wcag247"],
     wcagSc: ["2.4.7"],
     matcher: null,
     extract: () => {
       let suppressed = false;
       let hasFocusVisibleAlt = false;
-      // Alternative visible indicators that satisfy 2.4.7 when the outline is
-      // removed (e.g. a box-shadow "focus ring").
-      const altProps = [
-        "boxShadow",
-        "border",
-        "borderColor",
-        "borderWidth",
-        "backgroundColor",
-        "textDecoration",
-        "textDecorationLine",
-      ] as const;
+      let hasVisibleIndicator = false;
       try {
         for (const sheet of Array.from(document.styleSheets)) {
           let rules: CSSRuleList | null;
@@ -125,7 +115,24 @@ export const operableRules: Rule[] = [
           for (const rule of Array.from(rules ?? [])) {
             const css = rule as CSSStyleRule;
             const sel = css.selectorText;
-            if (!sel) continue;
+            if (!sel || !/:focus/.test(sel)) continue;
+
+            const s = css.style as CSSStyleDeclaration;
+            const outlineStyle = s.outlineStyle || "";
+            const outlineWidth = s.outlineWidth || "";
+            const boxShadow = s.boxShadow || "";
+            const border = s.border || "";
+            // A visible indicator on ANY focus rule means the site does style
+            // focus — so an outline suppression elsewhere isn't a blanket fail.
+            if (
+              (outlineStyle !== "" && outlineStyle !== "none" && outlineStyle !== "hidden" &&
+                outlineWidth !== "0" && outlineWidth !== "0px") ||
+              (boxShadow !== "" && boxShadow !== "none" && boxShadow !== "0") ||
+              (border !== "" && border !== "none" && border !== "0")
+            ) {
+              hasVisibleIndicator = true;
+            }
+
             if (/:focus-visible/.test(sel)) hasFocusVisibleAlt = true;
             if (!/:focus(?![-\w])/.test(sel)) continue;
 
@@ -133,11 +140,10 @@ export const operableRules: Rule[] = [
             // destinations, JS-managed containers) — a suppressed outline here
             // is intentional and does not indicate a missing focus indicator.
             if (/\[tabindex\s*=\s*["']?-1["']?\]/i.test(sel)) continue;
+            // Skip links reveal themselves on focus, which is its own indicator.
+            if (/skip/i.test(sel)) continue;
 
-            const s = css.style as CSSStyleDeclaration;
             const outline = s.outline || "";
-            const outlineStyle = s.outlineStyle || "";
-            const outlineWidth = s.outlineWidth || "";
             const outlineSuppressed =
               outline === "none" ||
               outline === "0" ||
@@ -147,16 +153,16 @@ export const operableRules: Rule[] = [
               outlineWidth === "0px";
             if (!outlineSuppressed) continue;
 
-            const hasAlt = altProps.some((p) => {
+            const hasAlt = (["boxShadow", "border", "backgroundColor"] as const).some((p) => {
               const v = s[p] || "";
               return v !== "" && v !== "none" && v !== "0" && v !== "transparent";
             });
             if (!hasAlt) suppressed = true;
           }
         }
-        return { suppressed, hasFocusVisibleAlt };
+        return { suppressed, hasFocusVisibleAlt, hasVisibleIndicator };
       } catch {
-        return { suppressed: null, hasFocusVisibleAlt: null };
+        return { suppressed: null, hasFocusVisibleAlt: null, hasVisibleIndicator: null };
       }
     },
     checks: [
@@ -164,8 +170,8 @@ export const operableRules: Rule[] = [
         id: "focus-indicator",
         evaluate: (f) => {
           if (f.suppressed === null) return { result: "incomplete", failureSummary: "could not inspect stylesheets" };
-          if (f.suppressed && !f.hasFocusVisibleAlt) {
-            return { result: "fail", failureSummary: "focus outline suppressed without a :focus-visible alternative" };
+          if (f.suppressed && !f.hasFocusVisibleAlt && !f.hasVisibleIndicator) {
+            return { result: "fail", failureSummary: "focus outline suppressed with no visible focus indicator" };
           }
           return { result: "pass" };
         },
