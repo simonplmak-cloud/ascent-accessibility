@@ -3,6 +3,7 @@ import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS, issueSession } from "@/lib/aut
 import { linkOrCreateOAuth } from "@/lib/auth/identity";
 import { providers, verifyOauthState, type OAuthIdentity } from "@/lib/auth/oauth";
 import { logger } from "@/lib/observability/logger";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function GET(
   req: Request,
@@ -10,7 +11,7 @@ export async function GET(
 ) {
   const { provider: providerId } = await params;
   const provider = providers[providerId];
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl = getSiteUrl();
   const failUrl = `${siteUrl}/sign-in?error=oauth`;
 
   if (!provider) {

@@ -5,14 +5,12 @@ import { SiteFooter } from "@/components/site-footer";
 import { CookieBanner } from "@/components/cookie-banner";
 import { getSessionUser } from "@/server/auth";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
+import { SITE_URL } from "@/lib/site-url";
 
 // Runs before first paint to apply the stored theme and avoid a flash of the
 // wrong theme. The server renders `<html class="dark">` (dark default); this
 // removes the class when the user chose light.
 const THEME_INIT_SCRIPT = `(function(){try{if(localStorage.getItem("${THEME_STORAGE_KEY}")==="light"){document.documentElement.classList.remove("dark");}}catch(e){}})();`;
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://wcag-score.ascent.partners";
 
 const SITE_TITLE = "Ascent Accessibility — Free WCAG Assessment by Ascent Partners Foundation";
 const SITE_DESCRIPTION =

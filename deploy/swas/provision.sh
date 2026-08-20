@@ -18,7 +18,7 @@
 #
 # Example (run on the new box as root):
 #   ssh root@<IP>
-#   git clone https://github.com/simonplmak-cloud/wcag-score.git /tmp/wcag-score
+#   git clone https://github.com/simonplmak-cloud/ascent-accessibility.git /tmp/wcag-score
 #   cd /tmp/wcag-score && \
 #     SURREAL_URL=... SURREAL_USERNAME=... SURREAL_PASSWORD=... GITHUB_TOKEN=... \
 #     deploy/swas/provision.sh
@@ -27,7 +27,7 @@
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/wcag-score}"
-REPO="${REPO:-https://github.com/simonplmak-cloud/wcag-score.git}"
+REPO="${REPO:-https://github.com/simonplmak-cloud/ascent-accessibility.git}"
 NODE_MAJOR="${NODE_MAJOR:-20}"
 PNPM_VERSION="${PNPM_VERSION:-10}"
 

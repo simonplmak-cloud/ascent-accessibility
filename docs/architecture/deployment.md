@@ -2,7 +2,7 @@
 
 ## Vercel (web + API)
 
-- Auto-deploys from GitHub `main` (push = deploy). Custom domain `wcag-score.ascent.partners`.
+- Auto-deploys from GitHub `main` (push = deploy). Custom domain `accessibility.ascent.partners`.
 - `next.config.mjs` sets `serverExternalPackages` for `playwright`, `playwright-core`, `axe-core`,
   `surrealdb` (and, via the dependency, `accessibility-checker`).
 - **No background work** — the API only enqueues; the worker does the crawl/scan.

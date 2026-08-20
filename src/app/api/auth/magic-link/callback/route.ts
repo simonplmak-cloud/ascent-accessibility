@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS, issueSession } from "@/lib/auth/session";
 import { consumeMagicLink } from "@/lib/auth/identity";
 import { logger } from "@/lib/observability/logger";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function GET(req: Request) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl = getSiteUrl();
   const url = new URL(req.url);
   const token = url.searchParams.get("token");
   const rawNext = url.searchParams.get("next");

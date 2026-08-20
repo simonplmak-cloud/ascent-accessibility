@@ -1,6 +1,8 @@
+import { getSiteUrl } from "@/lib/site-url";
+
 export async function sendMagicLinkEmail(email: string, token: string, next = "/site"): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl = getSiteUrl();
   const link = `${siteUrl}/api/auth/magic-link/callback?token=${token}&next=${encodeURIComponent(next)}`;
   const from = process.env.RESEND_FROM ?? "Ascent Accessibility <onboarding@resend.dev>";
 

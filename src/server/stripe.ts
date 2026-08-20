@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { getSiteUrl } from "@/lib/site-url";
 
 // Graceful client — returns null when STRIPE_SECRET_KEY is absent so callers can
 // degrade instead of throwing.
@@ -21,7 +22,7 @@ export async function createCheckoutSession(
   stripe: Stripe = createStripe(),
   recurring = false,
 ): Promise<{ clientSecret: string }> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl = getSiteUrl();
   const session = await stripe.checkout.sessions.create({
     mode: recurring ? "subscription" : "payment",
     ui_mode: "elements",

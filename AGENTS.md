@@ -47,7 +47,7 @@ Verification order: `check` → `test` → `build`. Run a single test with `npx 
 - Env: `WORKER_POLL_INTERVAL_MS`, `WORKER_BATCH_SIZE`, `WORKER_SCAN_CONCURRENCY` (SWAS `.env` and `fly.toml` both set 2; code default 5), `WORKER_ASSESSMENT_CONCURRENCY`, `WORKER_STALE_RUNNING_MINUTES`, `WORKER_PAGE_TIMEOUT_MS`, `WORKER_BROWSER_POOL_SIZE`.
 
 ### Deployment
-- **Vercel** auto-deploys from GitHub `main` (push = deploy). Custom domain `wcag-score.ascent.partners`.
+- **Vercel** auto-deploys from GitHub `main` (push = deploy). Custom domain `accessibility.ascent.partners`.
 - **Worker + Browserless (SWAS HK)** — the worker and a co-located Browserless run on one Alibaba Cloud Simple Application Server (HK, `wcag-workforce.ascent-partners.com`), managed by systemd. Code + units live in `deploy/swas/`:
   - **Update** (already-provisioned box): SSH in, `git pull` + `pnpm worker:build` + `systemctl restart wcag-score-worker` (`deploy/swas/deploy.sh`).
   - **Fresh box from GitHub**: `deploy/swas/provision.sh` (installs node/pnpm/docker, clones, builds, generates a `BROWSERLESS_TOKEN`, writes `.env`, installs both systemd units, pulls the image, starts). Only the secrets are inputs (env vars — never committed).

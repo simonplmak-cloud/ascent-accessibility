@@ -67,7 +67,7 @@ secrets (passed as env vars — never committed):
 
 ```bash
 # on the new box, as root:
-git clone https://github.com/simonplmak-cloud/wcag-score.git /tmp/wcag-score
+git clone https://github.com/simonplmak-cloud/ascent-accessibility.git /tmp/wcag-score
 cd /tmp/wcag-score
 SURREAL_URL=... SURREAL_USERNAME=... SURREAL_PASSWORD=... GITHUB_TOKEN=... \
   deploy/swas/provision.sh

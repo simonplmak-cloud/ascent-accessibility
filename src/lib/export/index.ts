@@ -1,4 +1,5 @@
 import { BRANDING } from "@/lib/branding";
+import { getSiteUrl } from "@/lib/site-url";
 import { renderReportDocument } from "./report-document";
 import type { ExportFormat, ExportResult, PdfRenderer, ReportData } from "./types";
 
@@ -25,9 +26,7 @@ export type { SeverityCounts, SeverityGroup, AffectedSc } from "./report-data";
 
 async function fetchLogo(): Promise<Buffer | null> {
   try {
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ?? "https://wcag-score.ascent.partners";
-    const res = await fetch(`${siteUrl}${BRANDING.logoUrl}`);
+    const res = await fetch(`${getSiteUrl()}${BRANDING.logoUrl}`);
     if (!res.ok) return null;
     return Buffer.from(await res.arrayBuffer());
   } catch {
