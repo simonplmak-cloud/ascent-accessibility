@@ -79,7 +79,19 @@ export const renderingRules: Rule[] = [
     matcher: "button, [role='button'], a[href], input:not([type='hidden']), select, textarea",
     extract: (el) => {
       const rect = el.getBoundingClientRect();
-      return { width: rect.width, height: rect.height };
+      // WCAG 2.5.8 exempts targets in a sentence whose size is constrained by
+      // the line-height of surrounding text (inline text links).
+      let inline = false;
+      if (el.tagName === "A") {
+        const parent = el.parentElement;
+        if (parent) {
+          const own = (el.textContent || "").trim().length;
+          const parentText = (parent.textContent || "").trim().length;
+          const display = typeof getComputedStyle === "function" ? getComputedStyle(el).display : "";
+          inline = display === "inline" && parentText > own + 2;
+        }
+      }
+      return { width: rect.width, height: rect.height, inline };
     },
     checks: [
       {
@@ -88,6 +100,7 @@ export const renderingRules: Rule[] = [
           const w = f.width as number;
           const h = f.height as number;
           if (w === 0 || h === 0) return { result: "pass" };
+          if (f.inline) return { result: "pass" };
           if (w >= 24 && h >= 24) return { result: "pass" };
           return { result: "fail", failureSummary: `target is ${Math.round(w)}x${Math.round(h)}px (below 24x24)` };
         },

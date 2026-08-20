@@ -46,9 +46,9 @@ export function buildEngineSource(rules: Rule[]): string {
       (rule) =>
         `{id:${JSON.stringify(rule.id)},impact:${JSON.stringify(rule.impact)},description:${JSON.stringify(
           rule.description,
-        )},help:${JSON.stringify(rule.help)},tags:${JSON.stringify(rule.tags)},matcher:${JSON.stringify(
-          rule.matcher,
-        )},extract:${rule.extract.toString()},checks:[${rule.checks
+        )},help:${JSON.stringify(rule.help)},tags:${JSON.stringify(rule.tags)},wcagSc:${JSON.stringify(
+          rule.wcagSc,
+        )},matcher:${JSON.stringify(rule.matcher)},extract:${rule.extract.toString()},checks:[${rule.checks
           .map((c) => `{id:${JSON.stringify(c.id)},evaluate:${c.evaluate.toString()}}`)
           .join(",")}]}`,
     )
@@ -88,7 +88,7 @@ window.__apfEngine = {
         if (!allPass) fails.push(nodeData);
         else if (anyIncomplete) incs.push(nodeData);
       }
-      if (fails.length > 0) violations.push({ id: r.id, impact: r.impact, description: r.description, help: r.help, tags: r.tags, nodes: fails });
+      if (fails.length > 0) violations.push({ id: r.id, impact: r.impact, description: r.description, help: r.help, tags: r.tags, wcagSc: r.wcagSc, nodes: fails });
       else if (incs.length > 0) incomplete.push({ id: r.id, tags: r.tags, nodes: incs });
       else passes.push({ id: r.id, tags: r.tags });
     }

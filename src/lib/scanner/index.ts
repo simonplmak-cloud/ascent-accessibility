@@ -14,6 +14,7 @@ export interface ScanViolation {
   help: string;
   helpUrl: string;
   tags: string[];
+  wcagSc?: string[];
   nodes: ScanNode[];
   nodeCount: number;
 }
@@ -52,6 +53,7 @@ export interface RawViolation {
   help?: string;
   helpUrl?: string;
   tags?: string[];
+  wcagSc?: string[];
   nodes: RawNode[];
 }
 
@@ -120,6 +122,7 @@ export function mapViolations(raw: RawScanResult): ScanViolation[] {
     help: violation.help ?? "",
     helpUrl: violation.helpUrl ?? "",
     tags: violation.tags ?? [],
+    wcagSc: violation.wcagSc,
     nodes: (violation.nodes ?? []).map(mapNode),
     nodeCount: violation.nodes?.length ?? 0,
   }));

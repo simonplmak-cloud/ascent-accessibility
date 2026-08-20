@@ -52,7 +52,7 @@ function baseFinding(finding: ToolFinding): Finding {
     description: finding.message,
     pageUrl: finding.pageUrl,
     elementCount: finding.nodes.length,
-    recommendation: getRecommendation(finding.ruleId, finding.impact),
+    recommendation: getRecommendation(finding.ruleId, finding.impact, finding.help),
     help: finding.help,
     helpUrl: finding.helpUrl,
     wcagSc: finding.wcagSc,
@@ -71,7 +71,10 @@ export function violationsToFindings(
   violations: ScanViolation[],
 ): ToolFinding[] {
   return violations.map((violation) => {
-    const wcagSc = scsForTags(violation.tags);
+    const declared = violation.wcagSc ?? [];
+    const wcagSc = (declared.length > 0 ? declared : scsForTags(violation.tags)).filter(
+      (sc) => getSc(sc) !== undefined,
+    );
     const firstSc = wcagSc[0];
     return {
       tool: "engine",

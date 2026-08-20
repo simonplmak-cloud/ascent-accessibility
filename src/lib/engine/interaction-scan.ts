@@ -60,8 +60,15 @@ export async function runInteractionScan(page: Page): Promise<ScanViolation[]> {
         await page.keyboard.press("Tab");
         const cur = await page.evaluate(() => {
           const a = document.activeElement;
-          return a ? `${a.tagName}#${a.getAttribute("id") || ""}` : "none";
+          if (!a || a === document.body || a === document.documentElement) return "";
+          return `${a.tagName}#${a.getAttribute("id") || ""}`;
         });
+        // Focus escaping to <body>/chrome is NOT a trap — reset the run.
+        if (cur === "") {
+          same = 0;
+          prev = "";
+          continue;
+        }
         if (cur === prev) same += 1;
         else same = 0;
         prev = cur;
