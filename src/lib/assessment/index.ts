@@ -16,6 +16,7 @@ import {
 } from "@/lib/standards/sc-applicability";
 import type { Standard } from "@/lib/standards/catalog";
 import type { AiBudget, AiReview, VisionModel } from "@/lib/ai-review/types";
+import type { AudioModel } from "@/lib/ai-review/audio";
 import { evaluateStandard } from "@/lib/assessment/evaluate";
 import type { Finding, LogEntry, LogLevel, NewEvidence } from "@/db/schema";
 
@@ -32,7 +33,7 @@ export interface AssessmentRecord {
 export interface ComparisonData {
   audit?: SiteAuditReport;
   conformance: ConformanceResult;
-  ai?: { model: string; verdicts: AiReview[]; budget: AiBudget };
+  ai?: { provider: string; model: string; verdicts: AiReview[]; budget: AiBudget };
 }
 
 export interface AssessmentRepositoryPort {
@@ -83,6 +84,13 @@ export interface PageScanner {
   discard: () => Promise<void>;
 }
 
+export interface ResolvedAi {
+  provider: string;
+  visionModelId: string;
+  visionModel: VisionModel | null;
+  audioModel: AudioModel | null;
+}
+
 export interface AssessmentDeps {
   repository: AssessmentRepositoryPort;
   crawlSite: (seed: URL, options: CrawlOptions) => Promise<CrawlResult>;
@@ -90,8 +98,7 @@ export interface AssessmentDeps {
   resolveStandard: (id: string) => Standard | undefined;
   evidenceStore: EvidenceStorePort;
   siteAudit?: (url: string) => Promise<SiteAuditReport>;
-  visionModel?: VisionModel;
-  resolveByokModel?: (ownerId: string) => Promise<VisionModel | null>;
+  resolveByokModel?: (ownerId: string) => Promise<ResolvedAi | null>;
   concurrency?: number;
 }
 
@@ -101,6 +108,7 @@ interface ConsolidateOutput {
   features: PageFeatures;
   aiScreenshot: Buffer | null;
   incompleteContext: string[];
+  mediaUrls: string[];
   snapshotAt: string;
   pageSnapshots: Record<string, { html: string; screenshotEvidenceId: string | null }>;
 }
@@ -184,15 +192,13 @@ export async function runAssessment(
       `scan complete: ${output.findings.length} finding(s) across ${urls.length} page(s)`,
     );
 
-    // Per-assessment AI model: use the owner's BYOK key when present (else the
-    // platform model, else skip AI review).
-    let visionModel = deps.visionModel;
+    // AI model resolution — BYOK only (no platform key). No saved key → no AI.
+    let resolvedAi: ResolvedAi | null = null;
     if (deps.resolveByokModel && assessment.ownerId) {
       try {
-        const byok = await deps.resolveByokModel(assessment.ownerId);
-        if (byok) visionModel = byok;
+        resolvedAi = await deps.resolveByokModel(assessment.ownerId);
       } catch {
-        /* fall back to the platform model */
+        resolvedAi = null;
       }
     }
 
@@ -206,9 +212,11 @@ export async function runAssessment(
         pageUrl: seed.href,
       },
       {
-        visionModel,
+        visionModel: resolvedAi?.visionModel ?? undefined,
+        audioModel: resolvedAi?.audioModel ?? undefined,
         aiScreenshot: output.aiScreenshot,
         incompleteContext: output.incompleteContext,
+        mediaUrls: output.mediaUrls,
         aiEnabled: ENABLE_AI_REVIEW,
         threshold: Number(process.env.AI_REVIEW_CONFIDENCE_THRESHOLD ?? 0.8),
       },
@@ -231,8 +239,8 @@ export async function runAssessment(
     const comparison: ComparisonData = {
       conformance,
       ai:
-        ENABLE_AI_REVIEW && deps.visionModel
-          ? { model: AI_REVIEW_MODEL, verdicts: aiVerdicts, budget: aiBudget }
+        ENABLE_AI_REVIEW && resolvedAi?.visionModel
+          ? { provider: resolvedAi.provider, model: resolvedAi.visionModelId, verdicts: aiVerdicts, budget: aiBudget }
           : undefined,
     };
 
@@ -280,7 +288,6 @@ const PAGE_TIMEOUT_MS = Number(process.env.WORKER_PAGE_TIMEOUT_MS ?? 180_000);
 
 // Qwen-VL needs-review triage (off by default — adds a vision call per assessment).
 const ENABLE_AI_REVIEW = process.env.ENABLE_AI_REVIEW === "true";
-const AI_REVIEW_MODEL = process.env.AI_REVIEW_MODEL ?? "qwen3-vl-flash";
 
 class PageTimeoutError extends Error {
   constructor(label: string, ms: number) {
@@ -317,6 +324,8 @@ async function scanAndConsolidate(
   let features: PageFeatures = EMPTY_FEATURES;
   let aiScreenshot: Buffer | null = null;
   const incompleteContext: string[] = [];
+  const mediaUrls: string[] = [];
+  const seenMedia = new Set<string>();
   const snapshotAt = new Date().toISOString();
   const pageSnapshots: Record<string, { html: string; screenshotEvidenceId: string | null }> = {};
   const concurrency = Math.max(1, deps.concurrency ?? 4);
@@ -364,6 +373,12 @@ async function scanAndConsolidate(
                   for (const sc of scsForTags(pass.tags)) passedScs.add(sc);
                 }
                 features = mergeFeatures(features, scan.features);
+                for (const m of scan.mediaUrls) {
+                  if (!seenMedia.has(m)) {
+                    seenMedia.add(m);
+                    mediaUrls.push(m);
+                  }
+                }
 
                 const pageFindings = violationsToFindings(url, scan.violations);
                 await captureAndAttachEvidence(
@@ -446,6 +461,7 @@ async function scanAndConsolidate(
     features,
     aiScreenshot,
     incompleteContext,
+    mediaUrls,
     snapshotAt,
     pageSnapshots,
   };

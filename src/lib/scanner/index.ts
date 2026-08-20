@@ -31,6 +31,7 @@ export interface ScanResult {
   passes: RuleSummary[];
   incomplete: RuleSummary[];
   features: PageFeatures;
+  mediaUrls: string[];
 }
 
 export class ScanFailedError extends Error {
@@ -67,6 +68,7 @@ export interface RawScanResult {
   violations: RawViolation[];
   passes?: RawRule[];
   incomplete?: RawRule[];
+  mediaUrls?: string[];
 }
 
 export interface ScreenshotOptions {

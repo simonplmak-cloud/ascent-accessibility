@@ -14,7 +14,11 @@ DEFINE FIELD OVERWRITE reviewResults ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE snapshotAt ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE pageSnapshots ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE role ON user TYPE option<string> DEFAULT NONE;
-DEFINE FIELD OVERWRITE qwenApiKey ON user TYPE option<string>;`,
+DEFINE FIELD OVERWRITE aiApiKey ON user TYPE option<string>;
+DEFINE FIELD OVERWRITE aiProvider ON user TYPE option<string> DEFAULT "openrouter";
+DEFINE FIELD OVERWRITE aiBaseUrl ON user TYPE option<string>;
+DEFINE FIELD OVERWRITE aiVisionModel ON user TYPE option<string>;
+DEFINE FIELD OVERWRITE aiAudioModel ON user TYPE option<string>;`,
 ];
 
 async function main() {

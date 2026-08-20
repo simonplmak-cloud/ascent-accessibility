@@ -41,5 +41,6 @@ export async function runEngine(
     passes: (result.passes ?? []).map(mapRuleSummary),
     incomplete: (result.incomplete ?? []).map(mapRuleSummary),
     features: result.features,
+    mediaUrls: result.mediaUrls ?? [],
   };
 }

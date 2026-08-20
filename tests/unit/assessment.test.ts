@@ -95,6 +95,7 @@ const scanOk = async (url: string) => ({
     hasAnimatedContent: false, hasAutoplay: false, hasLiveContent: false, hasLinks: true,
     hasHeadings: true, hasLandmarks: true, hasLang: true, hasInteractive: true, hasTimeLimit: false,
   },
+  mediaUrls: [],
 });
 
 const emptyCrawl = async () => ({

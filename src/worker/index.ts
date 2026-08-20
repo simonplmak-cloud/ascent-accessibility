@@ -4,8 +4,9 @@ import { getStandard } from "@/lib/standards/catalog";
 import { assessmentRepository, evidenceRepository } from "@/db/repository";
 import { createPageScanner, warmBrowserPool } from "@/server/scanner-factory";
 import { runSiteAudit } from "@/lib/comparison/site-audit";
-import { QwenVisionClient } from "@/lib/ai-review/qwen";
-import { resolveOwnerApiKey } from "@/server/byok";
+import { createAudioModel, createVisionModel } from "@/lib/ai-review/factory";
+import { DEFAULT_AUDIO_MODEL, DEFAULT_VISION_MODEL } from "@/lib/ai-review/providers";
+import { resolveOwnerAi } from "@/server/byok";
 import { logger } from "@/lib/observability/logger";
 
 const POLL_INTERVAL_MS = Number(process.env.WORKER_POLL_INTERVAL_MS ?? 1000);
@@ -44,10 +45,22 @@ async function processQueued() {
             },
           },
           siteAudit: (url) => runSiteAudit(url),
-          visionModel: new QwenVisionClient(),
           resolveByokModel: async (ownerId) => {
-            const apiKey = await resolveOwnerApiKey(ownerId);
-            return apiKey ? new QwenVisionClient({ apiKey }) : null;
+            const owner = await resolveOwnerAi(ownerId);
+            if (!owner) return null;
+            const visionModelId = owner.visionModelId ?? DEFAULT_VISION_MODEL;
+            const audioModelId = owner.audioModelId ?? DEFAULT_AUDIO_MODEL;
+            const modelReq = {
+              providerId: owner.providerId,
+              apiKey: owner.apiKey,
+              baseUrl: owner.baseUrl ?? undefined,
+            };
+            return {
+              provider: owner.providerId,
+              visionModelId,
+              visionModel: createVisionModel({ ...modelReq, model: visionModelId }),
+              audioModel: createAudioModel({ ...modelReq, model: audioModelId }),
+            };
           },
           concurrency: SCAN_CONCURRENCY,
         });

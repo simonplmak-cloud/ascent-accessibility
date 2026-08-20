@@ -219,7 +219,11 @@ DEFINE INDEX subscription_user_idx ON subscription FIELDS userId UNIQUE;`,
   FOR create, update, delete NONE;
 DEFINE FIELD name ON user TYPE string;
 DEFINE FIELD role ON user TYPE option<string> DEFAULT NONE;
-DEFINE FIELD qwenApiKey ON user TYPE option<string>;
+DEFINE FIELD aiApiKey ON user TYPE option<string>;
+DEFINE FIELD aiProvider ON user TYPE option<string> DEFAULT "openrouter";
+DEFINE FIELD aiBaseUrl ON user TYPE option<string>;
+DEFINE FIELD aiVisionModel ON user TYPE option<string>;
+DEFINE FIELD aiAudioModel ON user TYPE option<string>;
 DEFINE FIELD createdAt ON user TYPE datetime DEFAULT time::now();`,
 
   `DEFINE TABLE user_email SCHEMAFULL PERMISSIONS

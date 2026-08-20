@@ -22,19 +22,25 @@ describe("byok (encrypt/decrypt/mask/validate)", () => {
   it("validateKey accepts a 200 response", async () => {
     const fakeFetch = (async () =>
       new Response("{}", { status: 200 })) as unknown as typeof fetch;
-    await expect(validateKey("k", fakeFetch)).resolves.toBe(true);
+    await expect(validateKey("openrouter", "sk-test", undefined, fakeFetch)).resolves.toBe(true);
   });
 
   it("validateKey rejects a 401 response", async () => {
     const fakeFetch = (async () =>
       new Response("{}", { status: 401 })) as unknown as typeof fetch;
-    await expect(validateKey("k", fakeFetch)).resolves.toBe(false);
+    await expect(validateKey("openrouter", "sk-test", undefined, fakeFetch)).resolves.toBe(false);
   });
 
   it("validateKey rejects a network error", async () => {
     const fakeFetch = (async () => {
       throw new Error("boom");
     }) as unknown as typeof fetch;
-    await expect(validateKey("k", fakeFetch)).resolves.toBe(false);
+    await expect(validateKey("openrouter", "sk-test", undefined, fakeFetch)).resolves.toBe(false);
+  });
+
+  it("validateKey rejects an unknown provider", async () => {
+    const fakeFetch = (async () =>
+      new Response("{}", { status: 200 })) as unknown as typeof fetch;
+    await expect(validateKey("nope", "sk-test", undefined, fakeFetch)).resolves.toBe(false);
   });
 });

@@ -5,6 +5,8 @@ import {
   randomBytes,
 } from "node:crypto";
 import { query } from "@/db";
+import { validateProviderKey } from "@/lib/ai-review/factory";
+import { DEFAULT_PROVIDER } from "@/lib/ai-review/providers";
 
 const ALGO = "aes-256-gcm";
 
@@ -46,37 +48,48 @@ export function maskKey(plaintext: string): string {
   return `••••${plaintext.slice(-4)}`;
 }
 
-// Cheap DashScope validation call (list models) using the supplied key.
+// Cheap, time-boxed validation call against the selected provider.
 export async function validateKey(
+  providerId: string,
   apiKey: string,
+  baseUrl?: string,
   fetchFn: typeof fetch = fetch,
 ): Promise<boolean> {
-  const baseUrl = (
-    process.env.QWEN_BASE_URL ?? "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-  ).replace(/\/$/, "");
-  try {
-    const res = await fetchFn(`${baseUrl}/models`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${apiKey}` },
-      signal: AbortSignal.timeout(10_000),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
+  return validateProviderKey(providerId, apiKey, baseUrl, fetchFn);
 }
 
-// Resolves an account's stored (encrypted) Qwen key by account id, returning
-// plaintext or null. Used by the worker to build the per-assessment AI model.
-export async function resolveOwnerApiKey(ownerId: string): Promise<string | null> {
-  const rows = await query<{ qwenApiKey: string | null }>(
-    "SELECT qwenApiKey FROM user WHERE id = type::record($id) LIMIT 1",
+export interface OwnerAiConfig {
+  providerId: string;
+  apiKey: string;
+  baseUrl: string | null;
+  visionModelId: string | null;
+  audioModelId: string | null;
+}
+
+// Resolves an account's stored (encrypted) AI key + provider/model prefs by
+// account id, returning plaintext + prefs, or null when no key is saved.
+export async function resolveOwnerAi(ownerId: string): Promise<OwnerAiConfig | null> {
+  const rows = await query<{
+    aiApiKey: string | null;
+    aiProvider: string | null;
+    aiBaseUrl: string | null;
+    aiVisionModel: string | null;
+    aiAudioModel: string | null;
+  }>(
+    "SELECT aiApiKey, aiProvider, aiBaseUrl, aiVisionModel, aiAudioModel FROM user WHERE id = type::record($id) LIMIT 1",
     { id: ownerId },
   );
-  const raw = rows[0]?.qwenApiKey;
+  const row = rows[0];
+  const raw = row?.aiApiKey;
   if (!raw) return null;
   try {
-    return decryptKey(JSON.parse(raw) as EncryptedKey);
+    return {
+      providerId: row.aiProvider ?? DEFAULT_PROVIDER,
+      apiKey: decryptKey(JSON.parse(raw) as EncryptedKey),
+      baseUrl: row.aiBaseUrl ?? null,
+      visionModelId: row.aiVisionModel ?? null,
+      audioModelId: row.aiAudioModel ?? null,
+    };
   } catch {
     return null;
   }

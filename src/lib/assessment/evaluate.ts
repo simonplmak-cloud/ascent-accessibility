@@ -8,6 +8,7 @@ import { scsForStandard } from "@/lib/standards/version";
 import { naturesOf } from "@/lib/standards/nature";
 import type { WcagLevel } from "@/lib/standards/wcag-sc";
 import type { AiBudget, AiReview, VisionModel } from "@/lib/ai-review/types";
+import { mediaScsFor, runAudioReview, type AudioModel } from "@/lib/ai-review/audio";
 import { applyAiVerdicts, runTriage } from "@/lib/ai-review/triage";
 import type { Finding } from "@/db/schema";
 
@@ -22,8 +23,10 @@ export interface EvaluateInput {
 
 export interface EvaluateDeps {
   visionModel?: VisionModel;
+  audioModel?: AudioModel;
   aiScreenshot?: Buffer | null;
   incompleteContext?: string[];
+  mediaUrls?: string[];
   aiEnabled?: boolean;
   threshold?: number;
 }
@@ -80,6 +83,28 @@ export async function evaluateStandard(
         else if (review.verdict === "Failed") resolved.set(review.sc, "Failed");
       }
 
+      machine = computeConformance(scs, findings, passedScs, input.features);
+    }
+  }
+
+  // Audio review — resolve time-based-media SCs from the page's actual media.
+  if (deps.audioModel && deps.mediaUrls && deps.mediaUrls.length > 0) {
+    const mediaScs = mediaScsFor({
+      hasVideo: input.features.hasVideo,
+      hasAudio: input.features.hasAudio,
+    });
+    if (mediaScs.length > 0) {
+      const audioVerdicts = await runAudioReview(deps.audioModel, mediaScs, deps.mediaUrls);
+      const applied = applyAiVerdicts(findings, passedScs, audioVerdicts, input.pageUrl);
+      findings = applied.findings;
+      passedScs = applied.passedScs;
+      aiVerdicts.push(...audioVerdicts);
+      aiBudget.calls += 1;
+      aiBudget.images += 1;
+      for (const review of audioVerdicts) {
+        if (review.verdict === "Passed") resolved.set(review.sc, "Passed");
+        else if (review.verdict === "Failed") resolved.set(review.sc, "Failed");
+      }
       machine = computeConformance(scs, findings, passedScs, input.features);
     }
   }

@@ -38,6 +38,19 @@ var __apfFeatures = function (doc) {
     hasTimeLimit: __apfHas(doc, "meta[http-equiv='refresh' i]")
   };
 };
+var __apfMediaUrls = function (doc) {
+  var out = [];
+  var seen = {};
+  var els = doc.querySelectorAll("audio[src], video[src], source[src]");
+  for (var i = 0; i < els.length && out.length < 10; i++) {
+    var src = els[i].getAttribute("src");
+    if (!src) continue;
+    var abs;
+    try { abs = new URL(src, doc.baseURI).href; } catch (e) { abs = src; }
+    if (!seen[abs]) { seen[abs] = true; out.push(abs); }
+  }
+  return out;
+};
 `;
 
 export function buildEngineSource(rules: Rule[]): string {
@@ -92,7 +105,7 @@ window.__apfEngine = {
       else if (incs.length > 0) incomplete.push({ id: r.id, tags: r.tags, nodes: incs });
       else passes.push({ id: r.id, tags: r.tags });
     }
-    return { violations: violations, passes: passes, incomplete: incomplete, features: __apfFeatures(document) };
+    return { violations: violations, passes: passes, incomplete: incomplete, features: __apfFeatures(document), mediaUrls: __apfMediaUrls(document) };
   }
 };
 })();`;
