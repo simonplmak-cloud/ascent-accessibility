@@ -103,6 +103,17 @@ export const operableRules: Rule[] = [
     extract: () => {
       let suppressed = false;
       let hasFocusVisibleAlt = false;
+      // Alternative visible indicators that satisfy 2.4.7 when the outline is
+      // removed (e.g. a box-shadow "focus ring").
+      const altProps = [
+        "boxShadow",
+        "border",
+        "borderColor",
+        "borderWidth",
+        "backgroundColor",
+        "textDecoration",
+        "textDecorationLine",
+      ] as const;
       try {
         for (const sheet of Array.from(document.styleSheets)) {
           let rules: CSSRuleList | null;
@@ -113,12 +124,29 @@ export const operableRules: Rule[] = [
           }
           for (const rule of Array.from(rules ?? [])) {
             const css = rule as CSSStyleRule;
-            if (!css.selectorText) continue;
-            if (/:focus-visible/.test(css.selectorText)) hasFocusVisibleAlt = true;
-            if (/:focus(?![-\w])/.test(css.selectorText)) {
-              const outline = css.style?.outline;
-              if (outline === "none" || outline === "0") suppressed = true;
-            }
+            const sel = css.selectorText;
+            if (!sel) continue;
+            if (/:focus-visible/.test(sel)) hasFocusVisibleAlt = true;
+            if (!/:focus(?![-\w])/.test(sel)) continue;
+
+            const s = css.style as CSSStyleDeclaration;
+            const outline = s.outline || "";
+            const outlineStyle = s.outlineStyle || "";
+            const outlineWidth = s.outlineWidth || "";
+            const outlineSuppressed =
+              outline === "none" ||
+              outline === "0" ||
+              outlineStyle === "none" ||
+              outlineStyle === "hidden" ||
+              outlineWidth === "0" ||
+              outlineWidth === "0px";
+            if (!outlineSuppressed) continue;
+
+            const hasAlt = altProps.some((p) => {
+              const v = s[p] || "";
+              return v !== "" && v !== "none" && v !== "0" && v !== "transparent";
+            });
+            if (!hasAlt) suppressed = true;
           }
         }
         return { suppressed, hasFocusVisibleAlt };

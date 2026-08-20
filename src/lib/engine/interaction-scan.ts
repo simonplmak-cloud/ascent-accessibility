@@ -53,31 +53,22 @@ export async function runInteractionScan(page: Page): Promise<ScanViolation[]> {
         const a = document.activeElement;
         if (a instanceof HTMLElement) a.blur();
       });
-      let stuck = false;
-      let prev = "";
-      let same = 0;
+      // Track the DISTINCT elements focus lands on. A real trap means Tab only
+      // ever reaches one element despite the page having many focusable ones.
+      // (Comparing `${tagName}#${id}` alone was a false positive: every <a>
+      // without an id looked identical.)
+      const seen = new Set<string>();
       for (let i = 0; i < Math.min(focusable + 5, 20); i++) {
         await page.keyboard.press("Tab");
         const cur = await page.evaluate(() => {
           const a = document.activeElement;
           if (!a || a === document.body || a === document.documentElement) return "";
-          return `${a.tagName}#${a.getAttribute("id") || ""}`;
+          const text = (a.textContent || "").trim().replace(/\s+/g, " ").slice(0, 40);
+          return `${a.tagName}|${a.getAttribute("id") || ""}|${a.getAttribute("href") || ""}|${text}`;
         });
-        // Focus escaping to <body>/chrome is NOT a trap — reset the run.
-        if (cur === "") {
-          same = 0;
-          prev = "";
-          continue;
-        }
-        if (cur === prev) same += 1;
-        else same = 0;
-        prev = cur;
-        if (same >= 5) {
-          stuck = true;
-          break;
-        }
+        if (cur) seen.add(cur);
       }
-      if (stuck) {
+      if (focusable > 1 && seen.size === 1) {
         violations.push(
           makeViolation("no-keyboard-trap", "keyboard focus appears trapped", ["wcag2a", "wcag212"]),
         );
