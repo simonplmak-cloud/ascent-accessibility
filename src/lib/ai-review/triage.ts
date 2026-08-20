@@ -5,6 +5,7 @@ import type { AiBudget, AiReview, VisionModel } from "./types";
 import { buildTriagePrompt, buildTriageScs } from "./prompt";
 
 export const AI_CONFIDENCE_THRESHOLD = 0.8;
+const TRIAGE_CHUNK_SIZE = 6;
 
 export function resolveVerdict(
   sc: string,
@@ -86,32 +87,35 @@ export interface TriageOutput {
 export async function runTriage(input: TriageInput): Promise<TriageOutput> {
   const threshold = input.threshold ?? AI_CONFIDENCE_THRESHOLD;
   const unresolved = input.unresolvedScs;
+  const incompleteContext = input.incompleteContext ?? [];
 
   if (unresolved.length === 0) {
     return { reviews: [], budget: { calls: 0, images: 0 } };
   }
 
-  const scs = buildTriageScs(unresolved);
-  const prompt = buildTriagePrompt(scs, input.incompleteContext ?? []);
-
-  let raw: AiReview[];
-  try {
-    raw = await input.model.review({ image: input.image, prompt });
-  } catch {
-    // Fail-safe: any model/parse/oversize error leaves every SC as Cannot tell.
-    return {
-      reviews: unresolved.map((sc) => ({
-        sc,
-        verdict: "CannotTell",
-        confidence: 0,
-        reasoning: "model or parse error",
-      })),
-      budget: { calls: 1, images: 1 },
-    };
+  // Batch the SCs into small chunks — one large call risks truncating the model
+  // response (dropping verdicts) and dilutes per-SC attention.
+  const reviews: AiReview[] = [];
+  let calls = 0;
+  for (let i = 0; i < unresolved.length; i += TRIAGE_CHUNK_SIZE) {
+    const chunk = unresolved.slice(i, i + TRIAGE_CHUNK_SIZE);
+    const prompt = buildTriagePrompt(buildTriageScs(chunk), incompleteContext);
+    calls += 1;
+    try {
+      const raw = await input.model.review({ image: input.image, prompt });
+      reviews.push(...chunk.map((sc) => resolveVerdict(sc, raw, threshold)));
+    } catch {
+      // Fail-safe: a model/parse error leaves this chunk's SCs as Cannot tell.
+      reviews.push(
+        ...chunk.map((sc) => ({
+          sc,
+          verdict: "CannotTell" as const,
+          confidence: 0,
+          reasoning: "model or parse error",
+        })),
+      );
+    }
   }
 
-  return {
-    reviews: unresolved.map((sc) => resolveVerdict(sc, raw, threshold)),
-    budget: { calls: 1, images: 1 },
-  };
+  return { reviews, budget: { calls, images: calls } };
 }

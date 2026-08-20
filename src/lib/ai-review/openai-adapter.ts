@@ -26,6 +26,7 @@ async function chatCompletions(
     body: JSON.stringify({
       model,
       temperature: 0,
+      max_tokens: 2048,
       messages: [{ role: "user", content }],
       response_format: { type: "json_object" },
     }),
