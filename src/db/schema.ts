@@ -160,7 +160,7 @@ DEFINE FIELD scsApplicable ON assessment TYPE option<int>;
 DEFINE FIELD reviewStatus ON assessment TYPE option<string>;
 DEFINE FIELD reviewClaim ON assessment TYPE option<string>;
 DEFINE FIELD reviewResults ON assessment TYPE option<string>;
-DEFINE FIELD snapshotAt ON assessment TYPE option<datetime>;
+DEFINE FIELD snapshotAt ON assessment TYPE option<string>;
 DEFINE FIELD pageSnapshots ON assessment TYPE option<string>;
 DEFINE FIELD depth ON assessment TYPE int DEFAULT 3;
 DEFINE FIELD pageCap ON assessment TYPE int DEFAULT 100;

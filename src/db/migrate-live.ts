@@ -67,7 +67,7 @@ DEFINE FIELD OVERWRITE scsApplicable ON assessment TYPE option<int>;
 DEFINE FIELD OVERWRITE reviewStatus ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE reviewClaim ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE reviewResults ON assessment TYPE option<string>;
-DEFINE FIELD OVERWRITE snapshotAt ON assessment TYPE option<datetime>;
+DEFINE FIELD OVERWRITE snapshotAt ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE pageSnapshots ON assessment TYPE option<string>;
 DEFINE FIELD OVERWRITE role ON user TYPE option<string> DEFAULT NONE;`,
 ];
