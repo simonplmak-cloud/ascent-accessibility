@@ -4,7 +4,7 @@ const footerLinks = [
   { href: "/about", label: "About" },
   { href: "/pricing", label: "Pricing" },
   { href: "/human-review", label: "Human review" },
-  { href: "/learn", label: "Learn" },
+  { href: "/training", label: "Training" },
   { href: "/standards", label: "WCAG criteria" },
   { href: "/remediation", label: "Remediation" },
   { href: "/methodology", label: "Methodology" },

@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/contact",
     "/donate",
     "/assess",
+    "/training",
     "/api-keys",
     "/accessibility-statement",
     "/terms",

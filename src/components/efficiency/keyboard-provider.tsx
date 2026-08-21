@@ -44,6 +44,15 @@ const GLOBAL_COMMANDS: PaletteCommand[] = [
     },
   },
   {
+    id: "nav-training",
+    label: "Training",
+    keywords: "learn course certificate",
+    group: "Navigate",
+    run: () => {
+      window.location.href = "/training";
+    },
+  },
+  {
     id: "nav-auditor",
     label: "Auditor workspace",
     keywords: "assessments history review",

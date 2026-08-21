@@ -22,7 +22,7 @@ const baseNavItems = [
   { href: "/human-review", label: "Human review" },
   { href: "/esg", label: "ESG mapping" },
   { href: "/validation", label: "Validation" },
-  { href: "/learn", label: "Learn" },
+  { href: "/training", label: "Training" },
   { href: "/resources", label: "Resources" },
   { href: "/contact", label: "Contact" },
   { href: "/donate", label: "Donate" },
