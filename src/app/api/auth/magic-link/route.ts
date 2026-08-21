@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requestMagicLink } from "@/lib/auth/identity";
 import { sendMagicLinkEmail } from "@/lib/auth/email";
+import { logger } from "@/lib/observability/logger";
 
 const schema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -20,8 +21,16 @@ export async function POST(req: Request) {
       ? parsed.data.next
       : "/site";
 
-  const token = await requestMagicLink(parsed.data.email);
-  await sendMagicLinkEmail(parsed.data.email, token, next);
+  try {
+    const token = await requestMagicLink(parsed.data.email);
+    await sendMagicLinkEmail(parsed.data.email, token, next);
+  } catch (error) {
+    logger.error({ err: error }, "magic-link: request failed");
+    return NextResponse.json(
+      { error: `Internal: ${(error as Error).message}` },
+      { status: 500 },
+    );
+  }
 
   // Always "ok" — never reveal whether the email exists.
   return NextResponse.json({ ok: true });
