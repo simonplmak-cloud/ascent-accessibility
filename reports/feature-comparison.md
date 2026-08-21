@@ -1,6 +1,6 @@
 # Before vs After — Feature & Performance Comparison
 
-Generated 2026-08-18. Compares the **previous** third-party stack (axe-core + IBM Equal Access + a derived "Lighthouse" score) against the **Ascent Access engine** (clean-room in-house engine + site audit + AI review).
+Generated 2026-08-18. Compares the **previous** third-party stack (axe-core + IBM Equal Access + a derived "Lighthouse" score) against the **Ascent Accessibility engine** (clean-room in-house engine + site audit + AI review).
 
 ## Executive summary
 
@@ -10,7 +10,7 @@ The new design **fully owns the scanner** and adds two net-new capabilities (AI 
 
 ## 1. Rule & SC coverage (measured)
 
-| | axe-core (before) | Ascent Access engine (after) |
+| | axe-core (before) | Ascent Accessibility engine (after) |
 |---|---|---|
 | Rules | **105** | **38** rules + 2 interaction checks (reflow, keyboard-trap) |
 | WCAG SCs machine-tested | **28** | **22** |

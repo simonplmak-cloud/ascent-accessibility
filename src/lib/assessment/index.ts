@@ -341,7 +341,7 @@ async function scanAndConsolidate(
           try {
             await withTimeout(
               async () => {
-                log("info", `scanning ${url} with the Ascent Access engine`);
+                log("info", `scanning ${url} with the Ascent Accessibility engine`);
 
                 const scan = await scanner.scan(url, standard.tags);
                 log("info", `engine: ${scan.violations.length} violation(s) on ${url}`);

@@ -106,7 +106,7 @@ export async function createPageScanner(): Promise<PageScanner> {
   const browser = await acquireBrowser();
   const context = await browser.newContext();
   const page = await context.newPage();
-  // Inject the Ascent Access engine before navigation (addInitScript runs via
+  // Inject the Ascent Accessibility engine before navigation (addInitScript runs via
   // CDP and is not blocked by the target page's Content-Security-Policy).
   await page.addInitScript({ content: buildEngineSource(ALL_RULES) });
   const scannerPage = asScannerPage(page);

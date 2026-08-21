@@ -7,12 +7,12 @@ import { InlineLink } from "@/components/ui/inline-link";
 export const metadata: Metadata = {
   title: "Roadmap & changelog",
   description:
-    "What Ascent Accessibility has shipped and what is planned next.",
+    "What Ascent Accessibilityibility has shipped and what is planned next.",
   alternates: { canonical: "/roadmap" },
 };
 
 const shipped = [
-  "Clean-room Ascent Access rule engine (no third-party scanners).",
+  "Clean-room Ascent Accessibility rule engine (no third-party scanners).",
   "Version-aware standards: WCAG 2.0 / 2.1 / 2.2 (A/AA/AAA) plus Section 508.",
   "Six-stage conformance pipeline with per-instruction nature taxonomy (100% SC coverage).",
   "AI-assisted review (vision + audio) with a confidence fail-safe.",

@@ -25,7 +25,7 @@ export function ComparisonPanel({ result }: { result: AssessmentResult }) {
   return (
     <section aria-labelledby="comparison-heading" className="mt-8">
       <h2 id="comparison-heading" className="font-mono text-lg font-semibold text-terminal-fg">
-        Ascent Access analysis
+        Ascent Accessibility analysis
       </h2>
       <div className="mt-4 overflow-x-auto rounded border border-terminal-border">
         <table className="w-full border-collapse font-mono text-sm">

@@ -47,7 +47,7 @@ function reportFor(label: string, engine: ToolFinding[], axe: ToolFinding[]) {
   const L: string[] = [];
   L.push(`### ${label}`);
   L.push("");
-  L.push(`| Metric | Ascent Access engine | axe-core (previous) |`);
+  L.push(`| Metric | Ascent Accessibility engine | axe-core (previous) |`);
   L.push(`|---|---|---|`);
   L.push(`| Findings | ${engine.length} | ${axe.length} |`);
   L.push(`| Distinct rules flagged | ${engineIds.size} | ${axeIds.size} |`);
@@ -80,7 +80,7 @@ async function main() {
   sections.push("# Comparative assessment report");
   sections.push("");
   sections.push(
-    `Generated ${new Date().toISOString()} — compares the **previous** third-party scanner (axe-core) against the **Ascent Access engine**.`,
+    `Generated ${new Date().toISOString()} — compares the **previous** third-party scanner (axe-core) against the **Ascent Accessibility engine**.`,
   );
   sections.push("");
   sections.push(`Engine rules shipped: **${ALL_RULES.length}**.`);
@@ -103,7 +103,7 @@ async function main() {
   sections.push("## Conclusion");
   sections.push("");
   sections.push(
-    "The Ascent Access engine reproduces the previous scanner's detection coverage and maps more findings to WCAG success criteria. axe-core labels several checks (empty headings, heading order, landmarks, tabindex) as `best-practice` with no SC mapping; the engine attributes those same concepts to their WCAG success criteria (2.4.6, 1.3.1, 2.4.3), and additionally covers rendering (contrast, target size, reflow) and interaction (keyboard operability, pointer cancellation, dragging) checks that the previous stack delegated or omitted.",
+    "The Ascent Accessibility engine reproduces the previous scanner's detection coverage and maps more findings to WCAG success criteria. axe-core labels several checks (empty headings, heading order, landmarks, tabindex) as `best-practice` with no SC mapping; the engine attributes those same concepts to their WCAG success criteria (2.4.6, 1.3.1, 2.4.3), and additionally covers rendering (contrast, target size, reflow) and interaction (keyboard operability, pointer cancellation, dragging) checks that the previous stack delegated or omitted.",
   );
   sections.push("");
 

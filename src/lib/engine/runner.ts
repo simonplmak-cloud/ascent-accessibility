@@ -31,7 +31,7 @@ export async function runEngine(
     const engine = (
       globalThis as { __apfEngine?: { run: (t: string[]) => unknown } }
     ).__apfEngine;
-    if (!engine) throw new Error("Ascent Access engine failed to load");
+    if (!engine) throw new Error("Ascent Accessibility engine failed to load");
     return engine.run(runTags);
   }, tags)) as RawScanResult & { features: PageFeatures };
 

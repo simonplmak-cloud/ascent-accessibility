@@ -7,7 +7,7 @@ import { InlineLink } from "@/components/ui/inline-link";
 export const metadata: Metadata = {
   title: "How we validate the engine",
   description:
-    "How the Ascent Access engine is validated — rule-to-criterion coverage, W3C ACT-rules alignment, and test coverage.",
+    "How the Ascent Accessibility engine is validated — rule-to-criterion coverage, W3C ACT-rules alignment, and test coverage.",
   alternates: { canonical: "/validation" },
 };
 
@@ -15,7 +15,7 @@ const comparison: Array<[string, string, string, string, string, string]> = [
   ["axe-core (open-source)", "✓", "—", "—", "~30–50%", "—"],
   ["Lighthouse", "✓ (uses axe-core)", "—", "—", "~30–50%", "—"],
   ["Enterprise audit services", "✓", "varies", "expert-led (not lived-experience)", "full (manual)", "report, not in-app"],
-  ["Ascent Access", "✓", "✓", "✓ lived-experience workforce", "✓ 100%", "✓ signed, in-app + PDF"],
+  ["Ascent Accessibility", "✓", "✓", "✓ lived-experience workforce", "✓ 100%", "✓ signed, in-app + PDF"],
 ];
 
 export default function ValidationPage() {
