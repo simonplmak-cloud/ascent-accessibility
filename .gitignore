@@ -18,6 +18,6 @@ next-env.d.ts
 # Design docs (spec-driven chain — kept local, not part of the code repo)
 vdd/
 constitution.md
-design/
+/design/
 .vercel
 .env*
