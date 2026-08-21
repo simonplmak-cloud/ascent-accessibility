@@ -176,3 +176,40 @@ export function principleName(principle: number): string {
     default: return "Unknown";
   }
 }
+
+export interface WcagGuideline {
+  num: string;
+  title: string;
+}
+
+// The 13 WCAG 2.2 guidelines, ordered by principle (the reference taxonomy used
+// by the training curriculum and the /standards index).
+export const WCAG_GUIDELINES: WcagGuideline[] = [
+  { num: "1.1", title: "Text Alternatives" },
+  { num: "1.2", title: "Time-based Media" },
+  { num: "1.3", title: "Adaptable" },
+  { num: "1.4", title: "Distinguishable" },
+  { num: "2.1", title: "Keyboard Accessible" },
+  { num: "2.2", title: "Enough Time" },
+  { num: "2.3", title: "Seizures and Physical Reactions" },
+  { num: "2.4", title: "Navigable" },
+  { num: "2.5", title: "Input Modalities" },
+  { num: "3.1", title: "Readable" },
+  { num: "3.2", title: "Predictable" },
+  { num: "3.3", title: "Input Assistance" },
+  { num: "4.1", title: "Compatible" },
+];
+
+/** "1.4.3" -> "1.4" (the guideline number). */
+export function guidelineOf(scNum: string): string {
+  const parts = scNum.split(".");
+  return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : scNum;
+}
+
+export function guidelineName(guideline: string): string {
+  return WCAG_GUIDELINES.find((g) => g.num === guideline)?.title ?? guideline;
+}
+
+export function guidelinePrinciple(guideline: string): number {
+  return Number.parseInt(guideline.split(".")[0] ?? "1", 10);
+}

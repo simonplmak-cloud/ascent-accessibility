@@ -6,6 +6,11 @@ import { InlineLink } from "@/components/ui/inline-link";
 import { listStandards, type Standard } from "@/lib/standards/catalog";
 import { scsForStandard } from "@/lib/standards/version";
 import {
+  WCAG_GUIDELINES,
+  guidelineName,
+  guidelineOf,
+  guidelinePrinciple,
+  principleName,
   specUrl,
   understandingUrl,
   type WcagSc,
@@ -14,7 +19,7 @@ import {
 export const metadata: Metadata = {
   title: "WCAG success criteria",
   description:
-    "The success criteria the assessment tool scores against — WCAG 2.0, 2.1, 2.2, and Section 508 — with links to the specification and Understanding documents.",
+    "The success criteria the assessment tool scores against — WCAG 2.0, 2.1, 2.2, and Section 508 — grouped by principle and guideline, with links to the specification and Understanding documents.",
   alternates: { canonical: "/standards" },
 };
 
@@ -32,9 +37,20 @@ function scsFor(standard: Standard): WcagSc[] {
   return scsForStandard(standard.version, standard.level ?? "AA");
 }
 
+function groupByGuideline(scs: WcagSc[]): Map<string, WcagSc[]> {
+  const map = new Map<string, WcagSc[]>();
+  for (const sc of scs) {
+    const guideline = guidelineOf(sc.num);
+    const list = map.get(guideline) ?? [];
+    list.push(sc);
+    map.set(guideline, list);
+  }
+  return map;
+}
+
 function ScList({ scs }: { scs: WcagSc[] }) {
   return (
-    <ul className="mt-3 divide-y divide-terminal-border rounded border border-terminal-border">
+    <ul className="mt-2 divide-y divide-terminal-border rounded border border-terminal-border">
       {scs.map((sc) => (
         <li key={sc.num} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2">
           <span
@@ -67,6 +83,42 @@ function ScList({ scs }: { scs: WcagSc[] }) {
   );
 }
 
+function Guidelines({ scs }: { scs: WcagSc[] }) {
+  const byGuideline = groupByGuideline(scs);
+  return (
+    <div className="mt-4 space-y-6">
+      {[1, 2, 3, 4].map((principle) => {
+        const guidelines = WCAG_GUIDELINES.filter((g) => guidelinePrinciple(g.num) === principle);
+        const visible = guidelines.filter((g) => byGuideline.has(g.num));
+        if (visible.length === 0) return null;
+        return (
+          <section key={principle} aria-labelledby={`p-${principle}`}>
+            <h3 id={`p-${principle}`} className="font-mono text-lg font-semibold text-terminal-fg">
+              {principle}. {principleName(principle)}
+            </h3>
+            <div className="mt-3 space-y-5">
+              {visible.map((guideline) => (
+                <section key={guideline.num} aria-labelledby={`g-${guideline.num}`}>
+                  <h4
+                    id={`g-${guideline.num}`}
+                    className="font-mono text-sm font-medium text-terminal-fg"
+                  >
+                    {guideline.num} {guidelineName(guideline.num)}{" "}
+                    <span className="text-terminal-muted">
+                      ({byGuideline.get(guideline.num)!.length})
+                    </span>
+                  </h4>
+                  <ScList scs={byGuideline.get(guideline.num)!} />
+                </section>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function StandardsPage() {
   const standards = listStandards();
 
@@ -74,8 +126,8 @@ export default function StandardsPage() {
     <PageShell width="4xl">
       <PageHeading>WCAG success criteria</PageHeading>
       <MutedText className="mt-4">
-        Every success criterion the assessment tool scores against, across WCAG 2.0, 2.1, 2.2 and
-        Section 508. The number links to the W3C specification; &ldquo;Understanding&rdquo; links to the
+        Every success criterion the assessment tool scores against, grouped by principle and
+        guideline. The number links to the W3C specification; &ldquo;Understanding&rdquo; links to the
         official explanatory document.
       </MutedText>
 
@@ -90,7 +142,7 @@ export default function StandardsPage() {
               </span>
             )}
           </h2>
-          <ScList scs={scsFor(standard)} />
+          <Guidelines scs={scsFor(standard)} />
         </section>
       ))}
 
