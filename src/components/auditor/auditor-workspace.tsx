@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { HistoryTable } from "@/components/history/history-table";
-import { ScoreComparison } from "@/components/history/score-comparison";
+import { AssessmentTable } from "@/components/auditor/assessment-table";
+import { ScoreComparison } from "@/components/auditor/score-comparison";
 import type { HistoryItem } from "@/lib/history";
 
-export function HistoryPageClient() {
+export function AuditorWorkspace() {
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
@@ -104,7 +104,7 @@ export function HistoryPageClient() {
       )}
 
       <div className="mt-6">
-        <HistoryTable items={items} busyIds={busyIds} onReRun={reRun} onDelete={remove} />
+        <AssessmentTable items={items} busyIds={busyIds} onReRun={reRun} onDelete={remove} />
       </div>
       <ScoreComparison items={items} />
     </div>

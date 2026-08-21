@@ -31,7 +31,7 @@ const baseNavItems = [
 // Role-gated — only shown to signed-in users. Anonymous visitors don't see
 // History, Site scans, or API access.
 const signedInNavItems = [
-  { href: "/history", label: "History" },
+  { href: "/auditor", label: "Auditor" },
   { href: "/api-keys", label: "API access" },
 ];
 

@@ -53,7 +53,7 @@ interface HistoryTableProps {
   onDelete: (item: HistoryItem) => void;
 }
 
-export function HistoryTable({ items, busyIds, onReRun, onDelete }: HistoryTableProps) {
+export function AssessmentTable({ items, busyIds, onReRun, onDelete }: HistoryTableProps) {
   const [status, setStatus] = useState<HistoryStatusFilter>("all");
   const [sortKey, setSortKey] = useState<HistorySortKey>("createdAt");
   const [sortDir, setSortDir] = useState<SortDirection>("desc");
@@ -144,7 +144,7 @@ export function HistoryTable({ items, busyIds, onReRun, onDelete }: HistoryTable
                   <td className="whitespace-nowrap px-3 py-2">
                     <div className="flex items-center gap-2">
                       <Link
-                        href={`/assess/${item.id}`}
+                        href={`/auditor/report/${item.id}`}
                         aria-label={`Open report for ${item.url}`}
                         className="text-terminal-fg underline-offset-4 hover:underline"
                       >

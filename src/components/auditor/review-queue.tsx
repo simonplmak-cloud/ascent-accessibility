@@ -115,7 +115,7 @@ export function ReviewQueue() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
                   <Link
-                    href={`/assess/${item.id}`}
+                    href={`/auditor/report/${item.id}`}
                     className="block truncate font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
                     title={item.url}
                   >

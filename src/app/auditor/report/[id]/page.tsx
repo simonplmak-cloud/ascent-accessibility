@@ -22,10 +22,10 @@ export default async function ShareableReportPage({
         </p>
         <p className="mt-4">
           <Link
-            href="/history"
+            href="/auditor"
             className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
           >
-            Back to history
+            Back to workspace
           </Link>
         </p>
       </div>
@@ -48,10 +48,10 @@ export default async function ShareableReportPage({
         </p>
         <p className="mt-4">
           <Link
-            href="/history"
+            href="/auditor"
             className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
           >
-            Back to history
+            Back to workspace
           </Link>
         </p>
       </div>

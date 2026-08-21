@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { isReviewer } from "@/server/auth";
-import { ReviewQueue } from "@/components/review/review-queue";
+import { ReviewQueue } from "@/components/auditor/review-queue";
 
 export const metadata: Metadata = {
   title: "Review queue",
