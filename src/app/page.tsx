@@ -22,10 +22,10 @@ const sampleIssues = [
 ];
 
 const personas = [
-  { title: "Government digital & policy teams", body: "Meet WCAG AA requirements with independent evidence — not just a self-declared statement." },
-  { title: "NGOs & community services", body: "Reach every person you serve — including people with disabilities." },
-  { title: "Funders & grant assessors", body: "Get verifiable accessibility evidence for due diligence." },
-  { title: "Developers & auditors", body: "Prioritised findings with a suggested fix, evidence, and how each was tested." },
+  { title: "Government digital & policy teams", body: "Meet WCAG AA requirements with independent evidence — not just a self-declared statement.", href: "/for-government" },
+  { title: "NGOs & community services", body: "Reach every person you serve — including people with disabilities.", href: "/for-ngos" },
+  { title: "Funders & grant assessors", body: "Get verifiable accessibility evidence for due diligence.", href: "/esg" },
+  { title: "Developers & auditors", body: "Prioritised findings with a suggested fix, evidence, and how each was tested.", href: "/training" },
 ];
 
 const outcomes = [
@@ -175,10 +175,15 @@ export default async function Home() {
         </h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           {personas.map((persona) => (
-            <div key={persona.title} className="rounded border border-terminal-border bg-terminal-surface/40 p-4">
+            <Link
+              key={persona.title}
+              href={persona.href}
+              className="rounded border border-terminal-border bg-terminal-surface/40 p-4 hover:border-terminal-serious"
+            >
               <h3 className="font-display text-base font-semibold text-terminal-fg">{persona.title}</h3>
               <p className="mt-1 font-sans text-sm text-terminal-muted">{persona.body}</p>
-            </div>
+              <p className="mt-2 font-sans text-xs text-brandLink">Learn more →</p>
+            </Link>
           ))}
         </div>
       </section>

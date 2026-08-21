@@ -65,6 +65,8 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
   {
     heading: "Learn",
     links: [
+      { href: "/what-is-accessibility", label: "What is accessibility?" },
+      { href: "/glossary", label: "Glossary" },
       { href: "/standards", label: "Standards" },
       { href: "/methodology", label: "Methodology" },
       { href: "/remediation", label: "Remediation" },
@@ -75,6 +77,8 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
     heading: "Company",
     links: [
       { href: "/about", label: "About" },
+      { href: "/for-government", label: "For government" },
+      { href: "/for-ngos", label: "For NGOs" },
       { href: "/human-review", label: "Human review" },
       { href: "/esg", label: "ESG mapping" },
       { href: "/validation", label: "Validation" },
