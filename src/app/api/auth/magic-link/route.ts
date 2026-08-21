@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const next =
     parsed.data.next?.startsWith("/") && !parsed.data.next.startsWith("//")
       ? parsed.data.next
-      : "/site";
+      : "/assess";
 
   try {
     const token = await requestMagicLink(parsed.data.email);

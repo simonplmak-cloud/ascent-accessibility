@@ -1,7 +1,7 @@
 import { getSiteUrl } from "@/lib/site-url";
 import { logger } from "@/lib/observability/logger";
 
-export async function sendMagicLinkEmail(email: string, token: string, next = "/site"): Promise<void> {
+export async function sendMagicLinkEmail(email: string, token: string, next = "/assess"): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   const siteUrl = getSiteUrl();
   const link = `${siteUrl}/api/auth/magic-link/callback?token=${token}&next=${encodeURIComponent(next)}`;

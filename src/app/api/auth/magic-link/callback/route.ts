@@ -9,7 +9,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const token = url.searchParams.get("token");
   const rawNext = url.searchParams.get("next");
-  const next = rawNext?.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/site";
+  const next = rawNext?.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/assess";
   const failUrl = `${siteUrl}/sign-in?error=magic-link`;
 
   if (!token) {

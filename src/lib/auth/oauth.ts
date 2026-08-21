@@ -28,7 +28,7 @@ export function verifyOauthState(state: string): { next: string } | null {
     const next =
       typeof data.next === "string" && data.next.startsWith("/") && !data.next.startsWith("//")
         ? data.next
-        : "/site";
+        : "/assess";
     return { next };
   } catch {
     return null;

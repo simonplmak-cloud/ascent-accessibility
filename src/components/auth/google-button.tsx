@@ -37,7 +37,7 @@ export function GoogleSignInButton() {
             body: JSON.stringify({ credential: response.credential }),
           });
           if (res.ok) {
-            const next = new URLSearchParams(window.location.search).get("next") ?? "/site";
+            const next = new URLSearchParams(window.location.search).get("next") ?? "/assess";
             window.location.href = next;
           }
         },

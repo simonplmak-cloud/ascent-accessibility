@@ -27,7 +27,7 @@ export default function RefundPage() {
 
       <Section title="Cancelling">
         You can cancel your subscription at any time from the{" "}
-        <InlineLink href="/site">billing portal</InlineLink>{" "}
+        <InlineLink href="/account">billing portal</InlineLink>{" "}
         (&ldquo;Manage subscription&rdquo;). Cancellation takes effect at the end of the
         current billing period — you keep whole-website and API access until then.
       </Section>

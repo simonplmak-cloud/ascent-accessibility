@@ -16,7 +16,7 @@ export async function GET(
   const redirectUri = `${siteUrl}/api/auth/oauth/${providerId}/callback`;
   const rawNext = new URL(req.url).searchParams.get("next");
   const next =
-    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/site";
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/assess";
   const state = createOauthState(next);
 
   return NextResponse.redirect(provider.authorizeUrl(redirectUri, state));

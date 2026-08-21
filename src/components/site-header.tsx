@@ -32,7 +32,6 @@ const baseNavItems = [
 // History, Site scans, or API access.
 const signedInNavItems = [
   { href: "/history", label: "History" },
-  { href: "/site", label: "Site scans" },
   { href: "/api-keys", label: "API access" },
 ];
 

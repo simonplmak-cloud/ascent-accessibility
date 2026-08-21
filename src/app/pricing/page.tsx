@@ -77,7 +77,7 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <ButtonLink href="/site" className="mt-6 inline-block">
+          <ButtonLink href="/assess" className="mt-6 inline-block">
             Whole-website scan
           </ButtonLink>
         </Card>

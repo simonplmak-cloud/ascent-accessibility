@@ -17,7 +17,7 @@ export function AssessmentForm({
 }) {
   const [url, setUrl] = useState("");
   const [standard, setStandard] = useState("wcag22aa");
-  const [scope, setScope] = useState<"page" | "site">(fixedScope ?? "site");
+  const [scope, setScope] = useState<"page" | "site">(fixedScope ?? "page");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AssessmentResult | null>(null);

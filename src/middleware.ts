@@ -3,7 +3,9 @@ import { SESSION_COOKIE } from "@/lib/auth/constants";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isProtected = pathname.startsWith("/site") || pathname.startsWith("/account");
+  // `/assess` (the scan form) is login-gated; the shareable report at
+  // `/assess/[id]` (moving to `/auditor/report/[id]`) stays public.
+  const isProtected = pathname === "/assess" || pathname.startsWith("/account");
   if (!isProtected) return NextResponse.next();
 
   const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
@@ -16,5 +18,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/site/:path*", "/account/:path*"],
+  matcher: ["/assess", "/account/:path*"],
 };
