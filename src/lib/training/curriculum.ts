@@ -42,6 +42,7 @@ export interface Lesson {
 export interface Module {
   id: string;
   title: string;
+  description: string;
   activities: Array<{ id: string; type: ActivityType }>;
 }
 
@@ -116,7 +117,7 @@ export const LESSONS: Record<string, Lesson> = {
     ],
   },
 
-  // ---- Unit 2 · Everyday accessibility ----
+  // ---- Unit 2 · Everyday Accessibility ----
   "everyday-structure": {
     id: "everyday-structure",
     title: "Semantics & Structure",
@@ -198,7 +199,7 @@ export const LESSONS: Record<string, Lesson> = {
     ],
   },
 
-  // ---- Unit 3 · Standards (method + anchor SCs) ----
+  // ---- Unit 3 · Standards ----
   "how-to-read-any-sc": {
     id: "how-to-read-any-sc",
     title: "How to Read Any Success Criterion",
@@ -589,6 +590,8 @@ export const PATH: Path = {
     {
       id: "advocacy",
       title: "Advocacy",
+      description:
+        "Make the case — who needs accessibility, the barriers they face, and why it matters to your organisation.",
       activities: [
         { id: "what-is-accessibility", type: "lesson" },
         { id: "how-people-use-the-web", type: "lesson" },
@@ -602,6 +605,8 @@ export const PATH: Path = {
     {
       id: "everyday",
       title: "Everyday Accessibility",
+      description:
+        "Fix the common barriers — structure, alt text, contrast, keyboard, links, forms, media, and reflow.",
       activities: [
         { id: "everyday-structure", type: "lesson" },
         { id: "everyday-alt-text", type: "lesson" },
@@ -617,6 +622,8 @@ export const PATH: Path = {
     {
       id: "standards",
       title: "Standards",
+      description:
+        "Master the standard — read any WCAG 2.2 criterion and deep-dive the ones behind most real failures.",
       activities: [
         { id: "how-to-read-any-sc", type: "lesson" },
         { id: "sc-1.1.1", type: "lesson" },
@@ -639,6 +646,8 @@ export const PATH: Path = {
     {
       id: "audit",
       title: "Audit",
+      description:
+        "Prove conformance — automated, manual, and screen-reader testing, ending in a capstone audit.",
       activities: [
         { id: "audit-overview", type: "lesson" },
         { id: "audit-easy-checks", type: "lesson" },
@@ -701,7 +710,7 @@ export const LESSON_META: Record<string, LessonMeta> = {
     durationMinutes: 8,
     check: { id: "c6", prompt: "Which WCAG version introduced the four POUR principles?", options: ["1.0", "2.0", "2.2"], answerIndex: 1, explanation: "WCAG 2.0 (2008) reorganised 14 checkpoints into POUR with testable success criteria." },
   },
-  // ---- Unit 2 · Everyday ----
+  // ---- Unit 2 · Everyday Accessibility ----
   "everyday-structure": {
     outcome: "Build pages with a semantic heading and landmark structure.",
     durationMinutes: 8,
