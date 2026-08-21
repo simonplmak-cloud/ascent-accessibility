@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { TextSizeControl } from "@/components/text-size-control";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
+import { ACCOUNT_MENU, PRIMARY_NAV, type NavItem } from "@/lib/navigation";
+import { PreferencesDialog } from "@/components/preferences-dialog";
+import { AccountMenu } from "@/components/account-menu";
 import { ButtonLink } from "@/components/ui/button-link";
 
 export interface HeaderAuthState {
@@ -14,36 +14,27 @@ export interface HeaderAuthState {
   email: string | null;
 }
 
-// Always visible — marketing/content pages.
-const baseNavItems = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/human-review", label: "Human review" },
-  { href: "/esg", label: "ESG mapping" },
-  { href: "/validation", label: "Validation" },
-  { href: "/training", label: "Training" },
-  { href: "/resources", label: "Resources" },
-  { href: "/contact", label: "Contact" },
-  { href: "/donate", label: "Donate" },
-];
-
-// Role-gated — only shown to signed-in users. Anonymous visitors don't see
-// History, Site scans, or API access.
-const signedInNavItems = [
-  { href: "/auditor", label: "Auditor" },
-  { href: "/api-keys", label: "API access" },
-];
-
 export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [dropdown, setDropdown] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const router = useRouter();
+  const navRef = useRef<HTMLElement>(null);
 
-  const navItems = [
-    ...baseNavItems,
-    ...(authState.signedIn ? signedInNavItems : []),
-  ];
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setDropdown(null);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setDropdown(null);
+    }
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
 
   async function signOut() {
     setSigningOut(true);
@@ -53,6 +44,51 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
     } finally {
       setSigningOut(false);
     }
+  }
+
+  function renderItem(item: NavItem) {
+    if (!item.children) {
+      return (
+        <Link
+          href={item.href!}
+          className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+        >
+          {item.label}
+        </Link>
+      );
+    }
+    const id = `dd-${item.label.toLowerCase().replace(/\s+/g, "-")}`;
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setDropdown(dropdown === item.label ? null : item.label)}
+          aria-expanded={dropdown === item.label}
+          aria-controls={id}
+          className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+        >
+          {item.label} <span aria-hidden="true">▾</span>
+        </button>
+        {dropdown === item.label && (
+          <ul
+            id={id}
+            className="absolute left-0 top-full z-10 mt-1 w-48 rounded border border-terminal-border bg-terminal-surface p-1"
+          >
+            {item.children.map((child) => (
+              <li key={child.href}>
+                <Link
+                  href={child.href}
+                  onClick={() => setDropdown(null)}
+                  className="block rounded px-3 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
+                >
+                  {child.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </>
+    );
   }
 
   return (
@@ -73,112 +109,148 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
           />
         </Link>
 
-        <nav aria-label="Primary" className="hidden items-center gap-5 md:flex">
+        <nav ref={navRef} aria-label="Primary" className="hidden items-center gap-6 md:flex">
           <ul className="m-0 flex list-none items-center gap-5 p-0">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
-                >
-                  {item.label}
-                </Link>
+            {PRIMARY_NAV.map((item) => (
+              <li key={item.label} className="relative">
+                {renderItem(item)}
               </li>
             ))}
           </ul>
-          <TextSizeControl />
-          <ThemeToggle />
-          {authState.signedIn ? (
-            <Button variant="outline" onClick={signOut} disabled={signingOut}>
-              {signingOut ? "Signing out…" : "Sign out"}
-            </Button>
-          ) : (
-            <ButtonLink href="/sign-in" variant="outline">
-              Sign in
+
+          <div className="flex items-center gap-3">
+            <PreferencesDialog />
+            {authState.signedIn ? (
+              <AccountMenu email={authState.email} onSignOut={signOut} signingOut={signingOut} />
+            ) : (
+              <ButtonLink href="/sign-in" variant="outline" size="sm">
+                Sign in
+              </ButtonLink>
+            )}
+            <ButtonLink href="/assess" size="sm">
+              Run a scan
             </ButtonLink>
-          )}
-          <ButtonLink href="/assess">Start assessment</ButtonLink>
+          </div>
         </nav>
 
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          aria-label={open ? "Close menu" : "Open menu"}
-          className="rounded border border-terminal-border p-2 text-terminal-fg md:hidden"
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            aria-hidden="true"
+        <div className="flex items-center gap-2 md:hidden">
+          <ButtonLink href="/assess" size="sm">
+            Run a scan
+          </ButtonLink>
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            className="rounded border border-terminal-border p-2 text-terminal-fg"
           >
-            {open ? (
-              <>
-                <line x1="6" y1="6" x2="18" y2="18" />
-                <line x1="18" y1="6" x2="6" y2="18" />
-              </>
-            ) : (
-              <>
-                <line x1="4" y1="8" x2="20" y2="8" />
-                <line x1="4" y1="16" x2="20" y2="16" />
-              </>
-            )}
-          </svg>
-        </button>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              {mobileOpen ? (
+                <>
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                </>
+              ) : (
+                <>
+                  <line x1="4" y1="8" x2="20" y2="8" />
+                  <line x1="4" y1="16" x2="20" y2="16" />
+                </>
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {open && (
+      {mobileOpen && (
         <nav id="mobile-nav" aria-label="Mobile" className="border-t border-terminal-border md:hidden">
-          <ul className="m-0 flex list-none flex-col p-0">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className="block px-4 py-3 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-            <li className="flex items-center justify-between px-4 py-3">
-              <span className="font-mono text-sm text-terminal-muted">Text size</span>
-              <TextSizeControl />
-            </li>
-            <li className="flex items-center justify-between px-4 py-3">
-              <span className="font-mono text-sm text-terminal-muted">Theme</span>
-              <ThemeToggle />
-            </li>
-            <li className="p-4">
-              {authState.signedIn ? (
-                <Button
-                  variant="outline"
-                  className="block w-full text-center"
-                  onClick={() => {
-                    setOpen(false);
-                    void signOut();
-                  }}
-                  disabled={signingOut}
-                >
-                  {signingOut ? "Signing out…" : "Sign out"}
-                </Button>
+          <ul className="m-0 list-none p-0">
+            {PRIMARY_NAV.map((item) =>
+              item.children ? (
+                <li key={item.label} className="border-b border-terminal-border/40 px-4 py-2">
+                  <p className="font-mono text-xs uppercase tracking-wider text-terminal-muted">
+                    {item.label}
+                  </p>
+                  <ul className="m-0 list-none p-0">
+                    {item.children.map((child) => (
+                      <li key={child.href}>
+                        <Link
+                          href={child.href}
+                          onClick={() => setMobileOpen(false)}
+                          className="block px-2 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+                        >
+                          {child.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
               ) : (
-                <ButtonLink href="/sign-in" variant="outline" className="block text-center" onClick={() => setOpen(false)}>
+                <li key={item.label} className="border-b border-terminal-border/40">
+                  <Link
+                    href={item.href!}
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-4 py-3 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ),
+            )}
+
+            <li className="flex items-center justify-between px-4 py-3">
+              <span className="font-mono text-sm text-terminal-muted">Display</span>
+              <PreferencesDialog />
+            </li>
+
+            {authState.signedIn ? (
+              <>
+                {ACCOUNT_MENU.map((item) => (
+                  <li key={item.href} className="border-b border-terminal-border/40">
+                    <Link
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="block px-4 py-3 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+                <li className="p-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      void signOut();
+                    }}
+                    disabled={signingOut}
+                    className="block w-full rounded border border-terminal-border px-4 py-2 text-center font-mono text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
+                  >
+                    {signingOut ? "Signing out…" : "Sign out"}
+                  </button>
+                </li>
+              </>
+            ) : (
+              <li className="p-4">
+                <ButtonLink
+                  href="/sign-in"
+                  variant="outline"
+                  className="block text-center"
+                  onClick={() => setMobileOpen(false)}
+                >
                   Sign in
                 </ButtonLink>
-              )}
-            </li>
-            <li className="p-4">
-              <ButtonLink href="/assess" className="block text-center" onClick={() => setOpen(false)}>
-                Start assessment
-              </ButtonLink>
-            </li>
+              </li>
+            )}
           </ul>
         </nav>
       )}

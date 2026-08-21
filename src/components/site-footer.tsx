@@ -1,60 +1,49 @@
 import Link from "next/link";
-
-const footerLinks = [
-  { href: "/about", label: "About" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/human-review", label: "Human review" },
-  { href: "/training", label: "Training" },
-  { href: "/standards", label: "WCAG criteria" },
-  { href: "/remediation", label: "Remediation" },
-  { href: "/methodology", label: "Methodology" },
-  { href: "/regulations", label: "Regulations" },
-  { href: "/esg", label: "ESG mapping" },
-  { href: "/roadmap", label: "Roadmap" },
-  { href: "/faq", label: "FAQ" },
-  { href: "/resources", label: "Resources" },
-  { href: "/contact", label: "Contact" },
-  { href: "/donate", label: "Donate" },
-];
-
-const legalLinks = [
-  { href: "/terms", label: "Terms" },
-  { href: "/privacy", label: "Privacy" },
-  { href: "/sla", label: "Service commitment" },
-  { href: "/refund", label: "Refunds" },
-  { href: "/accessibility-statement", label: "Accessibility" },
-];
+import { FOOTER_COLUMNS, LEGAL_LINKS } from "@/lib/navigation";
 
 export function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-terminal-border">
-      <div className="mx-auto max-w-6xl px-4 py-8 font-mono text-sm text-terminal-muted">
-        <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
-          {footerLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="underline-offset-4 hover:text-terminal-fg hover:underline"
-            >
-              {link.label}
-            </Link>
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+          {FOOTER_COLUMNS.map((column) => (
+            <nav key={column.heading} aria-label={column.heading}>
+              <h2 className="font-mono text-sm font-semibold text-terminal-fg">
+                {column.heading}
+              </h2>
+              <ul className="mt-3 m-0 list-none space-y-2 p-0">
+                {column.links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="font-mono text-sm text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           ))}
-        </nav>
-        <nav aria-label="Legal" className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
-          {legalLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="underline-offset-4 hover:text-terminal-fg hover:underline"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <p className="mt-4">
-          © {new Date().getFullYear()} Ascent Partners Foundation Limited. Connecting
-          sustainability and action.
-        </p>
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-terminal-border/40 pt-6">
+          <p className="font-mono text-xs text-terminal-muted">
+            © {new Date().getFullYear()} Ascent Partners Foundation Limited. Connecting
+            sustainability and action.
+          </p>
+          <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">
+            {LEGAL_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="font-mono text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </div>
     </footer>
   );
