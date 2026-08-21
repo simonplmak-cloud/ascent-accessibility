@@ -1,4 +1,5 @@
 import { getSiteUrl } from "@/lib/site-url";
+import { logger } from "@/lib/observability/logger";
 
 export async function sendMagicLinkEmail(email: string, token: string, next = "/site"): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
@@ -7,8 +8,10 @@ export async function sendMagicLinkEmail(email: string, token: string, next = "/
   const from = process.env.RESEND_FROM ?? "Ascent Accessibility <onboarding@resend.dev>";
 
   if (!apiKey) {
+    // Loud in every environment: without a key the route otherwise reports
+    // success while silently dropping the email, which is undiagnosable.
+    logger.error("magic-link: RESEND_API_KEY is not set — email not sent");
     if (process.env.NODE_ENV !== "production") {
-      // Dev fallback so the flow is testable without Resend configured.
       console.warn(`[dev] magic link for ${email}: ${link}`);
     }
     return;
@@ -28,6 +31,9 @@ export async function sendMagicLinkEmail(email: string, token: string, next = "/
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
+    logger.error({ status: res.status, body: body.slice(0, 300), from }, "magic-link: Resend send failed");
     throw new Error(`Resend API ${res.status}: ${body.slice(0, 300)}`);
   }
+
+  logger.info({ from }, "magic-link: email sent");
 }
