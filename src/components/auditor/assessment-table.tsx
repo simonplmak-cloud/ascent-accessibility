@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BulkActionBar } from "@/components/efficiency/bulk-action-bar";
+import { SavedViews } from "@/components/efficiency/saved-views";
+import type { ViewState } from "@/lib/efficiency/saved-views";
 import {
   filterByStatus,
   outcomeLabel,
@@ -69,6 +71,18 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
     () => visible.filter((item) => selected.has(item.id)),
     [visible, selected],
   );
+
+  const view: ViewState = {
+    status: status === "all" ? "" : status,
+    sort: sortKey,
+    dir: sortDir,
+  };
+
+  function applyView(v: ViewState) {
+    setStatus((v.status as HistoryStatusFilter) || "all");
+    setSortKey((v.sort as HistorySortKey) || "createdAt");
+    setSortDir(v.dir === "asc" ? "asc" : "desc");
+  }
 
   function toggleSort(key: HistorySortKey) {
     if (key === sortKey) {
@@ -139,6 +153,10 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
             <option value="failed">Failed</option>
           </select>
         </label>
+      </div>
+
+      <div className="mt-3">
+        <SavedViews current={view} onApply={applyView} />
       </div>
 
       <div className="mt-3">

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { MasterDetail, type MasterDetailItem } from "@/components/efficiency/master-detail";
 
 interface QueueItem {
   id: string;
@@ -23,10 +24,10 @@ const VERDICTS = ["Passed", "Failed", "NotPresent"] as const;
 export function ReviewQueue() {
   const [items, setItems] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<string | null>(null);
   const [rows, setRows] = useState<ConformanceRow[]>([]);
   const [resolutions, setResolutions] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -58,16 +59,14 @@ export function ReviewQueue() {
   }
 
   async function open(id: string) {
-    setExpanded(id);
+    setSubmitted(null);
     setResolutions({});
     setNotes({});
+    setRows([]);
     const res = await fetch(`/api/v1/assessments/${id}`);
     if (!res.ok) return;
     const data = (await res.json()) as { comparison?: { conformance?: { rows?: ConformanceRow[] } } };
-    const cannotTell = (data.comparison?.conformance?.rows ?? []).filter(
-      (r) => r.result === "CannotTell",
-    );
-    setRows(cannotTell);
+    setRows((data.comparison?.conformance?.rows ?? []).filter((r) => r.result === "CannotTell"));
   }
 
   async function submit(id: string) {
@@ -85,7 +84,7 @@ export function ReviewQueue() {
       body: JSON.stringify(body),
     });
     if (res.ok) {
-      setExpanded(null);
+      setSubmitted(id);
       setRows([]);
       await load();
     } else {
@@ -93,6 +92,105 @@ export function ReviewQueue() {
       setError(data.code ?? "Submit failed");
     }
   }
+
+  const detail = (id: string) => (
+    <div className="rounded border border-terminal-border bg-terminal-surface p-4">
+      <h2 className="font-mono text-base font-semibold text-terminal-fg">Review</h2>
+      {submitted === id ? (
+        <p role="status" className="mt-3 font-mono text-sm text-terminal-pass">
+          Review submitted ✓
+        </p>
+      ) : rows.length === 0 ? (
+        <p className="mt-3 font-mono text-sm text-terminal-muted">
+          No &ldquo;Cannot tell&rdquo; criteria to resolve.
+        </p>
+      ) : (
+        <>
+          <ul className="mt-3 space-y-3">
+            {rows.map((row) => (
+              <li key={row.num} className="rounded border border-terminal-border p-3">
+                <p className="font-mono text-sm text-terminal-fg">
+                  {row.num} {row.title}{" "}
+                  <span className="text-terminal-muted">(Level {row.level})</span>
+                </p>
+                <div className="mt-2 flex flex-col gap-2">
+                  <select
+                    aria-label={`Verdict for ${row.num}`}
+                    value={resolutions[row.num] ?? "Passed"}
+                    onChange={(e) => setResolutions((r) => ({ ...r, [row.num]: e.target.value }))}
+                    className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-mono text-sm text-terminal-fg"
+                  >
+                    {VERDICTS.map((v) => (
+                      <option key={v} value={v}>
+                        {v}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    aria-label={`Rationale for ${row.num}`}
+                    placeholder="Rationale (optional)"
+                    value={notes[row.num] ?? ""}
+                    onChange={(e) => setNotes((n) => ({ ...n, [row.num]: e.target.value }))}
+                    className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-mono text-sm text-terminal-fg"
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => void submit(id)}
+            className="mt-4 rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
+          >
+            Submit review
+          </button>
+        </>
+      )}
+    </div>
+  );
+
+  const masterItems: MasterDetailItem[] = items.map((item) => ({
+    id: item.id,
+    render: ({ selected, active }) => (
+      <div
+        className={`mb-2 rounded border p-3 ${
+          active ? "border-terminal-serious" : "border-terminal-border"
+        } ${selected ? "bg-terminal-bg" : "bg-transparent"}`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <Link
+              href={`/auditor/report/${item.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="block truncate font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+              title={item.url}
+            >
+              {item.url}
+            </Link>
+            <p className="font-mono text-xs text-terminal-muted">{item.standard}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {item.status === "completed" && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void claim(item.id);
+                }}
+                className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:border-terminal-serious"
+              >
+                Claim
+              </button>
+            )}
+            <span aria-hidden="true" className="font-mono text-xs text-terminal-muted">
+              Review →
+            </span>
+          </div>
+        </div>
+      </div>
+    ),
+  }));
 
   return (
     <section aria-labelledby="review-queue-heading">
@@ -109,96 +207,12 @@ export function ReviewQueue() {
       ) : items.length === 0 ? (
         <p className="mt-4 font-mono text-sm text-terminal-muted">No reviews pending.</p>
       ) : (
-        <ul className="mt-6 space-y-4">
-          {items.map((item) => (
-            <li key={item.id} className="rounded border border-terminal-border p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <Link
-                    href={`/auditor/report/${item.id}`}
-                    className="block truncate font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
-                    title={item.url}
-                  >
-                    {item.url}
-                  </Link>
-                  <p className="font-mono text-xs text-terminal-muted">{item.standard}</p>
-                </div>
-                <div className="flex gap-2">
-                  {item.status === "completed" && (
-                    <button
-                      type="button"
-                      onClick={() => void claim(item.id)}
-                      className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:border-terminal-serious"
-                    >
-                      Claim
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => void open(item.id)}
-                    className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:border-terminal-serious"
-                  >
-                    Review
-                  </button>
-                </div>
-              </div>
-
-              {expanded === item.id && (
-                <div className="mt-4 border-t border-terminal-border pt-4">
-                  {rows.length === 0 ? (
-                    <p className="font-mono text-sm text-terminal-muted">
-                      No &ldquo;Cannot tell&rdquo; criteria to resolve.
-                    </p>
-                  ) : (
-                    <>
-                      <ul className="space-y-3">
-                        {rows.map((row) => (
-                          <li key={row.num} className="rounded border border-terminal-border p-3">
-                            <p className="font-mono text-sm text-terminal-fg">
-                              {row.num} {row.title}{" "}
-                              <span className="text-terminal-muted">(Level {row.level})</span>
-                            </p>
-                            <div className="mt-2 flex flex-wrap items-center gap-3">
-                              <select
-                                value={resolutions[row.num] ?? "Passed"}
-                                onChange={(e) =>
-                                  setResolutions((r) => ({ ...r, [row.num]: e.target.value }))
-                                }
-                                className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-mono text-sm text-terminal-fg"
-                              >
-                                {VERDICTS.map((v) => (
-                                  <option key={v} value={v}>
-                                    {v}
-                                  </option>
-                                ))}
-                              </select>
-                              <input
-                                type="text"
-                                placeholder="Rationale (optional)"
-                                value={notes[row.num] ?? ""}
-                                onChange={(e) =>
-                                  setNotes((n) => ({ ...n, [row.num]: e.target.value }))
-                                }
-                                className="flex-1 rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-mono text-sm text-terminal-fg"
-                              />
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                      <button
-                        type="button"
-                        onClick={() => void submit(item.id)}
-                        className="mt-4 rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
-                      >
-                        Submit review
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+        <div className="mt-6">
+          <p className="mb-2 font-mono text-xs text-terminal-muted">
+            j/k to move · Enter to review · Esc to close
+          </p>
+          <MasterDetail items={masterItems} detail={detail} onOpen={(id) => void open(id)} />
+        </div>
       )}
     </section>
   );

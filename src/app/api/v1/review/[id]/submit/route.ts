@@ -1,24 +1,7 @@
 import { NextResponse } from "next/server";
-import { assessmentRepository } from "@/db/repository";
 import { getSessionUser, isReviewer } from "@/server/auth";
 import { assessmentIdSchema } from "@/server/validation";
-import {
-  InvalidTransitionError,
-  submitReview,
-  UnresolvedScsError,
-  type ReviewVerdict,
-} from "@/lib/review";
-
-interface ConformanceRowInput {
-  num: string;
-  result: string;
-}
-
-interface ResolutionBody {
-  scNum?: never;
-  verdict?: string;
-  note?: string;
-}
+import { resolveAssessmentReview } from "@/server/review";
 
 export async function POST(
   req: Request,
@@ -33,80 +16,24 @@ export async function POST(
   }
 
   const user = await getSessionUser();
-  const assessment = await assessmentRepository.findById(id);
-  if (!assessment) {
-    return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
-  }
-
-  const comparison = await assessmentRepository.findComparison<{
-    conformance?: { rows?: ConformanceRowInput[] };
-  }>(id);
-  const rows = comparison?.conformance?.rows ?? [];
-
   const body = (await req.json().catch(() => ({}))) as {
-    resolutions?: Record<string, ResolutionBody>;
+    resolutions?: Record<string, { verdict?: string; note?: string }>;
   };
-  const rawResolutions = body.resolutions ?? {};
 
-  const reviewedBy = user?.email ?? "";
-  const reviewedAt = new Date().toISOString();
-  const claim = (() => {
-    try {
-      return JSON.parse(assessment.reviewClaim ?? "{}") as {
-        organization?: string;
-      };
-    } catch {
-      return {};
-    }
-  })();
+  const result = await resolveAssessmentReview(id, body.resolutions ?? {}, user?.email ?? "");
 
-  const resolutions = new Map<string, ReviewVerdict>();
-  for (const [scNum, r] of Object.entries(rawResolutions)) {
-    if (r?.verdict === "Passed" || r?.verdict === "Failed" || r?.verdict === "NotPresent") {
-      resolutions.set(scNum, r.verdict);
-    }
-  }
-
-  let result;
-  try {
-    result = submitReview({
-      status: (assessment.reviewStatus as Parameters<typeof submitReview>[0]["status"]) ?? "none",
-      rows: rows.map((r) => ({ num: r.num, result: r.result })),
-      resolutions,
-      reviewer: reviewedBy,
-      organization: claim.organization ?? "",
-      asAt: assessment.snapshotAt ?? assessment.updatedAt,
-      signedAt: reviewedAt,
-    });
-  } catch (error) {
-    if (error instanceof UnresolvedScsError) {
+  if (!result.ok) {
+    if (result.code === "UNRESOLVED_SCS") {
       return NextResponse.json(
-        { code: "UNRESOLVED_SCS", unresolved: error.unresolved },
+        { code: "UNRESOLVED_SCS", unresolved: result.unresolved },
         { status: 422 },
       );
     }
-    if (error instanceof InvalidTransitionError) {
+    if (result.code === "INVALID_TRANSITION") {
       return NextResponse.json({ code: "INVALID_TRANSITION" }, { status: 409 });
     }
-    throw error;
+    return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
   }
-
-  const reviewResults: Record<string, unknown> = {};
-  for (const [scNum, verdict] of resolutions) {
-    reviewResults[scNum] = {
-      verdict,
-      note: rawResolutions[scNum]?.note ?? "",
-      reviewedBy,
-      reviewedAt,
-    };
-  }
-
-  await assessmentRepository.submitReview(id, {
-    reviewResults: JSON.stringify(reviewResults),
-    conformance: result.claim.outcome,
-    scsMet: result.claim.scsMet,
-    scsApplicable: result.claim.scsApplicable,
-  });
 
   return NextResponse.json(result.claim);
 }
