@@ -5,6 +5,7 @@ import { computePathProgress } from "@/lib/training/quiz";
 import { trainingRepository } from "@/db/repository";
 import type { Credential, LearnerProgress } from "@/db/repository/training-repository";
 import { getSessionUser } from "@/server/auth";
+import { ClaimCertificateButton } from "@/components/training/claim-certificate-button";
 
 export const metadata: Metadata = {
   title: "Training",
@@ -28,6 +29,15 @@ export default async function TrainingDashboardPage() {
   );
   const pathProgress = computePathProgress(activityIds, completed);
   const nextActivity = activityIds.find((id) => !completed.has(id));
+  const quizIds = PATH.modules
+    .flatMap((m) => m.activities.filter((a) => a.type === "quiz").map((a) => a.id));
+  const quizScores = progress
+    .filter((p) => quizIds.includes(p.activity) && p.score != null)
+    .map((p) => p.score as number);
+  const avgScore = quizScores.length
+    ? Math.round(quizScores.reduce((a, b) => a + b, 0) / quizScores.length)
+    : null;
+  const hasCredential = credentials.some((c) => c.path === PATH.id);
   const nextHref = nextActivity
     ? getLesson(nextActivity)
       ? `/training/lessons/${nextActivity}`
@@ -68,6 +78,15 @@ export default async function TrainingDashboardPage() {
               {nextActivity ? "Continue learning" : "View path"}
             </Link>
           </div>
+          {user && pathProgress.done && !hasCredential && (
+            <div className="mt-4">
+              <ClaimCertificateButton
+                path={PATH.id}
+                pathVersion={PATH.version}
+                score={avgScore}
+              />
+            </div>
+          )}
         </div>
       </section>
 
