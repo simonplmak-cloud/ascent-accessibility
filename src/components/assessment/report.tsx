@@ -9,6 +9,8 @@ import { FindingEvidence } from "./finding-evidence";
 import { Methodology } from "./methodology";
 import { LogPanel } from "./log-panel";
 import { buildReportSummary } from "@/lib/report-summary";
+import { priorityFindings } from "@/lib/report-priority";
+import { impactColor } from "./severity";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import type { AssessmentResult } from "./types";
@@ -21,8 +23,13 @@ export function Report({ result }: { result: AssessmentResult }) {
   const cannotTellCount =
     result.comparison?.conformance?.rows?.filter((row) => row.result === "CannotTell").length ?? 0;
 
+  // Priority-first (A2): deterministic impact × reach ordering; top 5 surfaced.
+  const orderedFindings = priorityFindings(result.findings);
+  const top = orderedFindings.slice(0, 5);
+
   const navSections = [
     { id: "summary", label: "Summary" },
+    ...(orderedFindings.length > 0 ? [{ id: "top-issues", label: "Top issues" }] : []),
     ...(hasConformance ? [{ id: "conformance", label: "Conformance" }] : []),
     ...(cannotTellCount > 0 ? [{ id: "manual-review", label: "Manual review" }] : []),
     ...(hasAnalysis ? [{ id: "analysis", label: "Analysis" }] : []),
@@ -37,7 +44,7 @@ export function Report({ result }: { result: AssessmentResult }) {
       className={`mt-8 ${largePrint ? "large-print" : ""}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="report-heading" className="font-mono text-lg font-semibold text-terminal-fg">
+        <h2 id="report-heading" className="font-display text-lg font-semibold text-terminal-fg">
           Assessment report
         </h2>
         <div className="flex flex-wrap items-center gap-2">
@@ -64,7 +71,7 @@ export function Report({ result }: { result: AssessmentResult }) {
             <li key={section.id}>
               <a
                 href={`#${section.id}`}
-                className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+                className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
               >
                 {section.label}
               </a>
@@ -73,7 +80,7 @@ export function Report({ result }: { result: AssessmentResult }) {
         </ul>
       </nav>
 
-      <p className="mt-4 font-mono leading-7 text-terminal-fg">
+      <p className="mt-4 font-sans leading-7 text-terminal-fg">
         {buildReportSummary(result)}
       </p>
 
@@ -85,13 +92,13 @@ export function Report({ result }: { result: AssessmentResult }) {
       </div>
 
       {result.partial && (
-        <p className="mt-3 font-mono text-sm text-terminal-moderate">
+        <p className="mt-3 font-sans text-sm text-terminal-moderate">
           Note: crawl limits reached — this report covers a subset of pages.
         </p>
       )}
 
       {result.reviewStatus === "reviewed" && result.snapshotAt && (
-        <p className="mt-3 font-mono text-xs text-terminal-muted">
+        <p className="mt-3 font-sans text-xs text-terminal-muted">
           Conformance evaluated as at {new Date(result.snapshotAt).toUTCString()}. This report is a
           professional opinion, not a certified audit or legal advice.
         </p>
@@ -114,20 +121,56 @@ export function Report({ result }: { result: AssessmentResult }) {
       </div>
 
       <div id="findings" className="mt-8 scroll-mt-24">
-        <h2 className="font-mono text-base font-semibold text-terminal-fg">
+        {orderedFindings.length > 0 && (
+          <div id="top-issues" className="mb-8 scroll-mt-24">
+            <h2 className="font-display text-base font-semibold text-terminal-fg">Top issues</h2>
+            <p className="mt-1 font-sans text-sm text-terminal-muted">
+              Fix these first — ranked by user impact × reach. Full evidence below.
+            </p>
+            <ol className="mt-3 space-y-2">
+              {top.map((finding, index) => {
+                const sc = finding.wcagSc?.[0];
+                return (
+                  <li key={`${finding.ruleId}-${finding.pageUrl}-${index}`}>
+                    <a
+                      href={`#finding-${index}`}
+                      className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded border border-terminal-border bg-terminal-surface/40 px-3 py-2 hover:border-terminal-serious"
+                    >
+                      <span className="font-sans text-xs text-terminal-muted">{index + 1}.</span>
+                      <span className={`font-sans text-xs font-semibold uppercase ${impactColor(finding.impact)}`}>
+                        {finding.impact}
+                      </span>
+                      <span className="font-sans text-sm text-terminal-fg">{finding.description}</span>
+                      {sc && <span className="font-sans text-xs text-terminal-muted">WCAG {sc}</span>}
+                      {index === 0 && (
+                        <span className="ml-auto font-sans text-xs font-semibold text-terminal-serious">
+                          Fix this first
+                        </span>
+                      )}
+                    </a>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        )}
+
+        <h2 className="font-display text-base font-semibold text-terminal-fg">
           Findings ({result.findings.length})
         </h2>
         {result.findings.length === 0 ? (
-          <p className="mt-2 font-mono text-sm text-terminal-pass">
+          <p className="mt-2 font-sans text-sm text-terminal-pass">
             No automated violations detected.
           </p>
         ) : (
-          result.findings.map((finding, index) => (
-            <FindingEvidence
+          orderedFindings.map((finding, index) => (
+            <div
               key={`${finding.ruleId}-${finding.pageUrl}-${index}`}
-              finding={finding}
-              assessmentId={result.id}
-            />
+              id={`finding-${index}`}
+              className="scroll-mt-24"
+            >
+              <FindingEvidence finding={finding} assessmentId={result.id} />
+            </div>
           ))
         )}
       </div>

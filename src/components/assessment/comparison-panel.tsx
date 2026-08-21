@@ -24,11 +24,11 @@ export function ComparisonPanel({ result }: { result: AssessmentResult }) {
 
   return (
     <section aria-labelledby="comparison-heading" className="mt-8">
-      <h2 id="comparison-heading" className="font-mono text-lg font-semibold text-terminal-fg">
+      <h2 id="comparison-heading" className="font-display text-lg font-semibold text-terminal-fg">
         Ascent Accessibility analysis
       </h2>
       <div className="mt-4 overflow-x-auto rounded border border-terminal-border">
-        <table className="w-full border-collapse font-mono text-sm">
+        <table className="w-full border-collapse font-sans text-sm">
           <thead>
             <tr className="border-b border-terminal-border text-left text-terminal-muted">
               <th scope="col" className="px-3 py-2 font-medium">Signal</th>
@@ -56,12 +56,12 @@ export function ComparisonPanel({ result }: { result: AssessmentResult }) {
         <section aria-labelledby="site-signals-heading" className="mt-6">
           <h3
             id="site-signals-heading"
-            className="font-mono text-sm font-semibold text-terminal-muted"
+            className="font-sans text-sm font-semibold text-terminal-muted"
           >
             Site signals
           </h3>
           <div className="mt-2 overflow-x-auto rounded border border-terminal-border">
-            <table className="w-full border-collapse font-mono text-sm">
+            <table className="w-full border-collapse font-sans text-sm">
               <thead>
                 <tr className="border-b border-terminal-border text-left text-terminal-muted">
                   <th scope="col" className="px-3 py-2 font-medium">Category</th>
@@ -83,16 +83,20 @@ export function ComparisonPanel({ result }: { result: AssessmentResult }) {
 
       {ai && (
         <section aria-labelledby="ai-review-heading" className="mt-6">
-          <h3 id="ai-review-heading" className="font-mono text-sm font-semibold text-terminal-muted">
+          <h3 id="ai-review-heading" className="font-sans text-sm font-semibold text-terminal-muted">
             AI-assisted review ({ai.model})
           </h3>
+          <p className="mt-1 font-sans text-xs text-terminal-muted">
+            AI-assisted triage — not proof of conformance. Criteria below the confidence threshold
+            remain flagged for independent human review.
+          </p>
           {ai.verdicts.length === 0 ? (
-            <p className="mt-2 font-mono text-xs text-terminal-muted">
+            <p className="mt-2 font-sans text-xs text-terminal-muted">
               No machine-untestable items required AI review.
             </p>
           ) : (
             <div className="mt-2 overflow-x-auto rounded border border-terminal-border">
-              <table className="w-full border-collapse font-mono text-sm">
+              <table className="w-full border-collapse font-sans text-sm">
                 <thead>
                   <tr className="border-b border-terminal-border text-left text-terminal-muted">
                     <th scope="col" className="px-3 py-2 font-medium">SC</th>
@@ -117,7 +121,7 @@ export function ComparisonPanel({ result }: { result: AssessmentResult }) {
         </section>
       )}
 
-      <p className="mt-2 font-mono text-xs text-terminal-muted">
+      <p className="mt-2 font-sans text-xs text-terminal-muted">
         Automated findings are preliminary — full conformance requires manual review.
       </p>
     </section>

@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { getSc, understandingUrl } from "@/lib/standards/wcag-sc";
+import { linksForSc } from "@/lib/sc-links";
 import { impactColor } from "./severity";
 import type { Finding } from "./types";
 
@@ -19,12 +21,13 @@ export function FindingEvidence({
 }) {
   const sc = finding.wcagSc?.[0];
   const scInfo = sc ? getSc(sc) : undefined;
+  const links = sc ? linksForSc(sc) : null;
   const instances = finding.instances ?? [];
 
   return (
     <article className="mt-4 rounded border border-terminal-border bg-terminal-surface/40 p-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className={`font-mono text-xs font-semibold uppercase ${impactColor(finding.impact)}`}>
+        <span className={`font-sans text-xs font-semibold uppercase ${impactColor(finding.impact)}`}>
           {finding.impact}
         </span>
         {sc && scInfo && (
@@ -32,27 +35,27 @@ export function FindingEvidence({
             href={understandingUrl(scInfo)}
             target="_blank"
             rel="noreferrer"
-            className="font-mono text-xs text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
+            className="font-sans text-xs text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
           >
             WCAG {sc} · {scInfo.title} (Level {scInfo.level})
             <span className="sr-only"> (opens in a new window)</span>
           </a>
         )}
         {!sc && (
-          <span className="font-mono text-xs text-terminal-muted">Best practice</span>
+          <span className="font-sans text-xs text-terminal-muted">Best practice</span>
         )}
         {finding.confidence && (
-          <span className={`font-mono text-xs ${confidenceClass(finding.confidence)}`}>
+          <span className={`font-sans text-xs ${confidenceClass(finding.confidence)}`}>
             {finding.confidence === "confirmed" ? "confirmed by 2+ tools" : "single source"}
           </span>
         )}
       </div>
 
-      <p className="mt-2 font-mono text-sm text-terminal-fg">{finding.description}</p>
-      <p className="mt-1 font-mono text-xs text-terminal-muted">{finding.pageUrl}</p>
+      <p className="mt-2 font-sans text-sm text-terminal-fg">{finding.description}</p>
+      <p className="mt-1 font-sans text-xs text-terminal-muted">{finding.pageUrl}</p>
 
       {finding.sources && finding.sources.length > 0 && (
-        <p className="mt-2 font-mono text-xs text-terminal-muted">
+        <p className="mt-2 font-sans text-xs text-terminal-muted">
           Detected by:{" "}
           {[...new Set(finding.sources.map((s) => s.tool))].map((t) => t.toUpperCase()).join(", ")}
         </p>
@@ -73,7 +76,7 @@ export function FindingEvidence({
                 </code>
               )}
               {instance.failureSummary && (
-                <p className="mt-1 font-mono text-xs text-terminal-serious">{instance.failureSummary}</p>
+                <p className="mt-1 font-sans text-xs text-terminal-serious">{instance.failureSummary}</p>
               )}
               {instance.evidenceId && (
                 <img
@@ -88,9 +91,27 @@ export function FindingEvidence({
         </div>
       )}
 
-      <p className="mt-3 font-mono text-sm text-terminal-fg">
+      <p className="mt-3 font-sans text-sm text-terminal-fg">
         <span className="text-terminal-serious">Fix:</span> {finding.recommendation}
       </p>
+
+      {links && (
+        <div className="mt-3 space-y-1 border-t border-terminal-border pt-3 font-sans text-xs">
+          <p className="text-terminal-muted">
+            <span className="text-terminal-fg">Verify manually:</span> {links.manualTest}
+          </p>
+          {links.lessonHref && (
+            <p>
+              <Link
+                href={links.lessonHref}
+                className="text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
+              >
+                Learn this criterion in the free course →
+              </Link>
+            </p>
+          )}
+        </div>
+      )}
     </article>
   );
 }
