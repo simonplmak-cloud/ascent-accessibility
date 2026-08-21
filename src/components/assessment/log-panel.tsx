@@ -27,11 +27,11 @@ export function LogPanel({ entries }: { entries: LogEntry[] }) {
   return (
     <div className="rounded border border-terminal-border bg-terminal-surface">
       <div className="flex items-center justify-between border-b border-terminal-border px-3 py-1">
-        <h3 className="font-mono text-sm font-semibold text-terminal-fg">Scan log</h3>
+        <h3 className="font-sans text-sm font-semibold text-terminal-fg">Scan log</h3>
         <button
           type="button"
           onClick={() => setAutoScroll((value) => !value)}
-          className="font-mono text-xs text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
+          className="font-sans text-xs text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
         >
           {autoScroll ? "auto-scroll on" : "auto-scroll off"}
         </button>

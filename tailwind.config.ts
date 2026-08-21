@@ -20,9 +20,18 @@ const config: Config = {
           partial: "rgb(var(--t-partial) / <alpha-value>)",
           fail: "rgb(var(--t-fail) / <alpha-value>)",
         },
+        brand: "rgb(var(--brand) / <alpha-value>)",
+        brandLink: "rgb(var(--brand-link) / <alpha-value>)",
+        brandDeep: "rgb(var(--brand-deep) / <alpha-value>)",
+        accent: "rgb(var(--accent) / <alpha-value>)",
       },
       fontFamily: {
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "var(--font-sans)", "system-ui", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
+      },
+      boxShadow: {
+        card: "var(--elev)",
       },
     },
   },

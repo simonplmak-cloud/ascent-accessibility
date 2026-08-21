@@ -46,14 +46,14 @@ export default function DonatePage() {
   if (thankYou) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16">
-        <h1 className="font-mono text-3xl font-bold text-terminal-pass">Thank you</h1>
-        <p className="mt-4 font-mono leading-7 text-terminal-muted">
+        <h1 className="font-display text-3xl font-bold text-terminal-pass">Thank you</h1>
+        <p className="mt-4 font-sans leading-7 text-terminal-muted">
           Your support keeps the accessibility assessment tool free and available to everyone. A
           receipt will be emailed to you by Stripe.
         </p>
         <a
           href="/donate"
-          className="mt-6 inline-block rounded bg-terminal-fg px-6 py-2 font-mono text-terminal-bg hover:bg-terminal-serious"
+          className="mt-6 inline-block rounded bg-terminal-fg px-6 py-2 font-sans text-terminal-bg hover:bg-terminal-serious"
         >
           Make another donation
         </a>
@@ -64,8 +64,8 @@ export default function DonatePage() {
   if (clientSecret) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16">
-        <h1 className="font-mono text-3xl font-bold text-terminal-fg">Complete your donation</h1>
-        <p className="mt-2 font-mono text-terminal-muted">
+        <h1 className="font-display text-3xl font-bold text-terminal-fg">Complete your donation</h1>
+        <p className="mt-2 font-sans text-terminal-muted">
           {recurring ? "Monthly" : "One-time"} donation of ${amount} USD.
         </p>
         <div className="mt-6">
@@ -74,7 +74,7 @@ export default function DonatePage() {
         <button
           type="button"
           onClick={() => setClientSecret(null)}
-          className="mt-4 font-mono text-sm text-terminal-muted underline underline-offset-4 hover:text-terminal-fg"
+          className="mt-4 font-sans text-sm text-terminal-muted underline underline-offset-4 hover:text-terminal-fg"
         >
           Change amount
         </button>
@@ -84,14 +84,14 @@ export default function DonatePage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Support the tool</h1>
-      <p className="mt-4 font-mono text-terminal-muted">
+      <h1 className="font-display text-3xl font-bold text-terminal-fg">Support the tool</h1>
+      <p className="mt-4 font-sans text-terminal-muted">
         Your donation keeps the assessment tool free and available to everyone. Give once, or set
         up a monthly donation.
       </p>
 
       <div className="mt-6 rounded border border-terminal-pass bg-terminal-surface p-4">
-        <p className="font-mono text-sm text-terminal-fg">
+        <p className="font-sans text-sm text-terminal-fg">
           <strong className="text-terminal-pass">US$250/month keeps the service running</strong> —
           it covers the scan infrastructure so scans stay free for everyone.
         </p>
@@ -99,9 +99,9 @@ export default function DonatePage() {
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <fieldset>
-          <legend className="font-mono text-sm text-terminal-fg">Frequency</legend>
+          <legend className="font-sans text-sm text-terminal-fg">Frequency</legend>
           <div className="mt-2 flex gap-2">
-            <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+            <label className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
               <input
                 type="radio"
                 name="frequency"
@@ -110,7 +110,7 @@ export default function DonatePage() {
               />
               One-time
             </label>
-            <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+            <label className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
               <input
                 type="radio"
                 name="frequency"
@@ -123,7 +123,7 @@ export default function DonatePage() {
         </fieldset>
 
         <fieldset>
-          <legend className="font-mono text-sm text-terminal-fg">Amount (USD)</legend>
+          <legend className="font-sans text-sm text-terminal-fg">Amount (USD)</legend>
           <div className="mt-2 flex gap-2">
             {PRESETS.map((value) => (
               <button
@@ -131,7 +131,7 @@ export default function DonatePage() {
                 type="button"
                 onClick={() => setAmount(value)}
                 aria-pressed={amount === value}
-                className={`rounded border px-4 py-2 font-mono ${
+                className={`rounded border px-4 py-2 font-sans ${
                   amount === value
                     ? "border-terminal-serious bg-terminal-surface text-terminal-fg"
                     : "border-terminal-border text-terminal-fg hover:bg-terminal-surface"
@@ -144,7 +144,7 @@ export default function DonatePage() {
         </fieldset>
 
         <div>
-          <label htmlFor="amount" className="block font-mono text-sm text-terminal-fg">
+          <label htmlFor="amount" className="block font-sans text-sm text-terminal-fg">
             Custom amount (USD)
           </label>
           <input
@@ -154,21 +154,21 @@ export default function DonatePage() {
             max={10000}
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value))}
-            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-mono text-terminal-fg"
+            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-terminal-fg"
           />
         </div>
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-terminal-fg px-6 py-2 font-mono text-terminal-bg hover:bg-terminal-serious disabled:opacity-50"
+          className="rounded bg-terminal-fg px-6 py-2 font-sans text-terminal-bg hover:bg-terminal-serious disabled:opacity-50"
         >
           {submitting ? "Preparing…" : recurring ? "Donate monthly" : "Donate"}
         </button>
       </form>
 
       {error && (
-        <p role="alert" className="mt-4 font-mono text-sm text-terminal-critical">
+        <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
           {error}
         </p>
       )}

@@ -6,7 +6,7 @@ export function FindingsGrid({ findings }: { findings: Finding[] }) {
 
   return (
     <div className="overflow-x-auto rounded border border-terminal-border">
-      <table className="w-full border-collapse font-mono text-sm text-terminal-fg">
+      <table className="w-full border-collapse font-sans text-sm text-terminal-fg">
         <thead>
           <tr className="text-left">
             <th scope="col" className="border-b border-terminal-border px-2 py-1 font-semibold text-terminal-muted">Rule</th>

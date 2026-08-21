@@ -61,11 +61,11 @@ function CheckoutForm({ submitLabel }: { submitLabel: string }) {
   const [submitting, setSubmitting] = useState(false);
 
   if (checkoutState.type === "loading") {
-    return <p className="font-mono text-sm text-terminal-muted">Loading…</p>;
+    return <p className="font-sans text-sm text-terminal-muted">Loading…</p>;
   }
   if (checkoutState.type === "error") {
     return (
-      <p role="alert" className="font-mono text-sm text-terminal-critical">
+      <p role="alert" className="font-sans text-sm text-terminal-critical">
         {checkoutState.error.message}
       </p>
     );
@@ -90,12 +90,12 @@ function CheckoutForm({ submitLabel }: { submitLabel: string }) {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded bg-terminal-fg px-4 py-2 font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious disabled:opacity-60"
+        className="w-full rounded bg-terminal-fg px-4 py-2 font-sans text-sm font-medium text-terminal-bg hover:bg-terminal-serious disabled:opacity-60"
       >
         {submitting ? "Processing…" : submitLabel}
       </button>
       {message && (
-        <p role="alert" className="font-mono text-sm text-terminal-critical">
+        <p role="alert" className="font-sans text-sm text-terminal-critical">
           {message}
         </p>
       )}

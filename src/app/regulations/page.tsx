@@ -32,7 +32,7 @@ export default function RegulationsPage() {
       </MutedText>
 
       <div className="mt-8 overflow-x-auto rounded border border-terminal-border">
-        <table className="w-full border-collapse font-mono text-sm">
+        <table className="w-full border-collapse font-sans text-sm">
           <thead>
             <tr className="border-b border-terminal-border text-left text-terminal-muted">
               <th scope="col" className="px-3 py-2 font-medium">Regulation / standard</th>
@@ -52,7 +52,7 @@ export default function RegulationsPage() {
         </table>
       </div>
 
-      <p className="mt-8 font-mono text-sm text-terminal-fg">
+      <p className="mt-8 font-sans text-sm text-terminal-fg">
         <InlineLink href="/esg">ESG &amp; reporting mapping</InlineLink> ·{" "}
         <InlineLink href="/human-review">Conformance review</InlineLink> ·{" "}
         <InlineLink href="/validation">How we validate</InlineLink>

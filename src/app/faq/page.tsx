@@ -55,13 +55,13 @@ export default function FaqPage() {
             key={faq.q}
             className="rounded border border-terminal-border bg-terminal-surface p-4"
           >
-            <h2 className="font-mono text-base font-semibold text-terminal-fg">{faq.q}</h2>
-            <p className="mt-2 font-mono text-sm leading-6 text-terminal-muted">{faq.a}</p>
+            <h2 className="font-display text-base font-semibold text-terminal-fg">{faq.q}</h2>
+            <p className="mt-2 font-sans text-sm leading-6 text-terminal-muted">{faq.a}</p>
           </section>
         ))}
       </div>
 
-      <p className="mt-8 font-mono text-sm text-terminal-muted">
+      <p className="mt-8 font-sans text-sm text-terminal-muted">
         Something else? <InlineLink href="/contact">Get in touch</InlineLink>.
       </p>
     </PageShell>

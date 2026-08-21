@@ -19,7 +19,7 @@ export default function ContactPage() {
         Want help improving your accessibility, or a deeper audit of your site? Get in
         touch.
       </MutedText>
-      <address className="mt-6 not-italic font-mono text-terminal-fg">
+      <address className="mt-6 not-italic font-sans text-terminal-fg">
         <p>
           Email:{" "}
           <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4">

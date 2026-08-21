@@ -69,11 +69,11 @@ export function QuizRunner({ id }: { id: string }) {
   }
 
   if (loading) {
-    return <p className="font-mono text-sm text-terminal-muted">Loading…</p>;
+    return <p className="font-sans text-sm text-terminal-muted">Loading…</p>;
   }
   if (!quiz) {
     return (
-      <p role="alert" className="font-mono text-sm text-terminal-critical">
+      <p role="alert" className="font-sans text-sm text-terminal-critical">
         {error ?? "Quiz not found."}
       </p>
     );
@@ -82,8 +82,8 @@ export function QuizRunner({ id }: { id: string }) {
   if (result) {
     return (
       <div className="space-y-4">
-        <h2 className="font-mono text-lg font-semibold text-terminal-fg">Results</h2>
-        <p role="status" className="font-mono text-sm text-terminal-fg">
+        <h2 className="font-display text-lg font-semibold text-terminal-fg">Results</h2>
+        <p role="status" className="font-sans text-sm text-terminal-fg">
           {result.score}/100 ·{" "}
           {result.passed ? (
             <span className="text-terminal-pass">Passed</span>
@@ -97,7 +97,7 @@ export function QuizRunner({ id }: { id: string }) {
           {quiz.questions.map((q) => {
             const r = result.results.find((x) => x.questionId === q.id)!;
             return (
-              <li key={q.id} className="rounded border border-terminal-border bg-terminal-surface/40 p-3 font-mono text-sm">
+              <li key={q.id} className="rounded border border-terminal-border bg-terminal-surface/40 p-3 font-sans text-sm">
                 <p className="text-terminal-fg">{q.prompt}</p>
                 <p className="mt-1">
                   <span className={r.correct ? "text-terminal-pass" : "text-terminal-fail"}>
@@ -119,7 +119,7 @@ export function QuizRunner({ id }: { id: string }) {
           >
             Retake
           </Button>
-          <Link href={`/training/paths/${PATH.id}`} className="font-mono text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious">
+          <Link href={`/training/paths/${PATH.id}`} className="font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious">
             Back to path
           </Link>
         </div>
@@ -139,12 +139,12 @@ export function QuizRunner({ id }: { id: string }) {
     >
       {quiz.questions.map((q, i) => (
         <fieldset key={q.id}>
-          <legend className="font-mono text-sm font-semibold text-terminal-fg">
+          <legend className="font-sans text-sm font-semibold text-terminal-fg">
             Q {i + 1} of {quiz.questions.length} — {q.prompt}
           </legend>
           <div className="mt-2 space-y-2">
             {q.options.map((opt, oi) => (
-              <label key={oi} className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+              <label key={oi} className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
                 <input
                   type="radio"
                   name={q.id}
@@ -159,7 +159,7 @@ export function QuizRunner({ id }: { id: string }) {
       ))}
 
       {error && (
-        <p role="alert" className="font-mono text-sm text-terminal-critical">
+        <p role="alert" className="font-sans text-sm text-terminal-critical">
           {error}
         </p>
       )}

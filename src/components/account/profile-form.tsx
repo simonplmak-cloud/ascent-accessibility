@@ -102,25 +102,25 @@ export function ProfileForm() {
   }
 
   const inputClass =
-    "mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-mono text-sm text-terminal-fg focus:outline-none focus:ring-2 focus:ring-terminal-fg";
+    "mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-sm text-terminal-fg focus:outline-none focus:ring-2 focus:ring-terminal-fg";
 
   return (
     <div className="space-y-6">
       <Card className="space-y-4 p-6">
-        <h2 className="font-mono text-lg font-bold text-terminal-fg">AI review key (BYOK)</h2>
-        <p className="font-mono text-sm text-terminal-muted">
+        <h2 className="font-sans text-lg font-bold text-terminal-fg">AI review key (BYOK)</h2>
+        <p className="font-sans text-sm text-terminal-muted">
           Bring your own key for any supported provider. Stored encrypted; AI review runs only on
           your key — the platform never pays for your tokens.
         </p>
 
         {masked && (
-          <p className="font-mono text-sm text-terminal-pass">
+          <p className="font-sans text-sm text-terminal-pass">
             Current key: <span className="text-terminal-fg">{masked}</span> ({provider})
           </p>
         )}
 
         <div>
-          <label htmlFor="provider" className="block font-mono text-sm text-terminal-fg">
+          <label htmlFor="provider" className="block font-sans text-sm text-terminal-fg">
             Provider
           </label>
           <select
@@ -139,7 +139,7 @@ export function ProfileForm() {
 
         {provider === "custom" && (
           <div>
-            <label htmlFor="baseUrl" className="block font-mono text-sm text-terminal-fg">
+            <label htmlFor="baseUrl" className="block font-sans text-sm text-terminal-fg">
               Base URL (https)
             </label>
             <input
@@ -154,7 +154,7 @@ export function ProfileForm() {
         )}
 
         <div>
-          <label htmlFor="apiKey" className="block font-mono text-sm text-terminal-fg">
+          <label htmlFor="apiKey" className="block font-sans text-sm text-terminal-fg">
             API key
           </label>
           <input
@@ -181,10 +181,10 @@ export function ProfileForm() {
       </Card>
 
       <Card className="space-y-4 p-6">
-        <h2 className="font-mono text-lg font-bold text-terminal-fg">Models</h2>
+        <h2 className="font-sans text-lg font-bold text-terminal-fg">Models</h2>
 
         <div>
-          <label htmlFor="visionModel" className="block font-mono text-sm text-terminal-fg">
+          <label htmlFor="visionModel" className="block font-sans text-sm text-terminal-fg">
             Vision model
           </label>
           <select
@@ -203,7 +203,7 @@ export function ProfileForm() {
         </div>
 
         <div>
-          <label htmlFor="audioModel" className="block font-mono text-sm text-terminal-fg">
+          <label htmlFor="audioModel" className="block font-sans text-sm text-terminal-fg">
             Voice / audio model
           </label>
           <select
@@ -220,7 +220,7 @@ export function ProfileForm() {
             ))}
           </select>
           {current && current.audioModels.length === 0 && (
-            <p className="mt-1 font-mono text-xs text-terminal-muted">
+            <p className="mt-1 font-sans text-xs text-terminal-muted">
               This provider has no audio model — media success criteria stay &ldquo;Cannot tell&rdquo;.
             </p>
           )}
@@ -230,12 +230,12 @@ export function ProfileForm() {
       </Card>
 
       {message && (
-        <p role="status" className="font-mono text-sm text-terminal-pass">
+        <p role="status" className="font-sans text-sm text-terminal-pass">
           {message}
         </p>
       )}
       {error && (
-        <p role="alert" className="font-mono text-sm text-terminal-critical">
+        <p role="alert" className="font-sans text-sm text-terminal-critical">
           {error}
         </p>
       )}

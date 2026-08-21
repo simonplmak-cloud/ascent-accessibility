@@ -27,16 +27,16 @@ export function ScoreComparison({ items }: { items: HistoryItem[] }) {
 
   return (
     <section aria-labelledby="comparison-heading" className="mt-8">
-      <h2 id="comparison-heading" className="font-mono text-lg font-semibold text-terminal-fg">
+      <h2 id="comparison-heading" className="font-display text-lg font-semibold text-terminal-fg">
         Conformance trend
       </h2>
       <div className="mt-4 grid gap-4">
         {groups.map((group) => (
           <div key={group.url} className="rounded border border-terminal-border p-4">
-            <div className="truncate font-mono text-sm text-terminal-fg" title={group.url}>
+            <div className="truncate font-sans text-sm text-terminal-fg" title={group.url}>
               {group.url}
             </div>
-            <div className="mt-1 font-mono text-xs text-terminal-muted">
+            <div className="mt-1 font-sans text-xs text-terminal-muted">
               {group.scans.length} scans
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -47,15 +47,15 @@ export function ScoreComparison({ items }: { items: HistoryItem[] }) {
                     key={scan.id}
                     className="rounded border border-terminal-border px-3 py-2 text-center"
                   >
-                    <div className="font-mono text-xs text-terminal-muted">
+                    <div className="font-sans text-xs text-terminal-muted">
                       {formatShort(scan.createdAt)}
                     </div>
-                    <div className="font-mono text-sm font-semibold text-terminal-fg">
+                    <div className="font-sans text-sm font-semibold text-terminal-fg">
                       {outcomeLabel(scan.conformance)}
                     </div>
                     {indicator && (
                       <div
-                        className={`font-mono text-xs ${
+                        className={`font-sans text-xs ${
                           indicator === "↑"
                             ? "text-terminal-pass"
                             : indicator === "↓"

@@ -43,12 +43,12 @@ export function PracticeCheck({
 
   return (
     <div className="mt-6 rounded border border-terminal-border bg-terminal-surface/40 p-4">
-      <h2 className="font-mono text-sm font-semibold text-terminal-fg">Practice check</h2>
-      <p className="mt-2 font-mono text-sm text-terminal-fg">{question.prompt}</p>
+      <h2 className="font-sans text-sm font-semibold text-terminal-fg">Practice check</h2>
+      <p className="mt-2 font-sans text-sm text-terminal-fg">{question.prompt}</p>
 
       <div className="mt-2 space-y-2">
         {question.options.map((option, i) => (
-          <label key={i} className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+          <label key={i} className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
             <input
               type="radio"
               name={`check-${lessonId}`}
@@ -62,14 +62,14 @@ export function PracticeCheck({
       </div>
 
       {error && (
-        <p role="alert" className="mt-2 font-mono text-sm text-terminal-critical">
+        <p role="alert" className="mt-2 font-sans text-sm text-terminal-critical">
           {error}
         </p>
       )}
 
       {result ? (
         <div className="mt-3">
-          <p className="font-mono text-sm">
+          <p className="font-sans text-sm">
             <span className={result.correct ? "text-terminal-pass" : "text-terminal-fail"}>
               {result.correct ? "✓ Correct" : "✗ Not quite"}
             </span>
@@ -80,11 +80,11 @@ export function PracticeCheck({
               </span>
             )}
           </p>
-          <p className="mt-1 font-mono text-sm text-terminal-muted">{result.explanation}</p>
+          <p className="mt-1 font-sans text-sm text-terminal-muted">{result.explanation}</p>
           <button
             type="button"
             onClick={reset}
-            className="mt-2 font-mono text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
+            className="mt-2 font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
           >
             Try again
           </button>
@@ -94,7 +94,7 @@ export function PracticeCheck({
           type="button"
           onClick={submit}
           disabled={selected === null}
-          className="mt-3 rounded bg-terminal-fg px-3 py-1 font-mono text-sm text-terminal-bg hover:bg-terminal-serious disabled:opacity-50"
+          className="mt-3 rounded bg-terminal-fg px-3 py-1 font-sans text-sm text-terminal-bg hover:bg-terminal-serious disabled:opacity-50"
         >
           Check answer
         </button>

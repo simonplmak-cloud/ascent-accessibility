@@ -48,12 +48,12 @@ export default function PricingPage() {
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         <Card className="p-6">
-          <h2 className="font-mono text-xl font-semibold text-terminal-fg">Free</h2>
-          <p className="mt-1 font-mono text-3xl font-bold text-terminal-fg">
+          <h2 className="font-display text-xl font-semibold text-terminal-fg">Free</h2>
+          <p className="mt-1 font-display text-3xl font-bold text-terminal-fg">
             US$0
             <span className="text-base font-normal text-terminal-muted"> / always</span>
           </p>
-          <ul className="mt-4 space-y-2 font-mono text-sm text-terminal-muted">
+          <ul className="mt-4 space-y-2 font-sans text-sm text-terminal-muted">
             {free.map((item) => (
               <li key={item} className="flex gap-2">
                 <span aria-hidden="true" className="text-terminal-pass">✓</span>
@@ -67,9 +67,9 @@ export default function PricingPage() {
         </Card>
 
         <Card className="p-6">
-          <h2 className="font-mono text-xl font-semibold text-terminal-fg">AI-assisted review</h2>
-          <p className="mt-1 font-mono text-3xl font-bold text-terminal-fg">BYOK</p>
-          <ul className="mt-4 space-y-2 font-mono text-sm text-terminal-muted">
+          <h2 className="font-display text-xl font-semibold text-terminal-fg">AI-assisted review</h2>
+          <p className="mt-1 font-display text-3xl font-bold text-terminal-fg">BYOK</p>
+          <ul className="mt-4 space-y-2 font-sans text-sm text-terminal-muted">
             {byok.map((item) => (
               <li key={item} className="flex gap-2">
                 <span aria-hidden="true" className="text-terminal-pass">✓</span>
@@ -83,12 +83,12 @@ export default function PricingPage() {
         </Card>
 
         <Card className="border-terminal-pass p-6">
-          <h2 className="font-mono text-xl font-semibold text-terminal-fg">Human review</h2>
-          <p className="mt-1 font-mono text-3xl font-bold text-terminal-fg">
+          <h2 className="font-display text-xl font-semibold text-terminal-fg">Human review</h2>
+          <p className="mt-1 font-display text-3xl font-bold text-terminal-fg">
             Per page
             <span className="text-base font-normal text-terminal-muted"> · quoted</span>
           </p>
-          <ul className="mt-4 space-y-2 font-mono text-sm text-terminal-muted">
+          <ul className="mt-4 space-y-2 font-sans text-sm text-terminal-muted">
             {human.map((item) => (
               <li key={item} className="flex gap-2">
                 <span aria-hidden="true" className="text-terminal-pass">✓</span>
@@ -102,7 +102,7 @@ export default function PricingPage() {
         </Card>
       </div>
 
-      <p className="mt-8 font-mono text-sm text-terminal-muted">
+      <p className="mt-8 font-sans text-sm text-terminal-muted">
         Prefer to support the service?{" "}
         <InlineLink href="/donate">Make a donation</InlineLink> — it keeps the scans free. See our{" "}
         <InlineLink href="/terms">terms</InlineLink>,{" "}

@@ -36,21 +36,21 @@ export default function RoadmapPage() {
     <PageShell width="4xl">
       <PageHeading>Roadmap &amp; changelog</PageHeading>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Shipped</h2>
-      <ul className="mt-3 list-disc space-y-1 pl-6 font-mono text-sm text-terminal-muted">
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Shipped</h2>
+      <ul className="mt-3 list-disc space-y-1 pl-6 font-sans text-sm text-terminal-muted">
         {shipped.map((item) => (
           <li key={item}>{item}</li>
         ))}
       </ul>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Planned</h2>
-      <ul className="mt-3 list-disc space-y-1 pl-6 font-mono text-sm text-terminal-muted">
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Planned</h2>
+      <ul className="mt-3 list-disc space-y-1 pl-6 font-sans text-sm text-terminal-muted">
         {planned.map((item) => (
           <li key={item}>{item}</li>
         ))}
       </ul>
 
-      <p className="mt-8 font-mono text-sm text-terminal-fg">
+      <p className="mt-8 font-sans text-sm text-terminal-fg">
         <InlineLink href="/methodology">Methodology</InlineLink> ·{" "}
         <InlineLink href="/validation">How we validate</InlineLink> ·{" "}
         <InlineLink href="/contact">Contact us</InlineLink>

@@ -40,7 +40,7 @@ export function AccountMenu({
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-controls="account-menu"
-        className="max-w-[12rem] truncate rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+        className="max-w-[12rem] truncate rounded border border-terminal-border px-3 py-1 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
       >
         {email ?? "Account"}
       </button>
@@ -54,7 +54,7 @@ export function AccountMenu({
               <Link
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="block rounded px-3 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
+                className="block rounded px-3 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-bg"
               >
                 {item.label}
               </Link>
@@ -68,7 +68,7 @@ export function AccountMenu({
                 onSignOut();
               }}
               disabled={signingOut}
-              className="block w-full rounded px-3 py-2 text-left font-mono text-sm text-terminal-fg hover:bg-terminal-bg disabled:opacity-50"
+              className="block w-full rounded px-3 py-2 text-left font-sans text-sm text-terminal-fg hover:bg-terminal-bg disabled:opacity-50"
             >
               {signingOut ? "Signing out…" : "Sign out"}
             </button>

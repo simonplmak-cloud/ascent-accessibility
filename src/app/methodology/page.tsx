@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <>
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">{title}</h2>
-      <p className="mt-3 font-mono leading-7 text-terminal-muted">{children}</p>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{title}</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">{children}</p>
     </>
   );
 }
@@ -59,7 +59,7 @@ export default function MethodologyPage() {
         Treat the report as a starting point for a manual review.
       </Section>
 
-      <p className="mt-8 font-mono text-sm text-terminal-fg">
+      <p className="mt-8 font-sans text-sm text-terminal-fg">
         See the full list of{" "}
         <InlineLink href="/standards" className="hover:text-terminal-serious">
           WCAG 2.2 success criteria

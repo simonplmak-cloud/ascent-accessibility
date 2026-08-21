@@ -51,7 +51,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
       return (
         <Link
           href={item.href!}
-          className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+          className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
         >
           {item.label}
         </Link>
@@ -65,7 +65,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
           onClick={() => setDropdown(dropdown === item.label ? null : item.label)}
           aria-expanded={dropdown === item.label}
           aria-controls={id}
-          className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+          className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
         >
           {item.label} <span aria-hidden="true">▾</span>
         </button>
@@ -79,7 +79,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                 <Link
                   href={child.href}
                   onClick={() => setDropdown(null)}
-                  className="block rounded px-3 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-bg"
+                  className="block rounded px-3 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-bg"
                 >
                   {child.label}
                 </Link>
@@ -177,7 +177,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
             {PRIMARY_NAV.map((item) =>
               item.children ? (
                 <li key={item.label} className="border-b border-terminal-border/40 px-4 py-2">
-                  <p className="font-mono text-xs uppercase tracking-wider text-terminal-muted">
+                  <p className="font-sans text-xs uppercase tracking-wider text-terminal-muted">
                     {item.label}
                   </p>
                   <ul className="m-0 list-none p-0">
@@ -186,7 +186,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                         <Link
                           href={child.href}
                           onClick={() => setMobileOpen(false)}
-                          className="block px-2 py-2 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+                          className="block px-2 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
                         >
                           {child.label}
                         </Link>
@@ -199,7 +199,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                   <Link
                     href={item.href!}
                     onClick={() => setMobileOpen(false)}
-                    className="block px-4 py-3 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+                    className="block px-4 py-3 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
                   >
                     {item.label}
                   </Link>
@@ -208,7 +208,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
             )}
 
             <li className="flex items-center justify-between px-4 py-3">
-              <span className="font-mono text-sm text-terminal-muted">Display</span>
+              <span className="font-sans text-sm text-terminal-muted">Display</span>
               <PreferencesDialog />
             </li>
 
@@ -219,7 +219,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                     <Link
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
-                      className="block px-4 py-3 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+                      className="block px-4 py-3 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
                     >
                       {item.label}
                     </Link>
@@ -233,7 +233,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                       void signOut();
                     }}
                     disabled={signingOut}
-                    className="block w-full rounded border border-terminal-border px-4 py-2 text-center font-mono text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
+                    className="block w-full rounded border border-terminal-border px-4 py-2 text-center font-sans text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
                   >
                     {signingOut ? "Signing out…" : "Sign out"}
                   </button>

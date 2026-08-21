@@ -84,7 +84,7 @@ export default function StandardsPage() {
 
       <StandardsView standards={standards} defaultId={DEFAULT_STANDARD_ID} />
 
-      <p className="mt-10 font-mono text-sm text-terminal-muted">
+      <p className="mt-10 font-sans text-sm text-terminal-muted">
         Source:{" "}
         <a
           href="https://www.w3.org/TR/WCAG22/"

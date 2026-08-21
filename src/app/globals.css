@@ -21,6 +21,12 @@
   --t-pass: 26 127 55;
   --t-partial: 154 103 0;
   --t-fail: 209 36 47;
+  /* Brand (ascent-partners.com) — light theme, AAA-tuned. */
+  --brand: 0 105 135; /* #006987 teal — 6.23:1 on white */
+  --brand-link: 0 86 111; /* #00566f — 8.20:1 on white */
+  --brand-deep: 0 86 111; /* #00566f */
+  --accent: 138 109 0; /* #8a6d00 darker gold — 4.93:1 on white (large accents) */
+  --elev: 0 1px 0 rgb(0 0 0 / 0.05), 0 8px 24px rgb(0 0 0 / 0.08);
   color-scheme: light;
 }
 
@@ -37,13 +43,19 @@ html.dark {
   --t-pass: 63 185 80;
   --t-partial: 227 179 65;
   --t-fail: 255 123 114;
+  /* Brand — dark theme, AAA-tuned. Text stays #e6edf3 (never pure white on black). */
+  --brand: 63 185 221; /* #3fb9dd — 8.42:1 on dark */
+  --brand-link: 94 200 232; /* #5ec8e8 — 9.98:1 on dark */
+  --brand-deep: 0 105 135; /* #006987 */
+  --accent: 223 185 71; /* #dfb947 gold — 10.22:1 on dark */
+  --elev: 0 1px 0 rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
   color-scheme: dark;
 }
 
 body {
   background-color: rgb(var(--t-bg));
   color: rgb(var(--t-fg));
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-sans, ui-sans-serif), system-ui, sans-serif;
 }
 
 .skip-link {

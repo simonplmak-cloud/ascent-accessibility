@@ -7,7 +7,7 @@ export default function ResourcesPage() {
   return (
     <PageShell>
       <PageHeading>Resources</PageHeading>
-      <ul className="mt-6 list-disc space-y-3 pl-6 font-mono text-terminal-fg">
+      <ul className="mt-6 list-disc space-y-3 pl-6 font-sans text-terminal-fg">
         <li>
           <a
             href="https://www.w3.org/TR/WCAG22/"

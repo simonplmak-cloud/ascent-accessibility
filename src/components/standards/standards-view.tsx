@@ -43,7 +43,7 @@ function ScList({ scs }: { scs: StandardSc[] }) {
         <li key={sc.num} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2">
           <span
             aria-hidden="true"
-            className={`w-8 font-mono text-xs font-bold ${LEVEL_STYLE[sc.level] ?? "text-terminal-muted"}`}
+            className={`w-8 font-sans text-xs font-bold ${LEVEL_STYLE[sc.level] ?? "text-terminal-muted"}`}
           >
             {sc.level}
           </span>
@@ -51,17 +51,17 @@ function ScList({ scs }: { scs: StandardSc[] }) {
             href={sc.specUrl}
             target="_blank"
             rel="noreferrer"
-            className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+            className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
           >
             {sc.num}
             <span className="sr-only"> (opens in a new window)</span>
           </a>
-          <span className="font-mono text-sm text-terminal-fg">{sc.title}</span>
+          <span className="font-sans text-sm text-terminal-fg">{sc.title}</span>
           <a
             href={sc.understandingUrl}
             target="_blank"
             rel="noreferrer"
-            className="font-mono text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
+            className="font-sans text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
           >
             Understanding<span className="sr-only"> (opens in a new window)</span>
           </a>
@@ -74,7 +74,7 @@ function ScList({ scs }: { scs: StandardSc[] }) {
 function Principle({ principle }: { principle: PrincipleGroup }) {
   return (
     <section aria-labelledby={`p-${principle.num}`} className="mt-6 first:mt-0">
-      <h3 id={`p-${principle.num}`} className="font-mono text-lg font-semibold text-terminal-fg">
+      <h3 id={`p-${principle.num}`} className="font-display text-lg font-semibold text-terminal-fg">
         {principle.num}. {principle.name}
       </h3>
       <div className="mt-3 space-y-2">

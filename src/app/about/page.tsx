@@ -15,18 +15,18 @@ export default function AboutPage() {
     <PageShell>
       <PageHeading>About Ascent Partners Foundation</PageHeading>
 
-      <p className="mt-6 font-mono leading-7 text-terminal-fg">
+      <p className="mt-6 font-sans leading-7 text-terminal-fg">
         Ascent Partners Foundation is a Hong Kong registered charity, established in 2017, that
         connects leaders with the ideas and tools to turn sustainability into action. We bring
         together decision-makers across government, civil society, and the private sector to
         address environmental and social challenges across the Asia-Pacific.
       </p>
-      <p className="mt-4 font-mono text-sm text-terminal-muted">
+      <p className="mt-4 font-sans text-sm text-terminal-muted">
         A Hong Kong Registered Charity (IRD Section 88).
       </p>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Areas of focus</h2>
-      <ul className="mt-4 space-y-3 font-mono leading-7 text-terminal-muted">
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Areas of focus</h2>
+      <ul className="mt-4 space-y-3 font-sans leading-7 text-terminal-muted">
         <li>
           <span className="text-terminal-fg">Climate action</span> — supporting climate dialogue,
           nature-based solutions, and decarbonisation pathways.
@@ -43,8 +43,8 @@ export default function AboutPage() {
         </li>
       </ul>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Our tools</h2>
-      <p className="mt-4 font-mono leading-7 text-terminal-muted">
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Our tools</h2>
+      <p className="mt-4 font-sans leading-7 text-terminal-muted">
         Connecting leaders is not just about conversation — it is about giving them practical ways
         to act. That is why we built this accessibility assessment. An inclusive website is part
         of the “social” in ESG, and every leader should be able to see, in a moment, whether their
@@ -54,13 +54,13 @@ export default function AboutPage() {
         certified audit.
       </p>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Our people</h2>
-      <p className="mt-4 font-mono leading-7 text-terminal-muted">
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Our people</h2>
+      <p className="mt-4 font-sans leading-7 text-terminal-muted">
         We are a small, caring team, and we welcome people who share this mission — whether you
         would like help with your own site, want to contribute your expertise, or are interested
         in joining us. Please say hello.
       </p>
-      <p className="mt-4 font-mono text-sm text-terminal-fg">
+      <p className="mt-4 font-sans text-sm text-terminal-fg">
         <InlineLink href="/contact">Get in touch</InlineLink>
       </p>
     </PageShell>

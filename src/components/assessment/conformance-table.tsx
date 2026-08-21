@@ -41,10 +41,10 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
 
   return (
     <section aria-labelledby="conformance-heading" className="mt-8">
-      <h2 id="conformance-heading" className="font-mono text-lg font-semibold text-terminal-fg">
+      <h2 id="conformance-heading" className="font-display text-lg font-semibold text-terminal-fg">
         WCAG conformance
       </h2>
-      <p className="mt-1 font-mono text-sm text-terminal-muted">
+      <p className="mt-1 font-sans text-sm text-terminal-muted">
         {conformance.passed} passed · {conformance.failed} failed ·{" "}
         {conformance.notPresent} not present · {conformance.cannotTell} cannot tell ·{" "}
         {conformance.coverage}% tested · level attained:{" "}
@@ -65,7 +65,7 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
             }
           >
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse font-mono text-sm">
+              <table className="w-full border-collapse font-sans text-sm">
               <thead>
                 <tr className="border-b border-terminal-border text-left text-terminal-muted">
                   <th scope="col" className="px-3 py-2 font-medium">SC</th>

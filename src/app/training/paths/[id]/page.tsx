@@ -9,8 +9,8 @@ export default async function PathOverviewPage({ params }: { params: Promise<{ i
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">{PATH.title}</h1>
-      <p className="mt-1 font-mono text-sm text-terminal-muted">
+      <h1 className="font-display text-3xl font-bold text-terminal-fg">{PATH.title}</h1>
+      <p className="mt-1 font-sans text-sm text-terminal-muted">
         v{PATH.version} · 100% free — including the certificate
       </p>
 
@@ -31,7 +31,7 @@ export default async function PathOverviewPage({ params }: { params: Promise<{ i
               </>
             }
           >
-            <p className="font-mono text-sm text-terminal-muted">{module.description}</p>
+            <p className="font-sans text-sm text-terminal-muted">{module.description}</p>
             <ul className="mt-3 space-y-2">
               {module.activities.map((activity) => {
                 const lesson = activity.type === "lesson" ? getLesson(activity.id) : undefined;
@@ -52,7 +52,7 @@ export default async function PathOverviewPage({ params }: { params: Promise<{ i
                   <li key={activity.id} className="rounded border border-terminal-border bg-terminal-surface/40 px-3 py-2">
                     <Link
                       href={href}
-                      className="flex items-center justify-between font-mono text-sm text-terminal-fg hover:underline"
+                      className="flex items-center justify-between font-sans text-sm text-terminal-fg hover:underline"
                     >
                       <span>
                         <span className="mr-2 text-terminal-muted">{activity.type === "lesson" ? "▸" : "✓"}</span>

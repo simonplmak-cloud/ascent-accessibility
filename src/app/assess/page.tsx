@@ -12,8 +12,8 @@ export default function AssessPage() {
   const standards = listStandards().map((s) => ({ id: s.id, name: s.name }));
   return (
     <div className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Assess your website</h1>
-      <p className="mt-2 font-mono leading-7 text-terminal-muted">
+      <h1 className="font-display text-3xl font-bold text-terminal-fg">Assess your website</h1>
+      <p className="mt-2 font-sans leading-7 text-terminal-muted">
         Scan a single page or your whole website. Enter a public URL, choose a standard, and
         pick a scope — we&apos;ll crawl and scan, then return a score with findings and
         remediation guidance.

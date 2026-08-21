@@ -51,7 +51,7 @@ export function SavedViews({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="font-mono text-sm text-terminal-muted">Views:</span>
+      <span className="font-sans text-sm text-terminal-muted">Views:</span>
       {views.map((view) => (
         <span
           key={view.name}
@@ -60,7 +60,7 @@ export function SavedViews({
           <button
             type="button"
             onClick={() => onApply(view.state)}
-            className="font-mono text-sm text-terminal-fg hover:underline"
+            className="font-sans text-sm text-terminal-fg hover:underline"
           >
             {view.name}
           </button>
@@ -68,7 +68,7 @@ export function SavedViews({
             type="button"
             onClick={() => remove(view.name)}
             aria-label={`Delete view ${view.name}`}
-            className="font-mono text-xs text-terminal-muted hover:text-terminal-critical"
+            className="font-sans text-xs text-terminal-muted hover:text-terminal-critical"
           >
             ×
           </button>
@@ -79,13 +79,13 @@ export function SavedViews({
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Save current view…"
-        className="rounded border border-terminal-border bg-terminal-surface px-2 py-0.5 font-mono text-sm text-terminal-fg placeholder:text-terminal-muted"
+        className="rounded border border-terminal-border bg-terminal-surface px-2 py-0.5 font-sans text-sm text-terminal-fg placeholder:text-terminal-muted"
       />
       <button
         type="button"
         onClick={save}
         disabled={!name.trim()}
-        className="rounded border border-terminal-border px-2 py-0.5 font-mono text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
+        className="rounded border border-terminal-border px-2 py-0.5 font-sans text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
       >
         Save
       </button>

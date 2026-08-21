@@ -30,10 +30,10 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-16">
       <section className="max-w-2xl">
-        <h1 className="font-mono text-4xl font-bold tracking-tight text-terminal-fg">
+        <h1 className="font-display text-4xl font-bold tracking-tight text-terminal-fg">
           Independent accessibility conformance assurance
         </h1>
-        <p className="mt-4 font-mono text-lg text-terminal-muted">
+        <p className="mt-4 font-sans text-lg text-terminal-muted">
           Automated scanning and AI-assisted review establish the baseline. Independent human
           review — by experts who live with visual, hearing, and motor disabilities and are paid for
           their insight — resolves what automation cannot, producing an evidence-based conformance
@@ -42,13 +42,13 @@ export default function Home() {
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href="/assess"
-            className="rounded bg-terminal-fg px-6 py-3 font-mono text-base font-medium text-terminal-bg hover:bg-terminal-serious"
+            className="rounded bg-terminal-fg px-6 py-3 font-sans text-base font-medium text-terminal-bg hover:bg-terminal-serious"
           >
             Start an assessment
           </Link>
           <Link
             href="/human-review"
-            className="rounded border border-terminal-border px-6 py-3 font-mono text-base font-medium text-terminal-fg hover:border-terminal-serious"
+            className="rounded border border-terminal-border px-6 py-3 font-sans text-base font-medium text-terminal-fg hover:border-terminal-serious"
           >
             Request conformance review
           </Link>
@@ -58,22 +58,22 @@ export default function Home() {
       <section className="mt-20 grid gap-8 md:grid-cols-2" aria-label="What you get">
         {cards.map((card) => (
           <div key={card.title}>
-            <h2 className="font-mono text-lg font-semibold text-terminal-fg">{card.title}</h2>
-            <p className="mt-2 font-mono text-terminal-muted">{card.body}</p>
+            <h2 className="font-display text-lg font-semibold text-terminal-fg">{card.title}</h2>
+            <p className="mt-2 font-sans text-terminal-muted">{card.body}</p>
           </div>
         ))}
       </section>
 
       <section className="mt-20" aria-label="How it works">
-        <h2 className="font-mono text-xl font-semibold text-terminal-fg">
+        <h2 className="font-display text-xl font-semibold text-terminal-fg">
           Three layers. One defensible result.
         </h2>
-        <p className="mt-3 font-mono leading-7 text-terminal-muted">
+        <p className="mt-3 font-sans leading-7 text-terminal-muted">
           Automated → AI-assisted → independent human review. Most tools stop at automated
           detection and leave the remainder &ldquo;needs review&rdquo;. We close that gap and document it —
           so your accessibility position is auditable, not assumed.
         </p>
-        <p className="mt-3 font-mono leading-7 text-terminal-muted">
+        <p className="mt-3 font-sans leading-7 text-terminal-muted">
           Digital accessibility is the &ldquo;S&rdquo; in ESG.{" "}
           <Link href="/esg" className="underline underline-offset-4 hover:text-terminal-fg">
             See how the report maps to GRI, ESRS, and SASB

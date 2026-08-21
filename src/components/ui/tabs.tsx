@@ -61,9 +61,9 @@ export function Tabs({
               tabIndex={selected ? 0 : -1}
               onClick={() => setActive(tab.id)}
               onKeyDown={onKeyDown}
-              className={`rounded-t border border-b-0 px-3 py-2 font-mono text-sm ${
+              className={`rounded-t border border-b-0 px-3 py-2 font-sans text-sm ${
                 selected
-                  ? "border-terminal-border bg-terminal-surface font-semibold text-terminal-fg"
+                  ? "border-terminal-border bg-terminal-surface font-semibold text-brand"
                   : "border-transparent text-terminal-muted hover:text-terminal-fg"
               }`}
             >

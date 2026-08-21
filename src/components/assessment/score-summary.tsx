@@ -29,20 +29,20 @@ export function ScoreSummary({
   return (
     <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-8">
       <div>
-        <p className="font-mono text-xs uppercase text-terminal-muted">Outcome</p>
-        <p className={`font-mono text-2xl font-bold uppercase ${outcomeClass(outcome)}`}>
+        <p className="font-sans text-xs uppercase text-terminal-muted">Outcome</p>
+        <p className={`font-display text-2xl font-bold uppercase ${outcomeClass(outcome)}`}>
           {outcomeLabel(outcome)}
         </p>
       </div>
       {scsApplicable != null && (
         <div>
-          <p className="font-mono text-xs uppercase text-terminal-muted">Conformance</p>
-          <p className="font-mono text-lg font-semibold text-terminal-fg">
+          <p className="font-sans text-xs uppercase text-terminal-muted">Conformance</p>
+          <p className="font-display text-lg font-semibold text-terminal-fg">
             {scsMet ?? 0}/{scsApplicable} applicable SCs meet
           </p>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-x-6 gap-y-1 font-mono text-sm sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-1 font-sans text-sm sm:grid-cols-4">
         <span className="text-terminal-critical">critical {counts.critical}</span>
         <span className="text-terminal-serious">serious {counts.serious}</span>
         <span className="text-terminal-moderate">moderate {counts.moderate}</span>

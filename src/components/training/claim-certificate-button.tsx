@@ -50,7 +50,7 @@ export function ClaimCertificateButton({
         {busy ? "Issuing…" : "Claim certificate"}
       </Button>
       {error && (
-        <p role="alert" className="font-mono text-sm text-terminal-critical">
+        <p role="alert" className="font-sans text-sm text-terminal-critical">
           {error}
         </p>
       )}

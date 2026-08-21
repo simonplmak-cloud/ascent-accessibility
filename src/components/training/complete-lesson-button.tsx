@@ -33,7 +33,7 @@ export function CompleteLessonButton({ lessonId }: { lessonId: string }) {
 
   if (done) {
     return (
-      <p role="status" className="mt-8 font-mono text-sm text-terminal-pass">
+      <p role="status" className="mt-8 font-sans text-sm text-terminal-pass">
         Lesson completed ✓
       </p>
     );
@@ -45,7 +45,7 @@ export function CompleteLessonButton({ lessonId }: { lessonId: string }) {
         {saving ? "Saving…" : "Complete & continue"}
       </Button>
       {error && (
-        <p role="alert" className="font-mono text-sm text-terminal-critical">
+        <p role="alert" className="font-sans text-sm text-terminal-critical">
           {error}
         </p>
       )}

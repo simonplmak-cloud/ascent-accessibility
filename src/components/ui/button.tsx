@@ -5,11 +5,11 @@ type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
   primary:
-    "rounded bg-terminal-fg font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious disabled:opacity-50",
+    "rounded bg-terminal-fg font-sans text-sm font-medium text-terminal-bg hover:bg-terminal-serious disabled:opacity-50",
   outline:
-    "rounded border border-terminal-border font-mono text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50",
+    "rounded border border-terminal-border font-sans text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50",
   ghost:
-    "font-mono text-sm text-terminal-fg underline-offset-4 hover:underline disabled:opacity-50",
+    "font-sans text-sm text-terminal-fg underline-offset-4 hover:underline disabled:opacity-50",
 };
 
 const sizes: Record<Size, string> = {

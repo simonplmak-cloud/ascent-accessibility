@@ -3,9 +3,9 @@ import type { AnchorHTMLAttributes } from "react";
 
 const styles = {
   primary:
-    "rounded bg-terminal-fg font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious",
+    "rounded bg-terminal-fg font-sans text-sm font-medium text-terminal-bg hover:bg-terminal-serious",
   outline:
-    "rounded border border-terminal-border font-mono text-sm text-terminal-fg hover:bg-terminal-surface",
+    "rounded border border-terminal-border font-sans text-sm text-terminal-fg hover:bg-terminal-surface",
 };
 
 const sizes = {

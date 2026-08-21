@@ -92,8 +92,8 @@ export function ApiKeysClient() {
   if (auth === "loading") {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
-        <h1 className="font-mono text-2xl font-bold text-terminal-fg">API access</h1>
-        <p className="mt-4 font-mono text-sm text-terminal-muted">Loading…</p>
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">API access</h1>
+        <p className="mt-4 font-sans text-sm text-terminal-muted">Loading…</p>
       </div>
     );
   }
@@ -101,13 +101,13 @@ export function ApiKeysClient() {
   if (auth === "signed-out") {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
-        <h1 className="font-mono text-2xl font-bold text-terminal-fg">API access</h1>
-        <p className="mt-4 font-mono leading-7 text-terminal-muted">
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">API access</h1>
+        <p className="mt-4 font-sans leading-7 text-terminal-muted">
           Sign in to manage API keys for programmatic assessments.
         </p>
         <Link
           href="/sign-in"
-          className="mt-6 inline-block rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
+          className="mt-6 inline-block rounded bg-terminal-fg px-4 py-2 font-sans text-sm text-terminal-bg hover:bg-terminal-serious"
         >
           Sign in
         </Link>
@@ -118,8 +118,8 @@ export function ApiKeysClient() {
   if (auth === "unverified") {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
-        <h1 className="font-mono text-2xl font-bold text-terminal-fg">API access</h1>
-        <p className="mt-4 font-mono leading-7 text-terminal-muted">
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">API access</h1>
+        <p className="mt-4 font-sans leading-7 text-terminal-muted">
           Please verify your email before creating API keys.
         </p>
       </div>
@@ -128,36 +128,36 @@ export function ApiKeysClient() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="font-mono text-2xl font-bold text-terminal-fg">API access</h1>
-      <p className="mt-1 font-mono text-sm text-terminal-muted">
+      <h1 className="font-display text-2xl font-bold text-terminal-fg">API access</h1>
+      <p className="mt-1 font-sans text-sm text-terminal-muted">
         Generate and manage API keys to run assessments programmatically.
       </p>
 
       {issuedKey && (
         <div role="status" className="mt-6 rounded border border-terminal-pass p-4">
-          <p className="font-mono text-sm text-terminal-fg">
+          <p className="font-sans text-sm text-terminal-fg">
             Copy this key now — it won&apos;t be shown again.
           </p>
-          <code className="mt-2 block break-all rounded bg-terminal-surface p-3 font-mono text-sm text-terminal-pass">
+          <code className="mt-2 block break-all rounded bg-terminal-surface p-3 font-sans text-sm text-terminal-pass">
             {issuedKey}
           </code>
         </div>
       )}
 
       {error && (
-        <p role="alert" className="mt-4 font-mono text-sm text-terminal-critical">
+        <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
           {error}
         </p>
       )}
       {notice && (
-        <p role="status" className="mt-4 font-mono text-sm text-terminal-pass">
+        <p role="status" className="mt-4 font-sans text-sm text-terminal-pass">
           {notice}
         </p>
       )}
 
       <form onSubmit={createKey} className="mt-6 space-y-4 rounded border border-terminal-border p-4">
         <div>
-          <label htmlFor="key-name" className="block font-mono text-sm text-terminal-fg">
+          <label htmlFor="key-name" className="block font-sans text-sm text-terminal-fg">
             Key name
           </label>
           <input
@@ -166,11 +166,11 @@ export function ApiKeysClient() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="CI / Staging / Local dev"
-            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-mono text-terminal-fg placeholder:text-terminal-muted"
+            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-terminal-fg placeholder:text-terminal-muted"
           />
         </div>
         <div>
-          <label htmlFor="key-rate" className="block font-mono text-sm text-terminal-fg">
+          <label htmlFor="key-rate" className="block font-sans text-sm text-terminal-fg">
             Rate limit (requests/min)
           </label>
           <input
@@ -179,7 +179,7 @@ export function ApiKeysClient() {
             min={1}
             value={rateLimit}
             onChange={(e) => setRateLimit(Number(e.target.value))}
-            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-mono text-terminal-fg"
+            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-terminal-fg"
           />
         </div>
         <Button type="submit" className="self-start">
@@ -188,12 +188,12 @@ export function ApiKeysClient() {
       </form>
 
       <div className="mt-8">
-        <h2 className="font-mono text-lg font-semibold text-terminal-fg">Your keys</h2>
+        <h2 className="font-display text-lg font-semibold text-terminal-fg">Your keys</h2>
         {keys.length === 0 ? (
-          <p className="mt-4 font-mono text-sm text-terminal-muted">No API keys yet.</p>
+          <p className="mt-4 font-sans text-sm text-terminal-muted">No API keys yet.</p>
         ) : (
           <div className="mt-4 overflow-x-auto rounded border border-terminal-border">
-            <table className="w-full border-collapse font-mono text-sm">
+            <table className="w-full border-collapse font-sans text-sm">
               <thead>
                 <tr className="border-b border-terminal-border text-left text-terminal-muted">
                   <th scope="col" className="px-3 py-2 font-medium">Name</th>

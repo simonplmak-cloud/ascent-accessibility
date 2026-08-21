@@ -76,8 +76,8 @@ export function AuditorWorkspace() {
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <h1 className="font-mono text-2xl font-bold text-terminal-fg">Assessments</h1>
-        <p className="mt-1 font-mono text-sm text-terminal-muted">Loading…</p>
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">Assessments</h1>
+        <p className="mt-1 font-sans text-sm text-terminal-muted">Loading…</p>
       </div>
     );
   }
@@ -86,18 +86,18 @@ export function AuditorWorkspace() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="font-mono text-2xl font-bold text-terminal-fg">Assessments</h1>
-      <p className="mt-1 font-mono text-sm text-terminal-muted">
+      <h1 className="font-display text-2xl font-bold text-terminal-fg">Assessments</h1>
+      <p className="mt-1 font-sans text-sm text-terminal-muted">
         {items.length} total · {completed} completed
       </p>
 
       {notice && (
-        <p role="status" className="mt-4 font-mono text-sm text-terminal-pass">
+        <p role="status" className="mt-4 font-sans text-sm text-terminal-pass">
           {notice}
         </p>
       )}
       {error && (
-        <p role="alert" className="mt-4 font-mono text-sm text-terminal-critical">
+        <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
           {error}
         </p>
       )}

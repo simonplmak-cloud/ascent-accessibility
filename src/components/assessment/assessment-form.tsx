@@ -106,7 +106,7 @@ export function AssessmentForm({
     <div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="url" className="block font-mono text-sm text-terminal-fg">
+          <label htmlFor="url" className="block font-sans text-sm text-terminal-fg">
             Website URL
           </label>
           <input
@@ -116,18 +116,18 @@ export function AssessmentForm({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com"
-            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-mono text-terminal-fg placeholder:text-terminal-muted"
+            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-terminal-fg placeholder:text-terminal-muted"
           />
         </div>
         <div>
-          <label htmlFor="standard" className="block font-mono text-sm text-terminal-fg">
+          <label htmlFor="standard" className="block font-sans text-sm text-terminal-fg">
             Standard
           </label>
           <select
             id="standard"
             value={standard}
             onChange={(e) => setStandard(e.target.value)}
-            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-mono text-terminal-fg"
+            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-terminal-fg"
           >
             {standards.map((s) => (
               <option key={s.id} value={s.id}>
@@ -137,10 +137,10 @@ export function AssessmentForm({
           </select>
         </div>
         <fieldset className="space-y-2">
-          <legend className="block font-mono text-sm text-terminal-fg">Scan scope</legend>
+          <legend className="block font-sans text-sm text-terminal-fg">Scan scope</legend>
           {fixedScope === undefined && (
             <>
-              <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+              <label className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
                 <input
                   type="radio"
                   name="scope"
@@ -150,7 +150,7 @@ export function AssessmentForm({
                 />
                 Whole website
               </label>
-              <label className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+              <label className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
                 <input
                   type="radio"
                   name="scope"
@@ -163,12 +163,12 @@ export function AssessmentForm({
             </>
           )}
           {fixedScope === "page" && (
-            <p className="font-mono text-sm text-terminal-muted">
+            <p className="font-sans text-sm text-terminal-muted">
               Single page — free.
             </p>
           )}
           {fixedScope === "site" && (
-            <p className="font-mono text-sm text-terminal-muted">
+            <p className="font-sans text-sm text-terminal-muted">
               Whole website — free.
             </p>
           )}
@@ -179,14 +179,14 @@ export function AssessmentForm({
       </form>
 
       {error && (
-        <p role="alert" className="mt-4 font-mono text-sm text-terminal-critical">
+        <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
           {error}
         </p>
       )}
 
       {loading && !result && (
         <div className="mt-4">
-          <p aria-live="polite" className="mb-2 font-mono text-sm text-terminal-fg">
+          <p aria-live="polite" className="mb-2 font-sans text-sm text-terminal-fg">
             Assessment in progress — crawling and scanning can take several minutes for
             larger sites. Leave this tab open.
           </p>
@@ -195,7 +195,7 @@ export function AssessmentForm({
       )}
 
       {result?.status === "failed" && (
-        <p role="alert" className="mt-4 font-mono text-sm text-terminal-critical">
+        <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
           The assessment could not be completed. Please verify the URL is reachable and try
           again.
         </p>

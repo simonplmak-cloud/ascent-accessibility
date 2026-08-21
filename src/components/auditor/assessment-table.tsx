@@ -147,15 +147,15 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
   return (
     <section aria-labelledby="history-heading">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="history-heading" className="font-mono text-lg font-semibold text-terminal-fg">
+        <h2 id="history-heading" className="font-display text-lg font-semibold text-terminal-fg">
           Assessment history
         </h2>
-        <label className="flex items-center gap-2 font-mono text-sm text-terminal-muted">
+        <label className="flex items-center gap-2 font-sans text-sm text-terminal-muted">
           Filter
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as HistoryStatusFilter)}
-            className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-mono text-sm text-terminal-fg"
+            className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-sans text-sm text-terminal-fg"
           >
             <option value="all">All statuses</option>
             <option value="queued">Queued</option>
@@ -181,7 +181,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
       </div>
 
       <div className="mt-3 overflow-x-auto rounded border border-terminal-border">
-        <table className="w-full border-collapse font-mono text-sm">
+        <table className="w-full border-collapse font-sans text-sm">
           <thead>
             <tr className="border-b border-terminal-border text-left text-terminal-muted">
               <th scope="col" className="w-8 px-3 py-2">
@@ -290,7 +290,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
 
       {totalPages > 1 && (
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <p className="font-mono text-sm text-terminal-muted">
+          <p className="font-sans text-sm text-terminal-muted">
             Showing {visible.length === 0 ? 0 : currentPage * PAGE_SIZE + 1}–
             {Math.min((currentPage + 1) * PAGE_SIZE, visible.length)} of {visible.length}
           </p>
@@ -303,7 +303,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
             >
               Previous
             </Button>
-            <span className="font-mono text-sm text-terminal-muted">
+            <span className="font-sans text-sm text-terminal-muted">
               Page {currentPage + 1} of {totalPages}
             </span>
             <Button

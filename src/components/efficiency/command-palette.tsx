@@ -75,11 +75,11 @@ export function CommandPalette({
           }
         }}
         placeholder="Type a command…"
-        className="w-full border-b border-terminal-border bg-terminal-surface px-4 py-3 font-mono text-sm text-terminal-fg placeholder:text-terminal-muted focus:outline-none"
+        className="w-full border-b border-terminal-border bg-terminal-surface px-4 py-3 font-sans text-sm text-terminal-fg placeholder:text-terminal-muted focus:outline-none"
       />
       <ul id="palette-list" role="listbox" aria-label="Commands" className="max-h-80 overflow-y-auto p-1">
         {ranked.length === 0 && (
-          <li className="px-3 py-2 font-mono text-sm text-terminal-muted">No commands found.</li>
+          <li className="px-3 py-2 font-sans text-sm text-terminal-muted">No commands found.</li>
         )}
         {ranked.map((cmd, i) => (
           <li key={cmd.id} role="option" aria-selected={i === active}>
@@ -88,7 +88,7 @@ export function CommandPalette({
               onClick={() => run(cmd)}
               onMouseEnter={() => setActive(i)}
               onFocus={() => setActive(i)}
-              className={`flex w-full items-center justify-between gap-3 rounded px-3 py-2 text-left font-mono text-sm ${
+              className={`flex w-full items-center justify-between gap-3 rounded px-3 py-2 text-left font-sans text-sm ${
                 i === active ? "bg-terminal-fg text-terminal-bg" : "text-terminal-fg"
               }`}
             >

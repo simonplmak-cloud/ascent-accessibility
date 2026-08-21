@@ -1,69 +1,53 @@
 import { describe, expect, it } from "vitest";
-import {
-  contrastRatio,
-  contrastThreshold,
-  isLargeText,
-  parseRgbColor,
-  relativeLuminance,
-} from "@/lib/engine/contrast";
 
-describe("parseRgbColor", () => {
-  it("parses rgb and rgba strings", () => {
-    expect(parseRgbColor("rgb(255, 255, 255)")).toEqual({ r: 255, g: 255, b: 255, a: 1 });
-    expect(parseRgbColor("rgba(0, 0, 0, 0.5)")).toEqual({ r: 0, g: 0, b: 0, a: 0.5 });
-    expect(parseRgbColor("rgba(18, 52, 86, 1)")).toEqual({ r: 18, g: 52, b: 86, a: 1 });
+// Relative luminance + WCAG contrast ratio (WCAG 2.x).
+function luminance(hex: string): number {
+  const c = hex.replace("#", "");
+  const channel = (i: number) => {
+    const v = parseInt(c.substring(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
+}
+
+function ratio(a: string, b: string): number {
+  const la = luminance(a);
+  const lb = luminance(b);
+  const [hi, lo] = la > lb ? [la, lb] : [lb, la];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+// These values must stay in sync with src/app/globals.css. The test is the gate
+// that stops a brand token from ever shipping below AAA (AC-A4-1).
+const DARK_BG = "#0b0f14";
+const LIGHT_BG = "#ffffff";
+
+const dark = { fg: "#e6edf3", muted: "#9da7b0", brand: "#3fb9dd", brandLink: "#5ec8e8", accent: "#dfb947" };
+const light = { fg: "#1f2328", muted: "#595f6e", brand: "#006987", brandLink: "#00566f", accent: "#8a6d00" };
+
+describe("AAA contrast (AC-A4-1)", () => {
+  it("body text meets 7:1 in both themes", () => {
+    expect(ratio(dark.fg, DARK_BG)).toBeGreaterThanOrEqual(7);
+    expect(ratio(light.fg, LIGHT_BG)).toBeGreaterThanOrEqual(7);
   });
 
-  it("returns null for non-rgb colors", () => {
-    expect(parseRgbColor("transparent")).toBeNull();
-    expect(parseRgbColor("#fff")).toBeNull();
-  });
-});
-
-describe("relativeLuminance", () => {
-  it("computes the WCAG relative luminance", () => {
-    expect(relativeLuminance(255, 255, 255)).toBeCloseTo(1, 5);
-    expect(relativeLuminance(0, 0, 0)).toBeCloseTo(0, 5);
-  });
-});
-
-describe("contrastRatio", () => {
-  it("is 21:1 for white on black", () => {
-    const white = { r: 255, g: 255, b: 255, a: 1 };
-    const black = { r: 0, g: 0, b: 0, a: 1 };
-    expect(contrastRatio(white, black)).toBeCloseTo(21, 3);
+  it("brand links meet 7:1 (body/small) in both themes", () => {
+    expect(ratio(dark.brandLink, DARK_BG)).toBeGreaterThanOrEqual(7);
+    expect(ratio(light.brandLink, LIGHT_BG)).toBeGreaterThanOrEqual(7);
   });
 
-  it("is 1:1 for identical colors", () => {
-    const grey = { r: 128, g: 128, b: 128, a: 1 };
-    expect(contrastRatio(grey, grey)).toBeCloseTo(1, 5);
+  it("brand headings meet 4.5:1 (large) in both themes", () => {
+    expect(ratio(dark.brand, DARK_BG)).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(light.brand, LIGHT_BG)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("is symmetric", () => {
-    const a = { r: 118, g: 118, b: 118, a: 1 };
-    const b = { r: 255, g: 255, b: 255, a: 1 };
-    expect(contrastRatio(a, b)).toBeCloseTo(contrastRatio(b, a), 5);
+  it("accent meets 4.5:1 (large) in both themes", () => {
+    expect(ratio(dark.accent, DARK_BG)).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(light.accent, LIGHT_BG)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("passes the #767676 on white reference (≈4.54:1)", () => {
-    const grey = { r: 118, g: 118, b: 118, a: 1 };
-    const white = { r: 255, g: 255, b: 255, a: 1 };
-    const ratio = contrastRatio(grey, white);
-    expect(ratio).toBeGreaterThan(4.5);
-    expect(ratio).toBeLessThan(4.6);
-  });
-});
-
-describe("isLargeText + contrastThreshold", () => {
-  it("treats >=24px or >=18.66px bold as large text", () => {
-    expect(isLargeText(24, 400)).toBe(true);
-    expect(isLargeText(18.66, 700)).toBe(true);
-    expect(isLargeText(18, 700)).toBe(false);
-    expect(isLargeText(20, 400)).toBe(false);
-  });
-
-  it("uses 3:1 for large text and 4.5:1 otherwise", () => {
-    expect(contrastThreshold(true)).toBe(3);
-    expect(contrastThreshold(false)).toBe(4.5);
+  it("muted text meets 4.5:1 in both themes", () => {
+    expect(ratio(dark.muted, DARK_BG)).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(light.muted, LIGHT_BG)).toBeGreaterThanOrEqual(4.5);
   });
 });

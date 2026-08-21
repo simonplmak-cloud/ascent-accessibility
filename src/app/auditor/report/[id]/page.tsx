@@ -14,16 +14,16 @@ export default async function ShareableReportPage({
   if (!assessment) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
-        <h1 className="font-mono text-2xl font-bold text-terminal-fg">
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">
           Assessment not found
         </h1>
-        <p className="mt-2 font-mono text-sm text-terminal-muted">
+        <p className="mt-2 font-sans text-sm text-terminal-muted">
           This report may have been deleted, or the link is incorrect.
         </p>
         <p className="mt-4">
           <Link
             href="/auditor"
-            className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+            className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
           >
             Back to workspace
           </Link>
@@ -35,10 +35,10 @@ export default async function ShareableReportPage({
   if (assessment.status !== "completed") {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
-        <h1 className="font-mono text-2xl font-bold text-terminal-fg">
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">
           Assessment {assessment.status}
         </h1>
-        <p className="mt-2 font-mono text-sm text-terminal-muted">
+        <p className="mt-2 font-sans text-sm text-terminal-muted">
           {assessment.status === "queued" &&
             "This assessment is queued and has not started yet."}
           {assessment.status === "running" &&
@@ -49,7 +49,7 @@ export default async function ShareableReportPage({
         <p className="mt-4">
           <Link
             href="/auditor"
-            className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+            className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
           >
             Back to workspace
           </Link>
@@ -78,7 +78,7 @@ export default async function ShareableReportPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="font-mono text-xl font-bold text-terminal-fg">
+      <h1 className="font-display text-xl font-bold text-terminal-fg">
         <a
           href={assessment.url}
           className="underline-offset-4 hover:underline"
@@ -89,7 +89,7 @@ export default async function ShareableReportPage({
           {assessment.url}
         </a>
       </h1>
-      <p className="mt-2 font-mono text-sm text-terminal-muted">
+      <p className="mt-2 font-sans text-sm text-terminal-muted">
         {assessment.standard} · {assessment.depth === 0 ? "Single page" : "Whole website"}
       </p>
       <Report result={result} />

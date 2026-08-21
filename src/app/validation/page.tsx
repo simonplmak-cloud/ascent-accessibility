@@ -29,16 +29,16 @@ export default function ValidationPage() {
         ACT-rules format.
       </MutedText>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Coverage model</h2>
-      <p className="mt-3 font-mono leading-7 text-terminal-muted">
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Coverage model</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">
         Three layers cover 100% of success criteria: the clean-room rule engine (machine-testable),
         an AI-assisted review with a confidence fail-safe (AI-detectable), and independent human
         review by people with lived experience (manual-only). No criterion is left unclassified.
       </p>
 
-      <h2 className="mt-8 font-mono text-xl font-semibold text-terminal-fg">Comparison</h2>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Comparison</h2>
       <div className="mt-3 overflow-x-auto rounded border border-terminal-border">
-        <table className="w-full border-collapse font-mono text-xs">
+        <table className="w-full border-collapse font-sans text-xs">
           <thead>
             <tr className="border-b border-terminal-border text-left text-terminal-muted">
               <th scope="col" className="px-3 py-2 font-medium">Tool</th>
@@ -65,12 +65,12 @@ export default function ValidationPage() {
           </tbody>
         </table>
       </div>
-      <p className="mt-2 font-mono text-xs text-terminal-muted">
+      <p className="mt-2 font-sans text-xs text-terminal-muted">
         Feature comparison reflects public documentation at the time of writing. The ~30–50% figure
         is the documented automated-testing ceiling for WCAG, not a criticism of any tool.
       </p>
 
-      <p className="mt-8 font-mono text-sm text-terminal-fg">
+      <p className="mt-8 font-sans text-sm text-terminal-fg">
         <InlineLink href="/methodology">Methodology</InlineLink> ·{" "}
         <InlineLink href="/standards">WCAG success criteria</InlineLink> ·{" "}
         <InlineLink href="/esg">ESG mapping</InlineLink>

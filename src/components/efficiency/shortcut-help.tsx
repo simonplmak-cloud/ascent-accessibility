@@ -21,12 +21,12 @@ export function ShortcutHelp({ open, onClose }: { open: boolean; onClose: () => 
       className="w-[min(24rem,calc(100vw-2rem))] rounded border border-terminal-border bg-terminal-surface p-0 text-terminal-fg backdrop:bg-black/50"
     >
       <div className="px-5 py-4">
-        <h2 id="shortcut-help-title" className="font-mono text-lg font-semibold text-terminal-fg">
+        <h2 id="shortcut-help-title" className="font-display text-lg font-semibold text-terminal-fg">
           Keyboard shortcuts
         </h2>
         <ul className="mt-3 space-y-2">
           {GLOBAL_SHORTCUTS.map((s) => (
-            <li key={s.keys} className="flex items-center justify-between gap-3 font-mono text-sm">
+            <li key={s.keys} className="flex items-center justify-between gap-3 font-sans text-sm">
               <span className="text-terminal-muted">{s.action}</span>
               <kbd className="rounded border border-terminal-border bg-terminal-bg px-2 py-0.5 text-xs text-terminal-fg">
                 {s.keys}
@@ -39,7 +39,7 @@ export function ShortcutHelp({ open, onClose }: { open: boolean; onClose: () => 
         <button
           type="button"
           onClick={onClose}
-          className="rounded bg-terminal-fg px-4 py-2 font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
+          className="rounded bg-terminal-fg px-4 py-2 font-sans text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
         >
           Close
         </button>

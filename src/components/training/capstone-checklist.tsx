@@ -26,13 +26,13 @@ export function CapstoneChecklist() {
 
   return (
     <div className="mt-6 rounded border border-terminal-border bg-terminal-surface/40 p-4">
-      <h2 className="font-mono text-sm font-semibold text-terminal-fg">
+      <h2 className="font-sans text-sm font-semibold text-terminal-fg">
         Capstone checklist ({done.size}/{STEPS.length})
       </h2>
       <ul className="mt-2 space-y-2">
         {STEPS.map((step, i) => (
           <li key={i}>
-            <label className="flex items-start gap-2 font-mono text-sm text-terminal-fg">
+            <label className="flex items-start gap-2 font-sans text-sm text-terminal-fg">
               <input
                 type="checkbox"
                 checked={done.has(i)}
@@ -45,7 +45,7 @@ export function CapstoneChecklist() {
         ))}
       </ul>
       {complete && (
-        <p role="status" className="mt-3 font-mono text-sm text-terminal-pass">
+        <p role="status" className="mt-3 font-sans text-sm text-terminal-pass">
           All steps complete — finish the lesson to earn your certificate.
         </p>
       )}

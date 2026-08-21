@@ -98,13 +98,13 @@ export function ReviewQueue() {
 
   const detail = (id: string) => (
     <div className="rounded border border-terminal-border bg-terminal-surface p-4">
-      <h2 className="font-mono text-base font-semibold text-terminal-fg">Review</h2>
+      <h2 className="font-display text-base font-semibold text-terminal-fg">Review</h2>
       {submitted === id ? (
-        <p role="status" className="mt-3 font-mono text-sm text-terminal-pass">
+        <p role="status" className="mt-3 font-sans text-sm text-terminal-pass">
           Review submitted ✓
         </p>
       ) : rows.length === 0 ? (
-        <p className="mt-3 font-mono text-sm text-terminal-muted">
+        <p className="mt-3 font-sans text-sm text-terminal-muted">
           No &ldquo;Cannot tell&rdquo; criteria to resolve.
         </p>
       ) : (
@@ -112,7 +112,7 @@ export function ReviewQueue() {
           <ul className="mt-3 space-y-3">
             {rows.map((row) => (
               <li key={row.num} className="rounded border border-terminal-border p-3">
-                <p className="font-mono text-sm text-terminal-fg">
+                <p className="font-sans text-sm text-terminal-fg">
                   {row.num} {row.title}{" "}
                   <span className="text-terminal-muted">(Level {row.level})</span>
                 </p>
@@ -121,7 +121,7 @@ export function ReviewQueue() {
                     aria-label={`Verdict for ${row.num}`}
                     value={resolutions[row.num] ?? "Passed"}
                     onChange={(e) => setResolutions((r) => ({ ...r, [row.num]: e.target.value }))}
-                    className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-mono text-sm text-terminal-fg"
+                    className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-sans text-sm text-terminal-fg"
                   >
                     {VERDICTS.map((v) => (
                       <option key={v} value={v}>
@@ -135,7 +135,7 @@ export function ReviewQueue() {
                     placeholder="Rationale (optional)"
                     value={notes[row.num] ?? ""}
                     onChange={(e) => setNotes((n) => ({ ...n, [row.num]: e.target.value }))}
-                    className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-mono text-sm text-terminal-fg"
+                    className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-sans text-sm text-terminal-fg"
                   />
                 </div>
               </li>
@@ -144,7 +144,7 @@ export function ReviewQueue() {
           <button
             type="button"
             onClick={() => void submit(id)}
-            className="mt-4 rounded bg-terminal-fg px-4 py-2 font-mono text-sm text-terminal-bg hover:bg-terminal-serious"
+            className="mt-4 rounded bg-terminal-fg px-4 py-2 font-sans text-sm text-terminal-bg hover:bg-terminal-serious"
           >
             Submit review
           </button>
@@ -166,12 +166,12 @@ export function ReviewQueue() {
             <Link
               href={`/auditor/report/${item.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="block truncate font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+              className="block truncate font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
               title={item.url}
             >
               {item.url}
             </Link>
-            <p className="font-mono text-xs text-terminal-muted">{item.standard}</p>
+            <p className="font-sans text-xs text-terminal-muted">{item.standard}</p>
           </div>
           <div className="flex items-center gap-3">
             {item.status === "completed" && (
@@ -181,12 +181,12 @@ export function ReviewQueue() {
                   e.stopPropagation();
                   void claim(item.id);
                 }}
-                className="rounded border border-terminal-border px-3 py-1 font-mono text-sm text-terminal-fg hover:border-terminal-serious"
+                className="rounded border border-terminal-border px-3 py-1 font-sans text-sm text-terminal-fg hover:border-terminal-serious"
               >
                 Claim
               </button>
             )}
-            <span aria-hidden="true" className="font-mono text-xs text-terminal-muted">
+            <span aria-hidden="true" className="font-sans text-xs text-terminal-muted">
               Review →
             </span>
           </div>
@@ -197,21 +197,21 @@ export function ReviewQueue() {
 
   return (
     <section aria-labelledby="review-queue-heading">
-      <h1 id="review-queue-heading" className="font-mono text-2xl font-bold text-terminal-fg">
+      <h1 id="review-queue-heading" className="font-display text-2xl font-bold text-terminal-fg">
         Review queue
       </h1>
       {error && (
-        <p role="alert" className="mt-4 font-mono text-sm text-terminal-critical">
+        <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
           {error}
         </p>
       )}
       {loading ? (
-        <p className="mt-4 font-mono text-sm text-terminal-muted">Loading…</p>
+        <p className="mt-4 font-sans text-sm text-terminal-muted">Loading…</p>
       ) : items.length === 0 ? (
-        <p className="mt-4 font-mono text-sm text-terminal-muted">No reviews pending.</p>
+        <p className="mt-4 font-sans text-sm text-terminal-muted">No reviews pending.</p>
       ) : (
         <div className="mt-6">
-          <p className="mb-2 font-mono text-xs text-terminal-muted">
+          <p className="mb-2 font-sans text-xs text-terminal-muted">
             j/k to move · Enter to review · Esc to close
           </p>
           <MasterDetail items={masterItems} detail={detail} onOpen={(id) => void open(id)} />
@@ -219,7 +219,7 @@ export function ReviewQueue() {
             <button
               type="button"
               onClick={() => setShowAll((value) => !value)}
-              className="mt-3 font-mono text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
+              className="mt-3 font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
             >
               {showAll ? "Show fewer" : `Show all ${items.length} assessments`}
             </button>

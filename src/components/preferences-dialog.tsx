@@ -48,7 +48,7 @@ export function PreferencesDialog() {
         aria-haspopup="dialog"
         aria-label="Display preferences"
         title="Display preferences"
-        className="rounded border border-terminal-border px-2 py-1 font-mono text-sm text-terminal-fg hover:bg-terminal-surface"
+        className="rounded border border-terminal-border px-2 py-1 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
       >
         Aa
       </button>
@@ -60,17 +60,17 @@ export function PreferencesDialog() {
         className="w-[min(20rem,calc(100vw-2rem))] rounded border border-terminal-border bg-terminal-surface p-0 text-terminal-fg backdrop:bg-black/50"
       >
         <div className="border-b border-terminal-border px-5 py-4">
-          <h2 id="prefs-title" className="font-mono text-base font-semibold text-terminal-fg">
+          <h2 id="prefs-title" className="font-display text-base font-semibold text-terminal-fg">
             Display preferences
           </h2>
         </div>
 
         <div className="space-y-5 px-5 py-5">
           <fieldset>
-            <legend className="font-mono text-sm font-semibold text-terminal-fg">Text size</legend>
+            <legend className="font-sans text-sm font-semibold text-terminal-fg">Text size</legend>
             <div className="mt-2 space-y-2">
               {TEXT_SIZES.map((option) => (
-                <label key={option.value} className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+                <label key={option.value} className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
                   <input
                     type="radio"
                     name="pref-text-size"
@@ -84,10 +84,10 @@ export function PreferencesDialog() {
           </fieldset>
 
           <fieldset>
-            <legend className="font-mono text-sm font-semibold text-terminal-fg">Theme</legend>
+            <legend className="font-sans text-sm font-semibold text-terminal-fg">Theme</legend>
             <div className="mt-2 space-y-2">
               {(["dark", "light"] as const).map((option) => (
-                <label key={option} className="flex items-center gap-2 font-mono text-sm text-terminal-fg">
+                <label key={option} className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
                   <input
                     type="radio"
                     name="pref-theme"
@@ -105,7 +105,7 @@ export function PreferencesDialog() {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="rounded bg-terminal-fg px-4 py-2 font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
+            className="rounded bg-terminal-fg px-4 py-2 font-sans text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
           >
             Done
           </button>

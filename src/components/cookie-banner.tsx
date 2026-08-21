@@ -30,7 +30,7 @@ export function CookieBanner() {
       className="fixed inset-x-0 bottom-0 z-50 border-t border-terminal-border bg-terminal-surface p-4"
     >
       <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="font-mono text-sm text-terminal-muted">
+        <p className="font-sans text-sm text-terminal-muted">
           We use essential cookies to remember your session and scan history. See our{" "}
           <InlineLink href="/privacy">privacy policy</InlineLink>.
         </p>

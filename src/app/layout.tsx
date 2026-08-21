@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Open_Sans, Titillium_Web } from "next/font/google";
 import "./globals.css";
 import { SiteHeader, type HeaderAuthState } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -12,6 +13,21 @@ import { SITE_URL } from "@/lib/site-url";
 // wrong theme. The server renders `<html class="dark">` (dark default); this
 // removes the class when the user chose light.
 const THEME_INIT_SCRIPT = `(function(){try{if(localStorage.getItem("${THEME_STORAGE_KEY}")==="light"){document.documentElement.classList.remove("dark");}}catch(e){}})();`;
+
+// Brand pairing (ascent-partners.com): Open Sans for body/UI, Titillium Web for
+// headings. Self-hosted via next/font (no render-blocking external request, no CLS).
+const fontSans = Open_Sans({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-sans",
+  display: "swap",
+});
+const fontDisplay = Titillium_Web({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 const SITE_TITLE = "Ascent Accessibility — Free WCAG Assessment by Ascent Partners Foundation";
 const SITE_DESCRIPTION =
@@ -109,7 +125,11 @@ export default async function RootLayout({
   );
 
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`dark ${fontSans.variable} ${fontDisplay.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>

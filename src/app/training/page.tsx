@@ -48,24 +48,24 @@ export default async function TrainingDashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="font-mono text-3xl font-bold text-terminal-fg">Training</h1>
-      <p className="mt-2 font-mono leading-7 text-terminal-muted">
+      <h1 className="font-display text-3xl font-bold text-terminal-fg">Training</h1>
+      <p className="mt-2 font-sans leading-7 text-terminal-muted">
         A free, self-paced path to understanding WCAG 2.2 — lessons, assessments, and a
         downloadable certificate. No paywall.
       </p>
 
       <section aria-labelledby="path-heading" className="mt-8">
-        <h2 id="path-heading" className="font-mono text-lg font-semibold text-terminal-fg">
+        <h2 id="path-heading" className="font-display text-lg font-semibold text-terminal-fg">
           Learning path
         </h2>
         <div className="mt-4 rounded border border-terminal-border bg-terminal-surface p-6">
-          <p className="font-mono text-lg font-semibold text-terminal-fg">{PATH.title}</p>
-          <p className="mt-1 font-mono text-sm text-terminal-muted">
+          <p className="font-display text-lg font-semibold text-terminal-fg">{PATH.title}</p>
+          <p className="mt-1 font-sans text-sm text-terminal-muted">
             {PATH.modules.length} modules · {activityIds.length} activities · 100% free —
             including the certificate
           </p>
           {user && (
-            <p className="mt-2 font-mono text-sm text-terminal-fg">
+            <p className="mt-2 font-sans text-sm text-terminal-fg">
               Progress {pathProgress.fraction}
               {pathProgress.done && <span className="text-terminal-pass"> · complete ✓</span>}
             </p>
@@ -73,7 +73,7 @@ export default async function TrainingDashboardPage() {
           <div className="mt-4">
             <Link
               href={nextHref}
-              className="inline-block rounded bg-terminal-fg px-4 py-2 font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
+              className="inline-block rounded bg-terminal-fg px-4 py-2 font-sans text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
             >
               {nextActivity ? "Continue learning" : "View path"}
             </Link>
@@ -92,14 +92,14 @@ export default async function TrainingDashboardPage() {
 
       {user && credentials.length > 0 && (
         <section aria-labelledby="credential-heading" className="mt-8">
-          <h2 id="credential-heading" className="font-mono text-lg font-semibold text-terminal-fg">
+          <h2 id="credential-heading" className="font-display text-lg font-semibold text-terminal-fg">
             Credentials
           </h2>
           <ul className="mt-3 space-y-2">
             {credentials.map((cred) => (
               <li
                 key={cred.id}
-                className="flex items-center justify-between rounded border border-terminal-border bg-terminal-surface/40 px-3 py-2 font-mono text-sm"
+                className="flex items-center justify-between rounded border border-terminal-border bg-terminal-surface/40 px-3 py-2 font-sans text-sm"
               >
                 <span className="text-terminal-fg">
                   {cred.path} (v{cred.pathVersion})
@@ -116,7 +116,7 @@ export default async function TrainingDashboardPage() {
         </section>
       )}
 
-      <p className="mt-6 font-mono text-sm text-terminal-muted">
+      <p className="mt-6 font-sans text-sm text-terminal-muted">
         {user ? "Signed in — progress is saved automatically." : "Sign in to save your progress and earn the certificate."}{" "}
         <Link href="/training/faq" className="underline underline-offset-4 hover:text-terminal-fg">
           Course FAQ
