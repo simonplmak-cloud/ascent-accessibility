@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { assessmentRepository } from "@/db/repository";
 import { Report } from "@/components/assessment/report";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import type { AssessmentResult, ComparisonData } from "@/components/assessment/types";
 
 export default async function ShareableReportPage({
@@ -78,7 +79,10 @@ export default async function ShareableReportPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="font-display text-xl font-bold text-terminal-fg">
+      <Breadcrumbs
+        trail={[{ href: "/auditor", label: "Workspace" }, { label: "Report" }]}
+      />
+      <h1 className="mt-4 font-display text-xl font-bold text-terminal-fg">
         <a
           href={assessment.url}
           className="underline-offset-4 hover:underline"

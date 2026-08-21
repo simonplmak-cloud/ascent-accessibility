@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { AssessmentTable } from "@/components/auditor/assessment-table";
 import { ScoreComparison } from "@/components/auditor/score-comparison";
+import { StateBlock } from "@/components/ui/state-block";
+import { ButtonLink } from "@/components/ui/button-link";
 import type { HistoryItem } from "@/lib/history";
 
 export function AuditorWorkspace() {
@@ -102,10 +104,22 @@ export function AuditorWorkspace() {
         </p>
       )}
 
-      <div className="mt-6">
-        <AssessmentTable items={items} busyIds={busyIds} onReRun={reRun} onDelete={remove} />
-      </div>
-      <ScoreComparison items={items} />
+      {items.length === 0 ? (
+        <div className="mt-6">
+          <StateBlock
+            title="No assessments yet"
+            body="Run your first scan and the result will appear here with a score, findings, and a shareable report."
+            action={<ButtonLink href="/assess">Scan your site</ButtonLink>}
+          />
+        </div>
+      ) : (
+        <>
+          <div className="mt-6">
+            <AssessmentTable items={items} busyIds={busyIds} onReRun={reRun} onDelete={remove} />
+          </div>
+          <ScoreComparison items={items} />
+        </>
+      )}
     </div>
   );
 }

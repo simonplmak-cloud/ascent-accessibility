@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { MasterDetail, type MasterDetailItem } from "@/components/efficiency/master-detail";
+import { StateBlock } from "@/components/ui/state-block";
 
 interface QueueItem {
   id: string;
@@ -208,7 +209,12 @@ export function ReviewQueue() {
       {loading ? (
         <p className="mt-4 font-sans text-sm text-terminal-muted">Loading…</p>
       ) : items.length === 0 ? (
-        <p className="mt-4 font-sans text-sm text-terminal-muted">No reviews pending.</p>
+        <div className="mt-6">
+          <StateBlock
+            title="No reviews pending"
+            body="When an assessment needs human judgement it will appear here for you to claim and resolve."
+          />
+        </div>
       ) : (
         <div className="mt-6">
           <p className="mb-2 font-sans text-xs text-terminal-muted">
