@@ -21,7 +21,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
       </p>
       <h1 className="mt-2 font-mono text-3xl font-bold text-terminal-fg">{lesson.title}</h1>
 
-      {lesson.type === "concept" && lesson.body && (
+      {lesson.body && (
         <p className="mt-6 font-mono leading-7 text-terminal-fg">{lesson.body}</p>
       )}
 
@@ -62,6 +62,28 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
             );
           })}
         </div>
+      )}
+
+      {lesson.references && lesson.references.length > 0 && (
+        <section aria-labelledby="lesson-refs" className="mt-8">
+          <h2 id="lesson-refs" className="font-mono text-sm font-semibold text-terminal-fg">
+            Further reading
+          </h2>
+          <ul className="mt-2 list-disc pl-5 font-mono text-sm text-terminal-muted">
+            {lesson.references.map((ref) => (
+              <li key={ref.href}>
+                <a
+                  href={ref.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline underline-offset-4 hover:text-terminal-fg"
+                >
+                  {ref.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <CompleteLessonButton lessonId={lesson.id} />

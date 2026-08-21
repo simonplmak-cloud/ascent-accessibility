@@ -4,8 +4,8 @@ import { computePathProgress, gradeQuiz, missedQuestions } from "@/lib/training/
 
 describe("gradeQuiz", () => {
   it("scores, passes, and reports per-question results", () => {
-    const quiz = getQuiz("foundations-quiz")!;
-    const result = gradeQuiz(quiz, { f1: 1, f2: 1, f3: 1 });
+    const quiz = getQuiz("advocacy-quiz")!;
+    const result = gradeQuiz(quiz, { a1: 1, a2: 0, a3: 2 });
     expect(result.score).toBe(100);
     expect(result.passed).toBe(true);
     expect(result.results).toHaveLength(3);
@@ -13,31 +13,31 @@ describe("gradeQuiz", () => {
   });
 
   it("fails below the threshold and lists missed questions", () => {
-    const quiz = getQuiz("foundations-quiz")!;
-    const result = gradeQuiz(quiz, { f1: 1, f2: 0, f3: 0 });
+    const quiz = getQuiz("advocacy-quiz")!;
+    const result = gradeQuiz(quiz, { a1: 1, a2: 2, a3: 1 });
     expect(result.score).toBeLessThan(80);
     expect(result.passed).toBe(false);
-    expect(result.missed).toEqual(["f2", "f3"]);
+    expect(result.missed).toEqual(["a2", "a3"]);
   });
 
   it("treats an unanswered question as incorrect", () => {
     const quiz = getQuiz("perceivable-quiz")!;
-    const result = gradeQuiz(quiz, { p1: 1 });
-    expect(result.missed).toContain("p2");
+    const result = gradeQuiz(quiz, { pr1: 1 });
+    expect(result.missed).toContain("pr2");
   });
 });
 
 describe("missedQuestions", () => {
   it("returns only the missed questions for retry", () => {
-    const quiz = getQuiz("foundations-quiz")!;
-    expect(missedQuestions(quiz, ["f2", "f3"]).map((q) => q.id)).toEqual(["f2", "f3"]);
+    const quiz = getQuiz("advocacy-quiz")!;
+    expect(missedQuestions(quiz, ["a2", "a3"]).map((q) => q.id)).toEqual(["a2", "a3"]);
   });
 });
 
 describe("computePathProgress", () => {
   it("reports a fraction and completion", () => {
     const activityIds = PATH.modules.flatMap((m) => m.activities.map((a) => a.id));
-    const progress = computePathProgress(activityIds, new Set(["how-wcag-works"]));
+    const progress = computePathProgress(activityIds, new Set(["what-is-accessibility"]));
     expect(progress.fraction).toBe(`1/${activityIds.length}`);
     expect(progress.done).toBe(false);
   });

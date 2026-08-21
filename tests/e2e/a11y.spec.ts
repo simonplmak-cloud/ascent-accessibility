@@ -6,10 +6,11 @@ const pages = [
   { path: "/assess", name: "assess" },
   { path: "/donate", name: "donate" },
   { path: "/training", name: "training" },
-  { path: "/training/lessons/how-wcag-works", name: "wcag" },
-  { path: "/training/lessons/understanding-severity", name: "severity" },
-  { path: "/training/lessons/contrast", name: "contrast" },
-  { path: "/training/paths/web-accessibility-foundation", name: "path" },
+  { path: "/training/lessons/how-to-read-any-sc", name: "sc-method" },
+  { path: "/training/lessons/what-is-accessibility", name: "advocacy" },
+  { path: "/training/lessons/everyday-contrast", name: "everyday" },
+  { path: "/training/lessons/sc-1.4.3", name: "anchor-sc" },
+  { path: "/training/paths/web-accessibility", name: "path" },
 ];
 
 for (const target of pages) {
