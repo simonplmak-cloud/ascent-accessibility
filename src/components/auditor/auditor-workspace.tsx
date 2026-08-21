@@ -54,7 +54,6 @@ export function AuditorWorkspace() {
   }
 
   async function remove(item: HistoryItem) {
-    if (!window.confirm(`Delete the assessment for ${item.url}?`)) return;
     setError(null);
     setNotice(null);
     setBusyIds((prev) => new Set(prev).add(item.id));

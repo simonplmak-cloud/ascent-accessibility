@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { BulkActionBar } from "@/components/efficiency/bulk-action-bar";
 import {
   filterByStatus,
   outcomeLabel,
@@ -46,21 +47,27 @@ function formatDate(iso: string): string {
   }).format(date);
 }
 
-interface HistoryTableProps {
+interface AssessmentTableProps {
   items: HistoryItem[];
   busyIds: Set<string>;
   onReRun: (item: HistoryItem) => void;
   onDelete: (item: HistoryItem) => void;
 }
 
-export function AssessmentTable({ items, busyIds, onReRun, onDelete }: HistoryTableProps) {
+export function AssessmentTable({ items, busyIds, onReRun, onDelete }: AssessmentTableProps) {
   const [status, setStatus] = useState<HistoryStatusFilter>("all");
   const [sortKey, setSortKey] = useState<HistorySortKey>("createdAt");
   const [sortDir, setSortDir] = useState<SortDirection>("desc");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const visible = useMemo(
     () => sortHistory(filterByStatus(items, status), sortKey, sortDir),
     [items, status, sortKey, sortDir],
+  );
+
+  const selectedItems = useMemo(
+    () => visible.filter((item) => selected.has(item.id)),
+    [visible, selected],
   );
 
   function toggleSort(key: HistorySortKey) {
@@ -75,6 +82,41 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: HistoryTa
   function indicator(key: HistorySortKey): string {
     if (key !== sortKey) return "↑↓";
     return sortDir === "desc" ? "↓" : "↑";
+  }
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  const allVisibleSelected = visible.length > 0 && visible.every((i) => selected.has(i.id));
+
+  function toggleSelectAll() {
+    setSelected((prev) => {
+      if (allVisibleSelected) {
+        const next = new Set(prev);
+        for (const item of visible) next.delete(item.id);
+        return next;
+      }
+      const next = new Set(prev);
+      for (const item of visible) next.add(item.id);
+      return next;
+    });
+  }
+
+  function bulkReRun() {
+    for (const item of selectedItems) onReRun(item);
+    setSelected(new Set());
+  }
+
+  function bulkDelete() {
+    if (!window.confirm(`Delete ${selectedItems.length} assessment(s)? This cannot be undone.`)) return;
+    for (const item of selectedItems) onDelete(item);
+    setSelected(new Set());
   }
 
   return (
@@ -99,10 +141,29 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: HistoryTa
         </label>
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded border border-terminal-border">
+      <div className="mt-3">
+        <BulkActionBar
+          count={selectedItems.length}
+          actions={[
+            { id: "re-run", label: "Re-run selected", run: bulkReRun },
+            { id: "delete", label: "Delete selected", run: bulkDelete, destructive: true },
+          ]}
+        />
+      </div>
+
+      <div className="mt-3 overflow-x-auto rounded border border-terminal-border">
         <table className="w-full border-collapse font-mono text-sm">
           <thead>
             <tr className="border-b border-terminal-border text-left text-terminal-muted">
+              <th scope="col" className="w-8 px-3 py-2">
+                <input
+                  type="checkbox"
+                  aria-label="Select all"
+                  checked={allVisibleSelected}
+                  onChange={toggleSelectAll}
+                  className="align-middle"
+                />
+              </th>
               <th
                 scope="col"
                 aria-sort={sortKey === "conformance" ? (sortDir === "desc" ? "descending" : "ascending") : "none"}
@@ -130,8 +191,21 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: HistoryTa
           <tbody>
             {visible.map((item) => {
               const busy = busyIds.has(item.id);
+              const isSelected = selected.has(item.id);
               return (
-                <tr key={item.id} className="border-b border-terminal-border last:border-b-0">
+                <tr
+                  key={item.id}
+                  className={`border-b border-terminal-border last:border-b-0 ${isSelected ? "bg-terminal-bg" : ""}`}
+                >
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${item.url}`}
+                      checked={isSelected}
+                      onChange={() => toggleSelect(item.id)}
+                      className="align-middle"
+                    />
+                  </td>
                   <td className="px-3 py-2 text-terminal-fg">{outcomeLabel(item.conformance)}</td>
                   <td className="max-w-[260px] truncate px-3 py-2 text-terminal-fg" title={item.url}>
                     {item.url}
@@ -160,7 +234,9 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: HistoryTa
                       </Button>
                       <Button
                         variant="ghost"
-                        onClick={() => onDelete(item)}
+                        onClick={() => {
+                          if (window.confirm(`Delete the assessment for ${item.url}?`)) onDelete(item);
+                        }}
                         disabled={busy}
                         aria-label={`Delete assessment for ${item.url}`}
                         className="text-terminal-critical"
@@ -174,7 +250,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: HistoryTa
             })}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-terminal-muted">
+                <td colSpan={7} className="px-3 py-6 text-center text-terminal-muted">
                   No assessments match this filter.
                 </td>
               </tr>
