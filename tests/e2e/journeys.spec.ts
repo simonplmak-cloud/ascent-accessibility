@@ -19,7 +19,7 @@ async function signInViaMagicLink(page: import("@playwright/test").Page) {
   const message = await waitForMessage(inbox);
   const link = extractLink(message);
   await page.goto(link);
-  await page.waitForURL(/\/site/);
+  await page.waitForURL(/\/assess/);
 
   const cookies = await page.context().cookies();
   expect(cookies.find((c) => c.name === "wcag_session")).toBeTruthy();

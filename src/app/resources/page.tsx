@@ -43,7 +43,7 @@ export default function ResourcesPage() {
         Start with a self-assessment using our{" "}
         <InlineLink href="/assess">accessibility tool</InlineLink>
         , or learn more in our{" "}
-        <InlineLink href="/learn">education section</InlineLink>
+        <InlineLink href="/training">training path</InlineLink>
         .
       </MutedText>
     </PageShell>

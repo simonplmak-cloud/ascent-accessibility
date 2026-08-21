@@ -66,7 +66,7 @@ async function mockHistoryApi(page: Page, items: Item[]) {
 test("history page lists assessments with URL, standard, status, score and date (AC-3)", async ({ page }) => {
   const items = makeItems();
   await mockHistoryApi(page, items);
-  await page.goto("/history");
+  await page.goto("/auditor");
 
   await expect(page.getByRole("heading", { name: "Assessments" })).toBeVisible();
   const table = page.locator("tbody");
@@ -79,7 +79,7 @@ test("history page lists assessments with URL, standard, status, score and date 
 
 test("history page filters by status (AC-6)", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
-  await page.goto("/history");
+  await page.goto("/auditor");
 
   await page.getByLabel("Filter").selectOption("failed");
   const table = page.locator("tbody");
@@ -89,7 +89,7 @@ test("history page filters by status (AC-6)", async ({ page }) => {
 
 test("history page sorts by score descending (AC-6)", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
-  await page.goto("/history");
+  await page.goto("/auditor");
 
   await page.getByRole("button", { name: /Score/ }).click();
   const firstScore = page.locator("tbody tr").first().locator("td").first();
@@ -98,7 +98,7 @@ test("history page sorts by score descending (AC-6)", async ({ page }) => {
 
 test("history page shows score comparison for a repeated URL (AC-8)", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
-  await page.goto("/history");
+  await page.goto("/auditor");
 
   await expect(page.getByRole("heading", { name: "Score comparison" })).toBeVisible();
   const comparison = page.getByText("ascent-partners.com").nth(1);
@@ -109,7 +109,7 @@ test("history page deletes an assessment (AC-7)", async ({ page }) => {
   const items = makeItems();
   await mockHistoryApi(page, items);
   page.on("dialog", (dialog) => dialog.accept());
-  await page.goto("/history");
+  await page.goto("/auditor");
 
   const row = page.locator("tbody tr", { hasText: "checkout.northwind-retail.com" });
   await row.getByRole("button", { name: "Delete" }).click();
@@ -119,7 +119,7 @@ test("history page deletes an assessment (AC-7)", async ({ page }) => {
 
 test("history page re-runs an assessment (AC-5)", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
-  await page.goto("/history");
+  await page.goto("/auditor");
 
   const row = page.locator("tbody tr", { hasText: "ascent-partners.com" }).first();
   await row.getByRole("button", { name: "Re-run" }).click();
@@ -130,7 +130,7 @@ test("history page re-runs an assessment (AC-5)", async ({ page }) => {
 test("history page has no horizontal scroll at narrow viewport (AC-1)", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/history");
+  await page.goto("/auditor");
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth,
@@ -140,7 +140,7 @@ test("history page has no horizontal scroll at narrow viewport (AC-1)", async ({
 
 test("history page has no axe violations", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
-  await page.goto("/history");
+  await page.goto("/auditor");
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
 });

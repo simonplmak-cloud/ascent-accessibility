@@ -5,11 +5,11 @@ const pages = [
   { path: "/", name: "landing" },
   { path: "/assess", name: "assess" },
   { path: "/donate", name: "donate" },
-  { path: "/learn", name: "learn" },
-  { path: "/learn/wcag", name: "wcag" },
-  { path: "/learn/severity", name: "severity" },
-  { path: "/learn/remediation", name: "remediation" },
-  { path: "/learn/screen-readers", name: "screen-readers" },
+  { path: "/training", name: "training" },
+  { path: "/training/lessons/how-wcag-works", name: "wcag" },
+  { path: "/training/lessons/understanding-severity", name: "severity" },
+  { path: "/training/lessons/contrast", name: "contrast" },
+  { path: "/training/paths/web-accessibility-foundation", name: "path" },
 ];
 
 for (const target of pages) {

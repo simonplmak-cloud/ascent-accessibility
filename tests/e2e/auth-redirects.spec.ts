@@ -22,8 +22,8 @@ test("OAuth callback rejects a missing code and redirects to sign-in", async ({ 
   expect(res.headers()["location"]).toBe(`${base}/sign-in?error=oauth`);
 });
 
-test("whole-site scan page requires a session", async ({ request }) => {
-  const res = await request.get("/site", { maxRedirects: 0 });
+test("assess page requires a session", async ({ request }) => {
+  const res = await request.get("/assess", { maxRedirects: 0 });
   expect(res.status()).toBe(307);
   expect(res.headers()["location"]).toContain("/sign-in");
 });
