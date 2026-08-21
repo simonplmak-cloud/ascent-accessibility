@@ -128,14 +128,14 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
               </ButtonLink>
             )}
             <ButtonLink href="/assess" size="sm">
-              Run a scan
+              Scan your site
             </ButtonLink>
           </div>
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
           <ButtonLink href="/assess" size="sm">
-            Run a scan
+            Scan your site
           </ButtonLink>
           <button
             type="button"

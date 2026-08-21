@@ -19,7 +19,7 @@ export const PRIMARY_NAV: NavItem[] = [
   { label: "Standards", href: "/standards" },
   { label: "Plans", href: "/pricing" },
   {
-    label: "Resources",
+    label: "Guides",
     children: [
       { href: "/methodology", label: "Methodology" },
       { href: "/remediation", label: "Remediation" },
@@ -53,9 +53,9 @@ export interface FooterColumn {
 
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
-    heading: "Product",
+    heading: "Tool",
     links: [
-      { href: "/assess", label: "Run a scan" },
+      { href: "/assess", label: "Scan your site" },
       { href: "/training", label: "Training" },
       { href: "/auditor", label: "Auditor" },
       { href: "/api-keys", label: "API access" },
@@ -65,7 +65,7 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
   {
     heading: "Learn",
     links: [
-      { href: "/standards", label: "WCAG criteria" },
+      { href: "/standards", label: "Standards" },
       { href: "/methodology", label: "Methodology" },
       { href: "/remediation", label: "Remediation" },
       { href: "/regulations", label: "Regulations" },
@@ -97,5 +97,5 @@ export const LEGAL_LINKS: NavLink[] = [
   { href: "/privacy", label: "Privacy" },
   { href: "/sla", label: "Service commitment" },
   { href: "/refund", label: "Refunds" },
-  { href: "/accessibility-statement", label: "Accessibility" },
+  { href: "/accessibility-statement", label: "Accessibility statement" },
 ];
