@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Independent accessibility conformance assurance",
   description:
-    "Automated scanning, AI-assisted review, and independent human review by experts with lived experience — an evidence-based WCAG conformance evaluation report for compliance and ESG teams.",
+    "Automated scanning, AI-assisted review, and independent human review by experts with lived experience — an evidence-based WCAG conformance evaluation report for NGOs, government agencies, and compliance teams.",
 };
 
 const cards = [
@@ -22,7 +22,7 @@ const cards = [
   },
   {
     title: "Conformance evaluation report",
-    body: "A signed, dated report structured as an assurance engagement, for due diligence and board reporting.",
+    body: "A signed, dated report structured as an assurance engagement, for due diligence and governance reporting.",
   },
 ];
 

@@ -18,8 +18,8 @@ export default function AboutPage() {
       <p className="mt-6 font-mono leading-7 text-terminal-fg">
         Ascent Partners Foundation is a Hong Kong registered charity, established in 2017, that
         connects leaders with the ideas and tools to turn sustainability into action. We bring
-        together decision-makers across business, government, and civil society to address
-        environmental and social challenges across the Asia-Pacific.
+        together decision-makers across government, civil society, and the private sector to
+        address environmental and social challenges across the Asia-Pacific.
       </p>
       <p className="mt-4 font-mono text-sm text-terminal-muted">
         A Hong Kong Registered Charity (IRD Section 88).
