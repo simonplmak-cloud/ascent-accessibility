@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Independent accessibility conformance assurance",
   description:
-    "Automated scanning, AI-assisted review, and independent human verification by people with lived experience — an evidence-based WCAG conformance evaluation report for compliance and ESG teams.",
+    "Automated scanning, AI-assisted review, and independent human review by experts with lived experience — an evidence-based WCAG conformance evaluation report for compliance and ESG teams.",
 };
 
 const cards = [
@@ -17,8 +17,8 @@ const cards = [
     body: "Every finding carries the affected element, page, and WCAG reference — an auditable record.",
   },
   {
-    title: "Independent human verification",
-    body: "Criteria automation cannot resolve are verified by a review workforce with lived experience.",
+    title: "Independent human expertise",
+    body: "Criteria automation cannot resolve are reviewed by a paid workforce of people with lived experience — experts whose first-hand knowledge is the standard.",
   },
   {
     title: "Conformance evaluation report",
@@ -35,8 +35,8 @@ export default function Home() {
         </h1>
         <p className="mt-4 font-mono text-lg text-terminal-muted">
           Automated scanning and AI-assisted review establish the baseline. Independent human
-          verification — by a review workforce with lived experience of visual, hearing, and motor
-          disabilities — resolves what automation cannot, producing an evidence-based conformance
+          review — by experts who live with visual, hearing, and motor disabilities and are paid for
+          their insight — resolves what automation cannot, producing an evidence-based conformance
           evaluation report aligned to WCAG 2.2 and the regulations that reference it.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
@@ -69,7 +69,7 @@ export default function Home() {
           Three layers. One defensible result.
         </h2>
         <p className="mt-3 font-mono leading-7 text-terminal-muted">
-          Automated → AI-assisted → independent human verification. Most tools stop at automated
+          Automated → AI-assisted → independent human review. Most tools stop at automated
           detection and leave the remainder &ldquo;needs review&rdquo;. We close that gap and document it —
           so your accessibility position is auditable, not assumed.
         </p>

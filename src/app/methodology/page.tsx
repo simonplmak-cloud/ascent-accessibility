@@ -7,7 +7,7 @@ import { InlineLink } from "@/components/ui/inline-link";
 export const metadata: Metadata = {
   title: "Methodology",
   description:
-    "How Ascent Accessibilityibility scores a website — crawling, the Ascent Accessibility engine, site audit signals, and the scoring model.",
+    "How Ascent Accessibility scores a website — crawling, the Ascent Accessibility engine, site audit signals, and the scoring model.",
   alternates: { canonical: "/methodology" },
 };
 
@@ -37,7 +37,7 @@ export default function MethodologyPage() {
       </Section>
 
       <Section title="2. Scanning">
-        Each page is scanned with the Ascent Accessibilityibility engine — an in-house,
+        Each page is scanned with the Ascent Accessibility engine — an in-house,
         clean-room WCAG rule engine — against the rules for the standard you selected.
         Automated rules detect only issues that can be identified automatically, roughly
         30–50% of WCAG criteria. A companion site audit measures performance, SEO, and

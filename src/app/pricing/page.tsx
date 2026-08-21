@@ -7,9 +7,9 @@ import { InlineLink } from "@/components/ui/inline-link";
 import { ButtonLink } from "@/components/ui/button-link";
 
 export const metadata: Metadata = {
-  title: "Pricing",
+  title: "Plans",
   description:
-    "Ascent Accessibility is free to use. Single-page and whole-site scans are free for verified accounts; AI-assisted review is bring-your-own-key, and human review is priced per page.",
+    "Ascent Accessibility is free to use. Single-page and whole-site scans are free for verified accounts; AI-assisted review is bring-your-own-key, and human review is billed per page.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -30,20 +30,20 @@ const byok = [
 ];
 
 const human = [
-  "Independent review by a workforce with lived experience",
+  "Independent review by a paid workforce of people with lived experience",
   "Resolves every 'Cannot tell' criterion with a written rationale",
   "A signed, dated conformance evaluation report (in-app + PDF)",
   "VPAT/ACR export for procurement",
-  "Priced per page — contact us for a quote",
+  "Billed per page — contact us for a quote",
 ];
 
 export default function PricingPage() {
   return (
     <PageShell width="4xl">
-      <PageHeading>Pricing</PageHeading>
+      <PageHeading>Plans</PageHeading>
       <MutedText className="mt-4">
-        The assessment is free to use. We fund the service through donations and paid human
-        review — not by charging for scans.
+        The assessment is free for everyone. We fund it through donations and paid human review —
+        not by charging for scans.
       </MutedText>
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">

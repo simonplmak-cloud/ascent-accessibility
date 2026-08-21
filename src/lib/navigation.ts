@@ -17,7 +17,7 @@ export interface NavItem {
 export const PRIMARY_NAV: NavItem[] = [
   { label: "Training", href: "/training" },
   { label: "Standards", href: "/standards" },
-  { label: "Pricing", href: "/pricing" },
+  { label: "Plans", href: "/pricing" },
   {
     label: "Resources",
     children: [
@@ -59,7 +59,7 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       { href: "/training", label: "Training" },
       { href: "/auditor", label: "Auditor" },
       { href: "/api-keys", label: "API access" },
-      { href: "/pricing", label: "Pricing" },
+      { href: "/pricing", label: "Plans" },
     ],
   },
   {

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Web accessibility assessment platform for Ascent Partners. A visitor submits a domain + standard (WCAG 2.2 AA default); the system crawls the site (sitemap-first), runs the Ascent Accessibilityibility engine in a self-hosted Chromium browser, and returns a score + findings + recommendations — exportable as **PDF only**, with a live scan log, a Stripe subscription, a donation page, and a free structured **training** path (`/training/*`) that issues a PDF certificate.
+Web accessibility assessment platform for Ascent Partners. A visitor submits a domain + standard (WCAG 2.2 AA default); the system crawls the site (sitemap-first), runs the Ascent Accessibility engine in a self-hosted Chromium browser, and returns a score + findings + recommendations — exportable as **PDF only**, with a live scan log, a Stripe subscription, a donation page, and a free structured **training** path (`/training/*`) that issues a PDF certificate.
 
 ## Architecture (non-obvious — read first)
 

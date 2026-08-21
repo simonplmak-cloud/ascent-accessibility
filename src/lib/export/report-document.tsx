@@ -220,7 +220,7 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
         <View id="methodology" style={styles.section}>
           <Text style={styles.h2}>2. Methodology</Text>
           <Text>
-            Automated testing by the Ascent Accessibilityibility engine, with a companion site audit and AI-assisted review.
+            Automated testing by the Ascent Accessibility engine, with a companion site audit and AI-assisted review.
           </Text>
           <Text style={{ marginTop: 4 }}>
             This is an automated baseline. Automated tools detect a subset of WCAG issues; full conformance requires manual review (keyboard operation, screen readers, and contrast inspection).

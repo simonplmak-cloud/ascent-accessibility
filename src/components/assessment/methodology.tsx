@@ -7,7 +7,7 @@ export function Methodology({ result }: { result: AssessmentResult }) {
         Methodology
       </h2>
       <ul className="mt-2 list-disc space-y-1 pl-6 font-mono text-sm text-terminal-muted">
-        <li>Engine: the Ascent Accessibilityibility engine, with a companion site audit and AI-assisted review.</li>
+        <li>Engine: the Ascent Accessibility engine, with a companion site audit and AI-assisted review.</li>
         <li>Standard: {result.standard ?? "—"}</li>
         <li>Pages scanned: {result.pagesScanned}</li>
         <li>Rendered in a headless Chromium browser via a remote CDP endpoint.</li>

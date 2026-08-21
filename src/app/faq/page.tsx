@@ -5,7 +5,7 @@ import { InlineLink } from "@/components/ui/inline-link";
 
 export const metadata: Metadata = {
   title: "Frequently asked questions",
-  description: "Common questions about Ascent Accessibility — pricing, scanning, data, and limitations.",
+  description: "Common questions about Ascent Accessibility — costs, scanning, data, and limitations.",
   alternates: { canonical: "/faq" },
 };
 
@@ -19,7 +19,7 @@ const faqs = [
     a: "Whole-website scans (full sitemap and link crawl), the conformance table, site audit signals, PDF export, API access, and saved history — all free.",
   },
   {
-    q: "How is AI-assisted review priced?",
+    q: "How much does AI-assisted review cost?",
     a: "Bring your own key. If you want AI-assisted review, you can save your own Qwen/DashScope API key and pay the token cost directly; the platform bears no cost and charges no fee.",
   },
   {

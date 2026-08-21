@@ -7,7 +7,7 @@ import { InlineLink } from "@/components/ui/inline-link";
 export const metadata: Metadata = {
   title: "Roadmap & changelog",
   description:
-    "What Ascent Accessibilityibility has shipped and what is planned next.",
+    "What Ascent Accessibility has shipped and what is planned next.",
   alternates: { canonical: "/roadmap" },
 };
 
