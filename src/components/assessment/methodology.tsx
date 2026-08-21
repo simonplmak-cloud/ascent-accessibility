@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { AssessmentResult } from "./types";
 
 export function Methodology({ result }: { result: AssessmentResult }) {
@@ -20,6 +21,21 @@ export function Methodology({ result }: { result: AssessmentResult }) {
           differ (dynamic content, network timing, crawl limits).
         </li>
       </ul>
+      <p className="mt-3 font-sans text-sm text-terminal-muted">
+        Read the full{" "}
+        <Link href="/methodology" className="text-brandLink underline underline-offset-4 hover:text-brand">
+          methodology
+        </Link>
+        ,{" "}
+        <Link href="/validation" className="text-brandLink underline underline-offset-4 hover:text-brand">
+          how we validate the engine
+        </Link>
+        , and{" "}
+        <Link href="/human-review" className="text-brandLink underline underline-offset-4 hover:text-brand">
+          independent human review
+        </Link>
+        .
+      </p>
     </section>
   );
 }

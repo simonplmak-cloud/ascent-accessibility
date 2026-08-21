@@ -1,4 +1,4 @@
-import type { Conformance } from "./types";
+import type { Conformance, ConformanceRow } from "./types";
 import { Disclosure } from "@/components/ui/disclosure";
 
 const PRINCIPLES: Record<string, string> = {
@@ -7,6 +7,22 @@ const PRINCIPLES: Record<string, string> = {
   "3": "Understandable",
   "4": "Robust",
 };
+
+// A10 provenance: how each criterion was resolved. Machine = the rule engine
+// decided it; AI = the AI-assisted review resolved it (not proof of conformance);
+// Needs human = only a person can judge it.
+function natureOf(row: ConformanceRow): { label: string; className: string } {
+  if (row.machineResult === "Passed" || row.machineResult === "Failed") {
+    return { label: "Machine", className: "text-terminal-muted" };
+  }
+  if (row.result === "CannotTell") {
+    return { label: "Needs human", className: "text-terminal-serious" };
+  }
+  if (row.result === "Passed" || row.result === "Failed") {
+    return { label: "AI", className: "text-terminal-serious" };
+  }
+  return { label: "—", className: "text-terminal-muted" };
+}
 
 function resultClass(result: string): string {
   switch (result) {
@@ -50,6 +66,10 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
         {conformance.coverage}% tested · level attained:{" "}
         <span className="text-terminal-fg">{conformance.levelAttained}</span>
       </p>
+      <p className="mt-1 font-sans text-xs text-terminal-muted">
+        &ldquo;Tested by&rdquo; shows how each criterion was resolved: Machine (rule engine), AI
+        (AI-assisted — not proof of conformance), or Needs human (manual review).
+      </p>
 
       <div className="mt-4 space-y-2">
         {[...grouped.entries()].map(([principle, rows]) => (
@@ -72,6 +92,7 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
                   <th scope="col" className="px-3 py-2 font-medium">Title</th>
                   <th scope="col" className="px-3 py-2 font-medium">Level</th>
                   <th scope="col" className="px-3 py-2 font-medium">Result</th>
+                  <th scope="col" className="px-3 py-2 font-medium">Tested by</th>
                 </tr>
               </thead>
               <tbody>
@@ -82,6 +103,9 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
                     <td className="px-3 py-2 text-terminal-muted">{row.level}</td>
                     <td className="px-3 py-2">
                       <span className={resultClass(row.result)}>{resultLabel(row.result)}</span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className={natureOf(row).className}>{natureOf(row).label}</span>
                     </td>
                   </tr>
                 ))}
