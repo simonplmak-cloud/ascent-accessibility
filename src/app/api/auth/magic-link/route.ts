@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   } catch (error) {
     logger.error({ err: error }, "magic-link: request failed");
     return NextResponse.json(
-      { error: `Internal: ${(error as Error).message}` },
+      { error: "Something went wrong. Please try again." },
       { status: 500 },
     );
   }
