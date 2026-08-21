@@ -278,4 +278,32 @@ DEFINE FIELD settings ON ai_sc_config TYPE option<string>;
 DEFINE FIELD enabled ON ai_sc_config TYPE bool DEFAULT true;
 DEFINE FIELD updatedAt ON ai_sc_config TYPE datetime DEFAULT time::now();
 DEFINE INDEX ai_sc_config_sc_idx ON ai_sc_config FIELDS sc UNIQUE;`,
+
+  // Training: progress + credentials. Curriculum (paths/modules/lessons/quizzes)
+  // lives in code; only per-learner state is persisted here.
+  `DEFINE TABLE learner_progress SCHEMAFULL PERMISSIONS
+  FOR select WHERE user = $auth.id
+  FOR create, update, delete NONE;
+DEFINE FIELD user ON learner_progress TYPE record<user>;
+DEFINE FIELD path ON learner_progress TYPE string;
+DEFINE FIELD activity ON learner_progress TYPE string;
+DEFINE FIELD status ON learner_progress TYPE string DEFAULT "not_started";
+DEFINE FIELD score ON learner_progress TYPE option<int>;
+DEFINE FIELD attempts ON learner_progress TYPE int DEFAULT 0;
+DEFINE FIELD lastPosition ON learner_progress TYPE option<string>;
+DEFINE FIELD startedAt ON learner_progress TYPE option<datetime>;
+DEFINE FIELD completedAt ON learner_progress TYPE option<datetime>;
+DEFINE FIELD updatedAt ON learner_progress TYPE datetime DEFAULT time::now();
+DEFINE INDEX learner_progress_user_activity_idx ON learner_progress FIELDS user, activity UNIQUE;`,
+
+  `DEFINE TABLE credential SCHEMAFULL PERMISSIONS
+  FOR select WHERE user = $auth.id
+  FOR create, update, delete NONE;
+DEFINE FIELD user ON credential TYPE record<user>;
+DEFINE FIELD path ON credential TYPE string;
+DEFINE FIELD pathVersion ON credential TYPE string;
+DEFINE FIELD score ON credential TYPE option<int>;
+DEFINE FIELD completedAt ON credential TYPE datetime;
+DEFINE FIELD issuedAt ON credential TYPE datetime DEFAULT time::now();
+DEFINE INDEX credential_user_path_idx ON credential FIELDS user, path UNIQUE;`,
 ];
