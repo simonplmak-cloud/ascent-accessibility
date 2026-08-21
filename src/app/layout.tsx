@@ -3,6 +3,7 @@ import "./globals.css";
 import { SiteHeader, type HeaderAuthState } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CookieBanner } from "@/components/cookie-banner";
+import { KeyboardProvider } from "@/components/efficiency/keyboard-provider";
 import { getSessionUser } from "@/server/auth";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
 import { SITE_URL } from "@/lib/site-url";
@@ -98,9 +99,11 @@ export default async function RootLayout({
       <a href="#main" className="skip-link">
         Skip to main content
       </a>
-      <SiteHeader authState={authState} />
-      <main id="main">{children}</main>
-      <SiteFooter />
+      <KeyboardProvider>
+        <SiteHeader authState={authState} />
+        <main id="main">{children}</main>
+        <SiteFooter />
+      </KeyboardProvider>
       <CookieBanner />
     </body>
   );

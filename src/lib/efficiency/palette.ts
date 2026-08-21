@@ -5,6 +5,7 @@ export interface Command {
   label: string;
   keywords?: string;
   group?: string;
+  shortcut?: string;
 }
 
 /**
@@ -12,7 +13,7 @@ export interface Command {
  * Priority: exact label prefix > label substring > keyword substring; ties break
  * toward shorter labels.
  */
-export function rankCommands(query: string, commands: readonly Command[]): Command[] {
+export function rankCommands<T extends Command>(query: string, commands: readonly T[]): T[] {
   const q = query.trim().toLowerCase();
   if (!q) return [...commands];
   return commands
