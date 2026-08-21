@@ -20,7 +20,7 @@ const faqs = [
   },
   {
     q: "How much does AI-assisted review cost?",
-    a: "Bring your own key. If you want AI-assisted review, you can save your own Qwen/DashScope API key and pay the token cost directly; the platform bears no cost and charges no fee.",
+    a: "Bring your own key. Save your own API key for OpenRouter, OpenAI, Qwen/DashScope, Google Gemini, Anthropic, or any OpenAI-compatible endpoint, and pay the token cost directly; the platform bears no cost and charges no fee.",
   },
   {
     q: "How long does a scan take?",

@@ -24,7 +24,7 @@ const free = [
 
 const byok = [
   "AI-assisted review of criteria automation cannot resolve",
-  "Bring your own Qwen/DashScope API key — you pay the token cost, we don't",
+  "Bring your own key for OpenRouter, OpenAI, Qwen, Gemini, or Anthropic — or any OpenAI-compatible endpoint",
   "Fail-safe: nothing is marked passed without high confidence",
   "Covered by your existing key; no per-scan fee",
 ];
