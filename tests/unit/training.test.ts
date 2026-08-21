@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { getQuiz, PATH } from "@/lib/training/curriculum";
-import { computePathProgress, gradeQuiz, missedQuestions } from "@/lib/training/quiz";
+import { computePathProgress, gradeCheck, gradeQuiz, missedQuestions } from "@/lib/training/quiz";
+
+describe("gradeCheck", () => {
+  const q = { id: "x", prompt: "p", options: ["a", "b"], answerIndex: 1, explanation: "e" };
+
+  it("grades a correct answer", () => {
+    expect(gradeCheck(q, 1)).toMatchObject({ correct: true, correctIndex: 1 });
+  });
+
+  it("grades an incorrect answer and returns the correct index", () => {
+    expect(gradeCheck(q, 0)).toMatchObject({ correct: false, correctIndex: 1, explanation: "e" });
+  });
+});
 
 describe("gradeQuiz", () => {
   it("scores, passes, and reports per-question results", () => {

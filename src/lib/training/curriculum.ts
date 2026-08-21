@@ -352,6 +352,16 @@ export const LESSONS: Record<string, Lesson> = {
       { label: "ITI VPAT templates", href: "https://www.itic.org/policy/accessibility/vpat" },
     ],
   },
+  "capstone-audit": {
+    id: "capstone-audit",
+    title: "Capstone: audit a website",
+    type: "concept",
+    body: "Put it together: run a real audit. Pick a small site, follow the WCAG-EM five steps (define scope, explore, select a representative sample, evaluate against WCAG 2.2 AA, report), and document your evidence. Use the Run a scan tool to get the automated baseline, then verify by keyboard and screen reader.",
+    references: [
+      { label: "W3C WCAG-EM", href: "https://www.w3.org/TR/WCAG-EM/" },
+      { label: "Run a scan", href: "/assess" },
+    ],
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -637,6 +647,7 @@ export const PATH: Path = {
         { id: "audit-screen-reader", type: "lesson" },
         { id: "audit-wcag-em", type: "lesson" },
         { id: "audit-quiz", type: "quiz" },
+        { id: "capstone-audit", type: "lesson" },
       ],
     },
   ],
@@ -649,3 +660,183 @@ export function getLesson(id: string): Lesson | undefined {
 export function getQuiz(id: string): Quiz | undefined {
   return QUIZZES[id];
 }
+
+// Per-lesson metadata + a single formative practice check (answer key stays
+// server-side). Kept separate from the lesson body to bound authoring scope.
+export interface LessonMeta {
+  outcome: string;
+  durationMinutes: number;
+  check: QuizQuestion;
+}
+
+export const LESSON_META: Record<string, LessonMeta> = {
+  // ---- Unit 1 · Advocacy ----
+  "what-is-accessibility": {
+    outcome: "Distinguish accessibility, usability, and inclusive design.",
+    durationMinutes: 5,
+    check: { id: "c1", prompt: "A page has zero WCAG violations but is awkward for everyone to use. Which is true?", options: ["It is automatically usable", "Accessibility and usability overlap but are not identical", "WCAG is the only quality measure"], answerIndex: 1, explanation: "A page can conform yet still be a poor experience — accessibility removes barriers, usability is broader." },
+  },
+  "how-people-use-the-web": {
+    outcome: "Name the assistive technologies people use to browse the web.",
+    durationMinutes: 8,
+    check: { id: "c2", prompt: "Which assistive technology most helps someone with low vision read text?", options: ["Screen reader", "Screen magnifier", "Voice control"], answerIndex: 1, explanation: "Magnification enlarges content for low-vision users; a screen reader announces it for blind users." },
+  },
+  "disability-barriers": {
+    outcome: "Recognize that disability is a person–environment mismatch.",
+    durationMinutes: 5,
+    check: { id: "c3", prompt: "Which is the best example of a temporary disability?", options: ["Blindness", "A broken arm limiting mouse use", "Dyslexia"], answerIndex: 1, explanation: "A broken arm is temporary and situational — designing for it helps everyone." },
+  },
+  "business-legal-case": {
+    outcome: "Explain the business and legal drivers for accessibility.",
+    durationMinutes: 5,
+    check: { id: "c4", prompt: "Which standard governs digital accessibility for the EU public sector?", options: ["ADA", "Section 508", "EN 301 549"], answerIndex: 2, explanation: "EN 301 549 is the EU standard; Section 508 is US, the ADA is US law." },
+  },
+  "inclusive-design-etiquette": {
+    outcome: "Use respectful, person-centered language about disability.",
+    durationMinutes: 5,
+    check: { id: "c5", prompt: "Person-first vs identity-first language is best described as:", options: ["A strict rule", "A contextual preference — use the person's own terms", "Only identity-first is correct"], answerIndex: 1, explanation: "Communities and individuals differ; follow the terminology people use for themselves." },
+  },
+  "history-standards": {
+    outcome: "Trace WCAG 1.0→2.2 and name the related standards.",
+    durationMinutes: 8,
+    check: { id: "c6", prompt: "Which WCAG version introduced the four POUR principles?", options: ["1.0", "2.0", "2.2"], answerIndex: 1, explanation: "WCAG 2.0 (2008) reorganized 14 checkpoints into POUR with testable success criteria." },
+  },
+  // ---- Unit 2 · Everyday ----
+  "everyday-structure": {
+    outcome: "Build pages with a semantic heading and landmark structure.",
+    durationMinutes: 8,
+    check: { id: "c7", prompt: "A page is a wall of <div>s with no landmarks. Best fix?", options: ["Add more <div>s", "Use header/nav/main/footer and real headings", "Style the divs to look like sections"], answerIndex: 1, explanation: "Landmarks and a real heading hierarchy expose structure to assistive technology." },
+  },
+  "everyday-alt-text": {
+    outcome: "Write appropriate alt text for any image.",
+    durationMinutes: 8,
+    check: { id: "c8", prompt: "A purely decorative image should have:", options: ["alt=\"decorative\"", "alt=\"\"", "A long description"], answerIndex: 1, explanation: "Empty alt hides the image from screen readers — the correct treatment for decoration." },
+  },
+  "everyday-contrast": {
+    outcome: "Check text contrast against WCAG minimums.",
+    durationMinutes: 8,
+    check: { id: "c9", prompt: "What contrast ratio does normal body text need at WCAG AA?", options: ["3:1", "4.5:1", "7:1"], answerIndex: 1, explanation: "4.5:1 is the AA minimum for normal text; 7:1 is the AAA target." },
+  },
+  "everyday-keyboard": {
+    outcome: "Make every control operable by keyboard with visible focus.",
+    durationMinutes: 8,
+    check: { id: "c10", prompt: "A menu opens on hover but not keyboard focus. The fix is:", options: ["Ignore it — hover is enough", "Add keyboard and focus handling", "Disable the menu"], answerIndex: 1, explanation: "Anything operable by mouse must also be operable by keyboard, with visible focus." },
+  },
+  "everyday-links": {
+    outcome: "Write link text that describes its destination.",
+    durationMinutes: 5,
+    check: { id: "c11", prompt: "Five 'Read more' links go to different pages. Best fix?", options: ["Make each link text describe its target", "Add a title attribute", "Leave them"], answerIndex: 0, explanation: "Link text must say where it goes; 'Read more' is meaningless out of context." },
+  },
+  "everyday-forms": {
+    outcome: "Label every form field and describe errors in text.",
+    durationMinutes: 8,
+    check: { id: "c12", prompt: "A text input has only placeholder text and no <label>. Best fix?", options: ["Add a real <label>", "Darken the placeholder", "It is fine"], answerIndex: 0, explanation: "Placeholder disappears and is inconsistently exposed — a real <label> is required." },
+  },
+  "everyday-media": {
+    outcome: "Provide captions and transcripts for media.",
+    durationMinutes: 5,
+    check: { id: "c13", prompt: "Prerecorded video with speech needs, at AA minimum:", options: ["Captions", "Sign language", "No extra content"], answerIndex: 0, explanation: "1.2.2 requires captions for prerecorded audio in synchronized media." },
+  },
+  "everyday-reflow": {
+    outcome: "Verify content reflows without horizontal scroll at 400% zoom.",
+    durationMinutes: 5,
+    check: { id: "c14", prompt: "At 400% zoom the page forces horizontal scrolling. Which SC fails?", options: ["1.4.3", "1.4.10", "2.4.7"], answerIndex: 1, explanation: "1.4.10 Reflow requires content to reflow at 320px / 400% without two-dimensional scroll." },
+  },
+  // ---- Unit 3 · Standards ----
+  "how-to-read-any-sc": {
+    outcome: "Read and interpret any WCAG success criterion.",
+    durationMinutes: 8,
+    check: { id: "c15", prompt: "To interpret an unfamiliar SC, read first:", options: ["The Techniques only", "Its Understanding document", "A random blog"], answerIndex: 1, explanation: "Understanding documents explain intent, benefits, examples — the starting point after the normative text." },
+  },
+  "sc-1.1.1": {
+    outcome: "Apply the alt-text decision tree to any image.",
+    durationMinutes: 10,
+    check: { id: "c16", prompt: "A complex data chart needs:", options: ["alt=\"chart\" only", "A short alt plus a long description or data table", "No alt"], answerIndex: 1, explanation: "Complex images need a short alt plus a long description (or an equivalent data table)." },
+  },
+  "sc-1.3.1": {
+    outcome: "Expose structure and relationships programmatically.",
+    durationMinutes: 10,
+    check: { id: "c17", prompt: "A field's label is only visual (not associated). Which SC fails?", options: ["1.3.1", "1.4.3", "2.5.8"], answerIndex: 0, explanation: "1.3.1 requires information and relationships be programmatically determinable — a real <label>." },
+  },
+  "sc-1.4.3": {
+    outcome: "Judge text contrast against 4.5:1 / 3:1.",
+    durationMinutes: 10,
+    check: { id: "c18", prompt: "Body text at #888 on white (≈3.5:1) fails:", options: ["1.4.3", "2.4.4", "1.1.1"], answerIndex: 0, explanation: "3.5:1 is below the 4.5:1 minimum for normal text — a 1.4.3 failure." },
+  },
+  "sc-1.4.10": {
+    outcome: "Test reflow at 320px and 400% zoom.",
+    durationMinutes: 10,
+    check: { id: "c19", prompt: "A fixed-width layout forces horizontal scrolling at 320px. This fails:", options: ["1.4.10", "2.4.4", "3.3.1"], answerIndex: 0, explanation: "Reflow (1.4.10) requires one-column reflow with no two-dimensional scroll." },
+  },
+  "sc-2.1.1": {
+    outcome: "Verify every control is keyboard-operable.",
+    durationMinutes: 10,
+    check: { id: "c20", prompt: "A control has an onclick but no keyboard handling. This fails:", options: ["2.1.1", "1.4.3", "4.1.2"], answerIndex: 0, explanation: "2.1.1 requires all functionality be operable via keyboard." },
+  },
+  "sc-2.4.4": {
+    outcome: "Write link text that is clear in context.",
+    durationMinutes: 10,
+    check: { id: "c21", prompt: "A link labelled 'Click here' points to a policy page. This fails:", options: ["2.4.4", "1.4.3", "2.5.8"], answerIndex: 0, explanation: "2.4.4 requires link purpose be clear from the link text (plus context)." },
+  },
+  "sc-2.4.7": {
+    outcome: "Keep a visible focus indicator on every control.",
+    durationMinutes: 10,
+    check: { id: "c22", prompt: "CSS removes the focus outline with no replacement. This fails:", options: ["2.4.7", "1.1.1", "3.3.1"], answerIndex: 0, explanation: "2.4.7 requires any keyboard-operable UI to have a visible focus indicator." },
+  },
+  "sc-3.3.1": {
+    outcome: "Identify and describe input errors in text.",
+    durationMinutes: 10,
+    check: { id: "c23", prompt: "A form shows only a red border on an invalid field. This fails:", options: ["3.3.1", "2.4.4", "1.4.10"], answerIndex: 0, explanation: "3.3.1 requires errors be identified and described in text — color alone is not enough." },
+  },
+  "sc-4.1.2": {
+    outcome: "Ensure every control exposes name, role, and value.",
+    durationMinutes: 10,
+    check: { id: "c24", prompt: "A <div> acts as a button but has no role or name. This fails:", options: ["4.1.2", "1.4.3", "2.4.7"], answerIndex: 0, explanation: "4.1.2 requires UI components expose their name, role, and value." },
+  },
+  "sc-2.5.8": {
+    outcome: "Verify interactive targets meet 24×24px minimum.",
+    durationMinutes: 10,
+    check: { id: "c25", prompt: "Tiny text links with no padding are below 24×24px. This fails:", options: ["2.5.8", "1.4.3", "3.3.1"], answerIndex: 0, explanation: "2.5.8 (WCAG 2.2) requires targets of at least 24×24 CSS pixels." },
+  },
+  "aria-restrained": {
+    outcome: "Use ARIA only when native HTML cannot express the semantics.",
+    durationMinutes: 8,
+    check: { id: "c26", prompt: "When should you reach for ARIA?", options: ["Always, for robustness", "Only when native HTML cannot express it", "Never"], answerIndex: 1, explanation: "Native HTML first; ARIA communicates semantics but not keyboard behavior." },
+  },
+  // ---- Unit 4 · Audit ----
+  "audit-overview": {
+    outcome: "Explain why conformance needs human judgement.",
+    durationMinutes: 5,
+    check: { id: "c27", prompt: "Can automated tools alone determine conformance?", options: ["Yes, if they report zero errors", "No — human evaluation is required", "Yes, for AA"], answerIndex: 1, explanation: "Tools assist but miss ~50% of issues; conformance requires human judgement." },
+  },
+  "audit-easy-checks": {
+    outcome: "Run a quick first-pass review of a page.",
+    durationMinutes: 8,
+    check: { id: "c28", prompt: "Easy Checks are best described as:", options: ["A full conformance evaluation", "A quick first review", "An automated scan"], answerIndex: 1, explanation: "Easy Checks are a fast preliminary review, not a conformance evaluation." },
+  },
+  "audit-automated": {
+    outcome: "Use automated tools critically, verifying findings manually.",
+    durationMinutes: 8,
+    check: { id: "c29", prompt: "An automated scan reports zero errors. Best response?", options: ["Declare the site conformant", "Verify manually — tools miss many issues", "Ship it"], answerIndex: 1, explanation: "Automated tools catch a fraction of issues and produce false positives and misses." },
+  },
+  "audit-manual": {
+    outcome: "Perform keyboard, focus, and contrast testing by hand.",
+    durationMinutes: 8,
+    check: { id: "c30", prompt: "Which is a manual test (not automated)?", options: ["Running axe", "Keyboard-only navigation", "Lighthouse score"], answerIndex: 1, explanation: "Keyboard-only operation is a manual test that automation cannot judge." },
+  },
+  "audit-screen-reader": {
+    outcome: "Test a page with a real screen reader.",
+    durationMinutes: 8,
+    check: { id: "c31", prompt: "A common screen-reader test pairing is:", options: ["NVDA + Chrome (Windows)", "axe + Lighthouse", "VoiceOver + axe"], answerIndex: 0, explanation: "NVDA + Chrome on Windows (and VoiceOver + Safari on macOS) is a standard pairing." },
+  },
+  "audit-wcag-em": {
+    outcome: "Structure an audit using WCAG-EM's five steps.",
+    durationMinutes: 8,
+    check: { id: "c32", prompt: "The correct WCAG-EM order is:", options: ["Explore → scope → evaluate → report", "Scope → explore → sample → evaluate → report", "Report → evaluate → sample"], answerIndex: 1, explanation: "WCAG-EM: define scope, explore, select a sample, evaluate, report." },
+  },
+  "capstone-audit": {
+    outcome: "Complete a WCAG-EM audit and produce a conformance report.",
+    durationMinutes: 30,
+    check: { id: "c33", prompt: "The capstone deliverable is:", options: ["A passing quiz score", "An evidence-based conformance report", "A code sample"], answerIndex: 1, explanation: "The capstone is an evidence-based WCAG-EM report — the authentic assessment." },
+  },
+};

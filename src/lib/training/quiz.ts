@@ -10,6 +10,21 @@ export interface QuestionResult {
   sc?: string;
 }
 
+export interface CheckResult {
+  correct: boolean;
+  correctIndex: number;
+  explanation: string;
+}
+
+// Grade a single per-lesson practice check (formative; answer key server-side).
+export function gradeCheck(question: QuizQuestion, chosenIndex: number): CheckResult {
+  return {
+    correct: chosenIndex === question.answerIndex,
+    correctIndex: question.answerIndex,
+    explanation: question.explanation,
+  };
+}
+
 export interface QuizResult {
   score: number; // 0–100
   passed: boolean;

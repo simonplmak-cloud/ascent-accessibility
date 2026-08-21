@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PATH, getLesson } from "@/lib/training/curriculum";
+import { LESSON_META, PATH, getLesson } from "@/lib/training/curriculum";
 import { getSc, understandingUrl } from "@/lib/standards/wcag-sc";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import { getScRemediation } from "@/lib/standards/sc-remediation";
 import { CompleteLessonButton } from "@/components/training/complete-lesson-button";
+import { PracticeCheck } from "@/components/training/practice-check";
+import { CapstoneChecklist } from "@/components/training/capstone-checklist";
 
 export default async function LessonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const lesson = getLesson(id);
   if (!lesson) notFound();
+  const meta = LESSON_META[id];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
@@ -20,6 +23,12 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
         › {lesson.title}
       </p>
       <h1 className="mt-2 font-mono text-3xl font-bold text-terminal-fg">{lesson.title}</h1>
+
+      {meta && (
+        <p className="mt-2 font-mono text-sm text-terminal-muted">
+          {meta.outcome} · ~{meta.durationMinutes} min
+        </p>
+      )}
 
       {lesson.body && (
         <p className="mt-6 font-mono leading-7 text-terminal-fg">{lesson.body}</p>
@@ -85,6 +94,10 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
           </ul>
         </section>
       )}
+
+      {lesson.id === "capstone-audit" && <CapstoneChecklist />}
+
+      {meta?.check && <PracticeCheck lessonId={lesson.id} question={meta.check} />}
 
       <CompleteLessonButton lessonId={lesson.id} />
 

@@ -117,7 +117,10 @@ export default async function TrainingDashboardPage() {
       )}
 
       <p className="mt-6 font-mono text-sm text-terminal-muted">
-        {user ? "Signed in — progress is saved automatically." : "Sign in to save your progress and earn the certificate."}
+        {user ? "Signed in — progress is saved automatically." : "Sign in to save your progress and earn the certificate."}{" "}
+        <Link href="/training/faq" className="underline underline-offset-4 hover:text-terminal-fg">
+          Course FAQ
+        </Link>
       </p>
     </div>
   );
