@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Report } from "./report";
 import { LogPanel } from "./log-panel";
 import { Button } from "@/components/ui/button";
@@ -22,13 +22,44 @@ export function AssessmentForm({
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [log, setLog] = useState<LogEntry[]>([]);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [cancelled, setCancelled] = useState(false);
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function startTimer() {
+    const start = Date.now();
+    timerRef.current = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - start) / 1000));
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }
+
+  // A3: cancel aborts the client-side watch (the server-side scan may still
+  // finish in the background — the result lands in the auditor workspace).
+  function cancelScan() {
+    setCancelled(true);
+    stopTimer();
+    void readerRef.current?.cancel().catch(() => {});
+    readerRef.current = null;
+    setLoading(false);
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
     setResult(null);
     setLog([]);
+    setCancelled(false);
+    setElapsedSeconds(0);
     setLoading(true);
+    startTimer();
 
     try {
       const createRes = await fetch("/api/v1/assessments", {
@@ -41,6 +72,7 @@ export function AssessmentForm({
       if (!createRes.ok) {
         setError(messageForCode(createData.code));
         setLoading(false);
+        stopTimer();
         return;
       }
 
@@ -48,6 +80,7 @@ export function AssessmentForm({
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
+      stopTimer();
     }
   }
 
@@ -55,6 +88,7 @@ export function AssessmentForm({
     const timeout = setTimeout(() => {
       setError("The assessment is still running. Reload this page to check its status.");
       setLoading(false);
+      stopTimer();
     }, STREAM_TIMEOUT_MS);
 
     try {
@@ -63,6 +97,7 @@ export function AssessmentForm({
         throw new Error("stream unavailable");
       }
       const reader = res.body.getReader();
+      readerRef.current = reader;
       const decoder = new TextDecoder();
       let buffer = "";
       for (;;) {
@@ -85,19 +120,25 @@ export function AssessmentForm({
           } else if (event.type === "done") {
             setResult(event as unknown as AssessmentResult);
             setLoading(false);
+            stopTimer();
             return;
           } else if (event.type === "notfound") {
             setError("Assessment not found.");
             setLoading(false);
+            stopTimer();
             return;
           }
           // "status" events are informational — the log already reflects progress
         }
       }
     } catch {
-      setError("Something went wrong. Please try again.");
+      if (!cancelled) {
+        setError("Something went wrong. Please try again.");
+      }
       setLoading(false);
     } finally {
+      readerRef.current = null;
+      stopTimer();
       clearTimeout(timeout);
     }
   }
@@ -186,12 +227,31 @@ export function AssessmentForm({
 
       {loading && !result && (
         <div className="mt-4">
-          <p aria-live="polite" className="mb-2 font-sans text-sm text-terminal-fg">
-            Assessment in progress — crawling and scanning can take several minutes for
-            larger sites. Leave this tab open.
-          </p>
-          <LogPanel entries={log} />
+          <div className="rounded border border-terminal-border bg-terminal-surface/40 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p aria-live="polite" className="font-sans text-sm text-terminal-fg">
+                <span className="font-semibold">{stageFromLog(log)}</span>
+                <span className="text-terminal-muted"> · {formatElapsed(elapsedSeconds)}</span>
+              </p>
+              <Button variant="outline" size="sm" onClick={cancelScan}>
+                Cancel
+              </Button>
+            </div>
+            <p className="mt-1 font-sans text-xs text-terminal-muted">
+              Crawling and scanning can take several minutes for larger sites. Leave this tab open.
+            </p>
+          </div>
+          <div className="mt-2">
+            <LogPanel entries={log} />
+          </div>
         </div>
+      )}
+
+      {cancelled && !result && !loading && (
+        <p role="status" className="mt-4 font-sans text-sm text-terminal-muted">
+          Stopped watching this scan — it may still complete in the background. Check your auditor
+          workspace for the result.
+        </p>
       )}
 
       {result?.status === "failed" && (
@@ -212,6 +272,28 @@ export function AssessmentForm({
       {result?.status === "completed" && <Report result={result} />}
     </div>
   );
+}
+
+function stageFromLog(entries: LogEntry[]): string {
+  if (entries.length === 0) return "Queued";
+  const last = entries[entries.length - 1]?.message.toLowerCase() ?? "";
+  if (last.includes("crawl") || last.includes("sitemap") || last.includes("fetch")) return "Crawling";
+  if (last.includes("ai") || last.includes("vision") || last.includes("triage") || last.includes("review")) {
+    return "AI review";
+  }
+  if (last.includes("score") || last.includes("conformance") || last.includes("report") || last.includes("finalis")) {
+    return "Scoring";
+  }
+  if (last.includes("scan") || last.includes("rule") || last.includes("engine") || last.includes("page")) {
+    return "Scanning";
+  }
+  return "Working";
+}
+
+function formatElapsed(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
 function messageForCode(code: string): string {
