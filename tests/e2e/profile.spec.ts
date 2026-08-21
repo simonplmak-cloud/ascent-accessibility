@@ -17,7 +17,7 @@ async function signIn(page: import("@playwright/test").Page) {
   await page.request.post("/api/auth/magic-link", { data: { email: inbox.address } });
   const link = extractLink(await waitForMessage(inbox));
   await page.goto(link);
-  await page.waitForURL(/\/site/);
+  await page.waitForURL(/\/assess/);
 }
 
 test("saves a key + model and AI review resolves Cannot tell (BYOK)", async ({ page }) => {
