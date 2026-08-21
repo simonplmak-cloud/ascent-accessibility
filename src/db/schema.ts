@@ -300,6 +300,7 @@ DEFINE INDEX learner_progress_user_activity_idx ON learner_progress FIELDS user,
   FOR select WHERE user = $auth.id
   FOR create, update, delete NONE;
 DEFINE FIELD user ON credential TYPE record<user>;
+DEFINE FIELD name ON credential TYPE string;
 DEFINE FIELD path ON credential TYPE string;
 DEFINE FIELD pathVersion ON credential TYPE string;
 DEFINE FIELD score ON credential TYPE option<int>;

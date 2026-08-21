@@ -44,6 +44,7 @@ async function main() {
   );
   const credentialFields = [
     "DEFINE FIELD OVERWRITE user ON credential TYPE record<user>;",
+    "DEFINE FIELD OVERWRITE name ON credential TYPE string;",
     "DEFINE FIELD OVERWRITE path ON credential TYPE string;",
     "DEFINE FIELD OVERWRITE pathVersion ON credential TYPE string;",
     "DEFINE FIELD OVERWRITE score ON credential TYPE option<int>;",

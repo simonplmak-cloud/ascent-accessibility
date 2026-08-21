@@ -25,6 +25,7 @@ export interface LearnerProgress {
 export interface Credential {
   id: string;
   user: string;
+  name: string;
   path: string;
   pathVersion: string;
   score: number | null;
@@ -49,6 +50,7 @@ function mapCredential(raw: Record<string, unknown>): Credential {
   return {
     id: String(raw.id),
     user: String(raw.user),
+    name: String(raw.name ?? ""),
     path: String(raw.path),
     pathVersion: String(raw.pathVersion),
     score: raw.score == null ? null : Number(raw.score),
@@ -102,18 +104,19 @@ export const trainingRepository = {
 
   async issueCredential(
     userId: string,
-    input: { path: string; pathVersion: string; score: number | null; completedAt: string },
+    input: { name: string; path: string; pathVersion: string; score: number | null; completedAt: string },
   ): Promise<Credential> {
     const rows = await query<Record<string, unknown>>(
       `UPSERT credential SET
         user = type::record($user),
+        name = $name,
         path = $path,
         pathVersion = $pathVersion,
         score = $score,
         completedAt = $completedAt,
         issuedAt = time::now()
       WHERE user = type::record($user) AND path = $path
-      RETURN id, user, path, pathVersion, score, completedAt, issuedAt`,
+      RETURN id, user, name, path, pathVersion, score, completedAt, issuedAt`,
       { user: userId, ...input },
     );
     return mapCredential(rows[0]!);

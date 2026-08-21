@@ -4,6 +4,7 @@ import { PATH, getLesson } from "@/lib/training/curriculum";
 import { getSc, understandingUrl } from "@/lib/standards/wcag-sc";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import { getScRemediation } from "@/lib/standards/sc-remediation";
+import { CompleteLessonButton } from "@/components/training/complete-lesson-button";
 
 export default async function LessonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -63,10 +64,12 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
-      <p className="mt-8">
+      <CompleteLessonButton lessonId={lesson.id} />
+
+      <p className="mt-4">
         <Link
           href={`/training/paths/${PATH.id}`}
-          className="inline-block rounded bg-terminal-fg px-4 py-2 font-mono text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
+          className="font-mono text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
         >
           Back to path
         </Link>

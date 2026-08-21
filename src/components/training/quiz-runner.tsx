@@ -50,7 +50,19 @@ export function QuizRunner({ id }: { id: string }) {
         body: JSON.stringify({ answers }),
       });
       if (!res.ok) throw new Error("submit failed");
-      setResult((await res.json()) as QuizResult);
+      const r = (await res.json()) as QuizResult;
+      setResult(r);
+      // Best-effort progress save (ignored silently when signed out).
+      await fetch("/api/v1/training/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          path: PATH.id,
+          activity: id,
+          status: r.passed ? "completed" : "needs_retry",
+          score: r.score,
+        }),
+      }).catch(() => {});
     } catch {
       setError("Could not submit your answers.");
     }
