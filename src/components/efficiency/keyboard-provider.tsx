@@ -44,6 +44,30 @@ const GLOBAL_COMMANDS: PaletteCommand[] = [
     },
   },
   {
+    id: "nav-latest-report",
+    label: "View latest report",
+    keywords: "report latest result findings conformance",
+    group: "Navigate",
+    run: () => {
+      // Resolve the user's most recent completed report, then open it. The list
+      // endpoint returns newest-first; fall back to the workspace when none/error.
+      void (async () => {
+        try {
+          const res = await fetch("/api/v1/assessments");
+          const data = (await res.json()) as {
+            assessments?: Array<{ id: string; status: string }>;
+          };
+          const completed = (data.assessments ?? []).find((a) => a.status === "completed");
+          window.location.href = completed
+            ? `/auditor/report/${encodeURIComponent(completed.id)}`
+            : "/auditor";
+        } catch {
+          window.location.href = "/auditor";
+        }
+      })();
+    },
+  },
+  {
     id: "nav-training",
     label: "Training",
     keywords: "learn course certificate",

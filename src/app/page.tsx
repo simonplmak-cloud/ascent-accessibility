@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getSessionUser } from "@/server/auth";
+import { assessmentRepository } from "@/db/repository";
 
 export const metadata: Metadata = {
   title: "Independent accessibility conformance assurance",
@@ -26,7 +28,23 @@ const cards = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  // A1: a signed-in returning user gets a one-click path back to their latest report.
+  // Fail-open: if the database is unreachable we simply hide the link.
+  const user = await getSessionUser();
+  let latestReportHref: string | null = null;
+  if (user) {
+    try {
+      const assessments = await assessmentRepository.list(user.id, 20);
+      const latestCompleted = assessments.find((a) => a.status === "completed");
+      if (latestCompleted) {
+        latestReportHref = `/auditor/report/${encodeURIComponent(latestCompleted.id)}`;
+      }
+    } catch {
+      latestReportHref = null;
+    }
+  }
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-16">
       <section className="max-w-2xl">
@@ -53,6 +71,17 @@ export default function Home() {
             Request conformance review
           </Link>
         </div>
+        {latestReportHref && (
+          <p className="mt-4 font-sans text-sm text-terminal-muted">
+            Welcome back —{" "}
+            <Link
+              href={latestReportHref}
+              className="text-brandLink underline underline-offset-4 hover:text-brand"
+            >
+              view your latest report →
+            </Link>
+          </p>
+        )}
       </section>
 
       <section className="mt-20 grid gap-8 md:grid-cols-2" aria-label="What you get">
