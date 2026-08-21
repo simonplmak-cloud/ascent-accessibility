@@ -60,7 +60,7 @@ export const LESSONS: Record<string, Lesson> = {
   // ---- Unit 1 · Advocacy ----
   "what-is-accessibility": {
     id: "what-is-accessibility",
-    title: "What is web accessibility",
+    title: "What Is Web Accessibility",
     type: "concept",
     body: "Web accessibility means people with disabilities can perceive, understand, navigate, interact with, and contribute to the web. It is a subset of usability and distinct from inclusive design: accessibility removes barriers, while inclusive design seeks to exclude no one from the start.",
     references: [
@@ -70,7 +70,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "how-people-use-the-web": {
     id: "how-people-use-the-web",
-    title: "How people use the web",
+    title: "How People Use the Web",
     type: "concept",
     body: "People use assistive technologies and adaptive strategies: screen readers, magnification, keyboard-only navigation, voice control, and switch devices. Each reveals a different barrier — the same page can be unusable to one person and fine to another.",
     references: [
@@ -80,14 +80,14 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "disability-barriers": {
     id: "disability-barriers",
-    title: "Disability types & barriers",
+    title: "Disability Types & Barriers",
     type: "concept",
     body: "Disability is a mismatch between a person and an environment, not a personal deficit. Barriers fall into visual, auditory, motor, and cognitive categories — and can be permanent, temporary, or situational. Designing for one often helps many.",
     references: [{ label: "Microsoft Inclusive Design Toolkit", href: "https://inclusive.microsoft.design/" }],
   },
   "business-legal-case": {
     id: "business-legal-case",
-    title: "Business + legal case",
+    title: "Business & Legal Case",
     type: "concept",
     body: "Accessibility drives market reach, innovation, and brand trust — and reduces legal risk. Laws vary by jurisdiction: the ADA and Section 508 (US), EN 301 549 (EU), and equivalents elsewhere. Legal conformance is not identical to technical conformance.",
     references: [
@@ -97,9 +97,9 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "inclusive-design-etiquette": {
     id: "inclusive-design-etiquette",
-    title: "Inclusive design & etiquette",
+    title: "Inclusive Design & Etiquette",
     type: "concept",
-    body: "Inclusive design follows 'recognize exclusion, learn from diversity, solve for one and extend to many.' Use the terminology individuals and communities use for themselves — person-first or identity-first are contextual preferences, not rules.",
+    body: "Inclusive design follows 'recognise exclusion, learn from diversity, solve for one and extend to many.' Use the terminology individuals and communities use for themselves — person-first or identity-first are contextual preferences, not rules.",
     references: [
       { label: "Microsoft Inclusive 101 Guidebook", href: "https://inclusive.microsoft.design/articles/inclusive-101-guidebook" },
       { label: "ADA Network — writing about people with disabilities", href: "https://adata.org/factsheet/adann-writing/" },
@@ -107,7 +107,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "history-standards": {
     id: "history-standards",
-    title: "History of WCAG & standards",
+    title: "History of WCAG & Standards",
     type: "concept",
     body: "WCAG 1.0 (1999) used 14 checkpoints; WCAG 2.0 (2008) reorganised into the four POUR principles with testable success criteria and A/AA/AAA levels (later ISO/IEC 40500). WCAG 2.1 (2018) added mobile/low-vision/cognitive criteria; 2.2 (2023) added focus appearance, target size, dragging, accessible authentication. WCAG 3.0 is in development. Related: Section 508, EN 301 549, ATAG (authoring tools), UAAG (user agents), WAI-ARIA.",
     references: [
@@ -119,7 +119,7 @@ export const LESSONS: Record<string, Lesson> = {
   // ---- Unit 2 · Everyday accessibility ----
   "everyday-structure": {
     id: "everyday-structure",
-    title: "Semantics & structure",
+    title: "Semantics & Structure",
     type: "sc-reference",
     scs: ["1.3.1", "2.4.6"],
     body: "Screen-reader users navigate by headings, landmarks, and lists — not by looking at the page. Use a real heading hierarchy (one h1, ordered levels), landmarks (header/nav/main/footer), and semantic lists. A page that looks structured but is a wall of divs is a wall to a screen reader.",
@@ -130,7 +130,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "everyday-alt-text": {
     id: "everyday-alt-text",
-    title: "Text alternatives",
+    title: "Text Alternatives",
     type: "sc-reference",
     scs: ["1.1.1"],
     body: "Every image needs a decision: informative (describe the content), decorative (alt=\"\"), functional (describe the action), or complex (long description). The alt text replaces the image for someone who can't see it — write it as you would describe the image aloud.",
@@ -141,7 +141,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "everyday-contrast": {
     id: "everyday-contrast",
-    title: "Colour & contrast",
+    title: "Colour & Contrast",
     type: "sc-reference",
     scs: ["1.4.1", "1.4.3", "1.4.11"],
     body: "Low vision affects far more people than total blindness. Body text needs at least 4.5:1 (3:1 for large text), and colour must never be the only signal — pair red with an icon or text. Check real rendered colours, not just the stylesheet values.",
@@ -152,7 +152,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "everyday-keyboard": {
     id: "everyday-keyboard",
-    title: "Keyboard & focus",
+    title: "Keyboard & Focus",
     type: "sc-reference",
     scs: ["2.1.1", "2.4.7", "2.4.11"],
     body: "Everything the mouse can do must be possible from the keyboard alone — and you must be able to see where you are. Never remove the focus outline; use native interactive elements so keyboard and focus 'just work'. Test by unplugging the mouse.",
@@ -163,7 +163,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "everyday-links": {
     id: "everyday-links",
-    title: "Links & navigation",
+    title: "Links & Navigation",
     type: "sc-reference",
     scs: ["2.4.4", "2.4.1"],
     body: "Screen-reader users tab from link to link, hearing the text out of context. 'Click here' and 'Read more' are meaningless — the link text itself must say where it goes. Provide a skip link to bypass repeated navigation.",
@@ -173,7 +173,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "everyday-forms": {
     id: "everyday-forms",
-    title: "Forms & errors",
+    title: "Forms & Errors",
     type: "sc-reference",
     scs: ["3.3.1", "3.3.2", "4.1.2"],
     body: "Every input needs a visible, programmatic label; errors must be identified in text, described, and linked to the field. Use <label>, <fieldset>/<legend> for groups, and aria-describedby for hints and error messages — never placeholder text as a label.",
@@ -181,7 +181,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "everyday-media": {
     id: "everyday-media",
-    title: "Media (captions & audio)",
+    title: "Media (Captions & Audio)",
     type: "sc-reference",
     scs: ["1.2.1", "1.2.2", "1.4.2"],
     body: "Video needs captions for people who can't hear and audio description or a transcript for people who can't see. Audio needs a transcript. Auto-playing audio must be controllable. Captions are the highest-impact fix for media.",
@@ -189,7 +189,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "everyday-reflow": {
     id: "everyday-reflow",
-    title: "Zoom, reflow & target size",
+    title: "Zoom, Reflow & Target Size",
     type: "sc-reference",
     scs: ["1.4.4", "1.4.10", "2.5.8"],
     body: "Content must reflow at 320 px and 400% zoom without horizontal scrolling, and text must resize without breaking. Interactive targets need to be at least 24×24 px (WCAG 2.2) — small links are a motor-accessibility barrier.",
@@ -201,7 +201,7 @@ export const LESSONS: Record<string, Lesson> = {
   // ---- Unit 3 · Standards (method + anchor SCs) ----
   "how-to-read-any-sc": {
     id: "how-to-read-any-sc",
-    title: "How to read any success criterion",
+    title: "How to Read Any Success Criterion",
     type: "concept",
     body: "You do not need to memorise 87 criteria — you need a method. For any SC: read the normative text, then its Understanding document (intent, benefits, examples), then Techniques (sufficient, advisory, and documented failures), then decide how to test it. The number encodes principle (first digit) and guideline (second digit).",
     references: [
@@ -211,15 +211,15 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "sc-1.1.1": {
     id: "sc-1.1.1",
-    title: "1.1.1 Non-text Content (deep dive)",
+    title: "1.1.1 Non-text Content",
     type: "sc-reference",
     scs: ["1.1.1"],
-    body: "The alt-text decision tree: informative → describe; decorative → empty alt; functional → describe the action; complex → long description. The failure is 'the image is announced as nothing, or as a filename'. Test: tab through with a screen reader and ask what each image conveys.",
+    body: "The alt-text decision tree: informative → describe; decorative → empty alt; functional → describe the action; complex → long description. Failure: the image is announced as nothing, or as a filename. Test: tab through with a screen reader and ask what each image conveys.",
     references: [{ label: "WAI Images tutorial", href: "https://www.w3.org/WAI/tutorials/images/" }],
   },
   "sc-1.3.1": {
     id: "sc-1.3.1",
-    title: "1.3.1 Info and Relationships (deep dive)",
+    title: "1.3.1 Info and Relationships",
     type: "sc-reference",
     scs: ["1.3.1"],
     body: "Programmatic structure must match the visual structure. Headings, landmarks, lists, tables, and <label> associations expose relationships to assistive technology. Failure: 'a heading is just bold text'; 'a form field has no label'.",
@@ -227,7 +227,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "sc-1.4.3": {
     id: "sc-1.4.3",
-    title: "1.4.3 Contrast (Minimum) (deep dive)",
+    title: "1.4.3 Contrast (Minimum)",
     type: "sc-reference",
     scs: ["1.4.3"],
     body: "4.5:1 for normal text, 3:1 for large text and UI components. The judgement: compute the contrast ratio of rendered foreground/background. Failures: grey-on-white, text over a busy image. Test with a contrast checker, not by eye.",
@@ -235,7 +235,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "sc-1.4.10": {
     id: "sc-1.4.10",
-    title: "1.4.10 Reflow (deep dive)",
+    title: "1.4.10 Reflow",
     type: "sc-reference",
     scs: ["1.4.10"],
     body: "At 320 px (or 400% zoom on a 1280 px viewport) content must reflow to one column with no horizontal scrolling and no loss of function. Failure: a table or fixed-width layout that forces two-dimensional scrolling. Test by actually zooming to 400%.",
@@ -243,7 +243,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "sc-2.1.1": {
     id: "sc-2.1.1",
-    title: "2.1.1 Keyboard (deep dive)",
+    title: "2.1.1 Keyboard",
     type: "sc-reference",
     scs: ["2.1.1"],
     body: "All functionality must be operable through a keyboard interface — not just 'reachable', but usable, with a visible focus and a logical order. Failure: a control with a click handler and no keyboard equivalent. Test: unplug the mouse.",
@@ -251,7 +251,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "sc-2.4.4": {
     id: "sc-2.4.4",
-    title: "2.4.4 Link Purpose (deep dive)",
+    title: "2.4.4 Link Purpose",
     type: "sc-reference",
     scs: ["2.4.4"],
     body: "The purpose of each link must be determinable from the link text alone, or from the link text plus its programmatic context. Failure: multiple 'Read more' links to different targets. Test: list all links and read each out of context.",
@@ -259,15 +259,23 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "sc-2.4.7": {
     id: "sc-2.4.7",
-    title: "2.4.7 Focus Visible (deep dive)",
+    title: "2.4.7 Focus Visible",
     type: "sc-reference",
     scs: ["2.4.7"],
     body: "Any keyboard-operable element must have a visible focus indicator. Failure: outline removed with :focus { outline: none } and no replacement. Test: tab through the page and confirm you can always see where you are.",
     references: [{ label: "Understanding 2.4.7", href: "https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html" }],
   },
+  "sc-2.5.8": {
+    id: "sc-2.5.8",
+    title: "2.5.8 Target Size (Minimum)",
+    type: "sc-reference",
+    scs: ["2.5.8"],
+    body: "Targets must be at least 24×24 CSS pixels (with spacing exceptions) — a WCAG 2.2 criterion for motor and touch access. Failure: tiny text links with no padding. Test: measure the hit area, not the glyph.",
+    references: [{ label: "Understanding 2.5.8", href: "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html" }],
+  },
   "sc-3.3.1": {
     id: "sc-3.3.1",
-    title: "3.3.1 Error Identification (deep dive)",
+    title: "3.3.1 Error Identification",
     type: "sc-reference",
     scs: ["3.3.1"],
     body: "When input is invalid, the error must be identified and described to the user in text, and the offending field identified. Failure: a form turns red with no message. Test: submit an invalid form and check a screen reader announces what's wrong.",
@@ -275,23 +283,15 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "sc-4.1.2": {
     id: "sc-4.1.2",
-    title: "4.1.2 Name, Role, Value (deep dive)",
+    title: "4.1.2 Name, Role, Value",
     type: "sc-reference",
     scs: ["4.1.2"],
     body: "Every UI component exposes its name, role, and value to assistive technology. Native elements do this for free; custom controls need an accessible name and correct role. Failure: a div that acts like a button but is announced as 'generic'.",
     references: [{ label: "Understanding 4.1.2", href: "https://www.w3.org/WAI/WCAG22/Understanding/name-role-value.html" }],
   },
-  "sc-2.5.8": {
-    id: "sc-2.5.8",
-    title: "2.5.8 Target Size (Minimum) (deep dive)",
-    type: "sc-reference",
-    scs: ["2.5.8"],
-    body: "Targets must be at least 24×24 CSS pixels (with spacing exceptions) — a WCAG 2.2 criterion for motor and touch access. Failure: tiny text links with no padding. Test: measure the hit area, not the glyph.",
-    references: [{ label: "Understanding 2.5.8", href: "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html" }],
-  },
   "aria-restrained": {
     id: "aria-restrained",
-    title: "ARIA, used with restraint",
+    title: "ARIA, Used with Restraint",
     type: "concept",
     body: "ARIA communicates semantics; it does not supply keyboard behaviour. Use native HTML first; reach for ARIA only for things HTML cannot express (dialogs, live regions, custom widgets) — and when you add role, you own the keyboard interaction.",
     references: [
@@ -303,21 +303,21 @@ export const LESSONS: Record<string, Lesson> = {
   // ---- Unit 4 · Audit ----
   "audit-overview": {
     id: "audit-overview",
-    title: "Evaluation overview",
+    title: "Evaluation Overview",
     type: "concept",
     body: "Automated tools assist, but no tool alone determines conformance — human judgement is required. An audit combines automated scans, manual inspection, and assistive-technology testing, documented with reproducible evidence.",
     references: [{ label: "WAI Evaluating Web Accessibility Overview", href: "https://www.w3.org/WAI/test-evaluate/" }],
   },
   "audit-easy-checks": {
     id: "audit-easy-checks",
-    title: "Easy Checks (first review)",
+    title: "Easy Checks (First Review)",
     type: "concept",
     body: "A quick first pass: page title, headings, contrast, alt text, keyboard access, zoom, and forms. Easy Checks finds obvious problems fast but is not a conformance evaluation.",
     references: [{ label: "WAI Easy Checks", href: "https://www.w3.org/WAI/test-evaluate/easy-checks/" }],
   },
   "audit-automated": {
     id: "audit-automated",
-    title: "Automated tools",
+    title: "Automated Tools",
     type: "concept",
     body: "axe, WAVE, and Lighthouse catch ~30–50% of issues — and produce false positives. Treat each finding as a lead to verify manually, not a verdict.",
     references: [
@@ -327,14 +327,14 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "audit-manual": {
     id: "audit-manual",
-    title: "Manual testing",
+    title: "Manual Testing",
     type: "concept",
     body: "The parts automation can't judge: keyboard-only operation, focus order, contrast of rendered pixels, heading hierarchy, and error handling. This is the core of any credible audit.",
     references: [{ label: "WebAIM Evaluation Guide", href: "https://webaim.org/articles/evaluationguide/" }],
   },
   "audit-screen-reader": {
     id: "audit-screen-reader",
-    title: "Screen-reader testing",
+    title: "Screen-Reader Testing",
     type: "concept",
     body: "Test with a real screen reader (NVDA + Chrome, VoiceOver + Safari): reading order, headings, landmarks, links, forms, and dynamic updates. This catches what code inspection cannot.",
     references: [
@@ -344,7 +344,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "audit-wcag-em": {
     id: "audit-wcag-em",
-    title: "WCAG-EM + VPAT/ACR",
+    title: "WCAG-EM & VPAT/ACR",
     type: "concept",
     body: "WCAG-EM is the evaluation methodology: define scope → explore the product → select a representative sample → evaluate the sample → report. A VPAT is a blank template; a completed VPAT for a specific product is an Accessibility Conformance Report (ACR).",
     references: [
@@ -354,7 +354,7 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "capstone-audit": {
     id: "capstone-audit",
-    title: "Capstone: audit a website",
+    title: "Capstone: Audit a Website",
     type: "concept",
     body: "Put it together: run a real audit. Pick a small site, follow the WCAG-EM five steps (define scope, explore, select a representative sample, evaluate against WCAG 2.2 AA, report), and document your evidence. Use the Run a scan tool to get the automated baseline, then verify by keyboard and screen reader.",
     references: [
@@ -371,7 +371,7 @@ export const LESSONS: Record<string, Lesson> = {
 export const QUIZZES: Record<string, Quiz> = {
   "advocacy-quiz": {
     id: "advocacy-quiz",
-    title: "Advocacy check",
+    title: "Advocacy Check",
     passThreshold: 80,
     questions: [
       {
@@ -394,7 +394,7 @@ export const QUIZZES: Record<string, Quiz> = {
           "A ban on JavaScript",
         ],
         answerIndex: 0,
-        explanation: "WCAG 2.0 reorganized 14 checkpoints into the four POUR principles with testable success criteria and A/AA/AAA levels.",
+        explanation: "WCAG 2.0 reorganised 14 checkpoints into the four POUR principles with testable success criteria and A/AA/AAA levels.",
       },
       {
         id: "a3",
@@ -411,7 +411,7 @@ export const QUIZZES: Record<string, Quiz> = {
   },
   "everyday-quiz": {
     id: "everyday-quiz",
-    title: "Everyday check",
+    title: "Everyday Check",
     passThreshold: 80,
     questions: [
       {
@@ -449,7 +449,7 @@ export const QUIZZES: Record<string, Quiz> = {
   },
   "perceivable-quiz": {
     id: "perceivable-quiz",
-    title: "Perceivable (scenario)",
+    title: "Perceivable Check",
     passThreshold: 80,
     questions: [
       {
@@ -476,7 +476,7 @@ export const QUIZZES: Record<string, Quiz> = {
   },
   "operable-quiz": {
     id: "operable-quiz",
-    title: "Operable (scenario)",
+    title: "Operable Check",
     passThreshold: 80,
     questions: [
       {
@@ -502,7 +502,7 @@ export const QUIZZES: Record<string, Quiz> = {
   },
   "understandable-quiz": {
     id: "understandable-quiz",
-    title: "Understandable (scenario)",
+    title: "Understandable Check",
     passThreshold: 80,
     questions: [
       {
@@ -514,7 +514,7 @@ export const QUIZZES: Record<string, Quiz> = {
           "Nothing — the red border is sufficient",
         ],
         answerIndex: 1,
-        explanation: "3.3.1 requires errors to be identified and described in text; color alone is not enough.",
+        explanation: "3.3.1 requires errors to be identified and described in text; colour alone is not enough.",
         sc: "3.3.1",
       },
       {
@@ -529,7 +529,7 @@ export const QUIZZES: Record<string, Quiz> = {
   },
   "robust-quiz": {
     id: "robust-quiz",
-    title: "Robust (scenario)",
+    title: "Robust Check",
     passThreshold: 80,
     questions: [
       {
@@ -548,7 +548,7 @@ export const QUIZZES: Record<string, Quiz> = {
   },
   "audit-quiz": {
     id: "audit-quiz",
-    title: "Audit check",
+    title: "Audit Check",
     passThreshold: 80,
     questions: [
       {
@@ -601,7 +601,7 @@ export const PATH: Path = {
     },
     {
       id: "everyday",
-      title: "Everyday accessibility",
+      title: "Everyday Accessibility",
       activities: [
         { id: "everyday-structure", type: "lesson" },
         { id: "everyday-alt-text", type: "lesson" },
@@ -626,9 +626,9 @@ export const PATH: Path = {
         { id: "sc-2.1.1", type: "lesson" },
         { id: "sc-2.4.4", type: "lesson" },
         { id: "sc-2.4.7", type: "lesson" },
+        { id: "sc-2.5.8", type: "lesson" },
         { id: "sc-3.3.1", type: "lesson" },
         { id: "sc-4.1.2", type: "lesson" },
-        { id: "sc-2.5.8", type: "lesson" },
         { id: "aria-restrained", type: "lesson" },
         { id: "perceivable-quiz", type: "quiz" },
         { id: "operable-quiz", type: "quiz" },
@@ -682,7 +682,7 @@ export const LESSON_META: Record<string, LessonMeta> = {
     check: { id: "c2", prompt: "Which assistive technology most helps someone with low vision read text?", options: ["Screen reader", "Screen magnifier", "Voice control"], answerIndex: 1, explanation: "Magnification enlarges content for low-vision users; a screen reader announces it for blind users." },
   },
   "disability-barriers": {
-    outcome: "Recognize that disability is a person–environment mismatch.",
+    outcome: "Recognise that disability is a person–environment mismatch.",
     durationMinutes: 5,
     check: { id: "c3", prompt: "Which is the best example of a temporary disability?", options: ["Blindness", "A broken arm limiting mouse use", "Dyslexia"], answerIndex: 1, explanation: "A broken arm is temporary and situational — designing for it helps everyone." },
   },
@@ -692,14 +692,14 @@ export const LESSON_META: Record<string, LessonMeta> = {
     check: { id: "c4", prompt: "Which standard governs digital accessibility for the EU public sector?", options: ["ADA", "Section 508", "EN 301 549"], answerIndex: 2, explanation: "EN 301 549 is the EU standard; Section 508 is US, the ADA is US law." },
   },
   "inclusive-design-etiquette": {
-    outcome: "Use respectful, person-centered language about disability.",
+    outcome: "Use respectful, person-centred language about disability.",
     durationMinutes: 5,
     check: { id: "c5", prompt: "Person-first vs identity-first language is best described as:", options: ["A strict rule", "A contextual preference — use the person's own terms", "Only identity-first is correct"], answerIndex: 1, explanation: "Communities and individuals differ; follow the terminology people use for themselves." },
   },
   "history-standards": {
     outcome: "Trace WCAG 1.0→2.2 and name the related standards.",
     durationMinutes: 8,
-    check: { id: "c6", prompt: "Which WCAG version introduced the four POUR principles?", options: ["1.0", "2.0", "2.2"], answerIndex: 1, explanation: "WCAG 2.0 (2008) reorganized 14 checkpoints into POUR with testable success criteria." },
+    check: { id: "c6", prompt: "Which WCAG version introduced the four POUR principles?", options: ["1.0", "2.0", "2.2"], answerIndex: 1, explanation: "WCAG 2.0 (2008) reorganised 14 checkpoints into POUR with testable success criteria." },
   },
   // ---- Unit 2 · Everyday ----
   "everyday-structure": {
@@ -783,25 +783,25 @@ export const LESSON_META: Record<string, LessonMeta> = {
     durationMinutes: 10,
     check: { id: "c22", prompt: "CSS removes the focus outline with no replacement. This fails:", options: ["2.4.7", "1.1.1", "3.3.1"], answerIndex: 0, explanation: "2.4.7 requires any keyboard-operable UI to have a visible focus indicator." },
   },
+  "sc-2.5.8": {
+    outcome: "Verify interactive targets meet 24×24px minimum.",
+    durationMinutes: 10,
+    check: { id: "c25", prompt: "Tiny text links with no padding are below 24×24px. This fails:", options: ["2.5.8", "1.4.3", "3.3.1"], answerIndex: 0, explanation: "2.5.8 (WCAG 2.2) requires targets of at least 24×24 CSS pixels." },
+  },
   "sc-3.3.1": {
     outcome: "Identify and describe input errors in text.",
     durationMinutes: 10,
-    check: { id: "c23", prompt: "A form shows only a red border on an invalid field. This fails:", options: ["3.3.1", "2.4.4", "1.4.10"], answerIndex: 0, explanation: "3.3.1 requires errors be identified and described in text — color alone is not enough." },
+    check: { id: "c23", prompt: "A form shows only a red border on an invalid field. This fails:", options: ["3.3.1", "2.4.4", "1.4.10"], answerIndex: 0, explanation: "3.3.1 requires errors be identified and described in text — colour alone is not enough." },
   },
   "sc-4.1.2": {
     outcome: "Ensure every control exposes name, role, and value.",
     durationMinutes: 10,
     check: { id: "c24", prompt: "A <div> acts as a button but has no role or name. This fails:", options: ["4.1.2", "1.4.3", "2.4.7"], answerIndex: 0, explanation: "4.1.2 requires UI components expose their name, role, and value." },
   },
-  "sc-2.5.8": {
-    outcome: "Verify interactive targets meet 24×24px minimum.",
-    durationMinutes: 10,
-    check: { id: "c25", prompt: "Tiny text links with no padding are below 24×24px. This fails:", options: ["2.5.8", "1.4.3", "3.3.1"], answerIndex: 0, explanation: "2.5.8 (WCAG 2.2) requires targets of at least 24×24 CSS pixels." },
-  },
   "aria-restrained": {
     outcome: "Use ARIA only when native HTML cannot express the semantics.",
     durationMinutes: 8,
-    check: { id: "c26", prompt: "When should you reach for ARIA?", options: ["Always, for robustness", "Only when native HTML cannot express it", "Never"], answerIndex: 1, explanation: "Native HTML first; ARIA communicates semantics but not keyboard behavior." },
+    check: { id: "c26", prompt: "When should you reach for ARIA?", options: ["Always, for robustness", "Only when native HTML cannot express it", "Never"], answerIndex: 1, explanation: "Native HTML first; ARIA communicates semantics but not keyboard behaviour." },
   },
   // ---- Unit 4 · Audit ----
   "audit-overview": {
