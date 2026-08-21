@@ -20,10 +20,10 @@ for (const target of pages) {
   });
 }
 
-test("assessment form is usable at a narrow viewport (AC-8)", async ({ page }) => {
+test("assess redirects to a usable sign-in page at a narrow viewport (AC-8)", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto("/assess");
-  await expect(page.getByLabel("Website URL")).toBeVisible();
-  await expect(page.getByLabel("Standard")).toBeVisible();
-  await expect(page.getByRole("button", { name: /Run assessment/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/sign-in/);
+  await expect(page.getByLabel("Email")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Email me a login link/i })).toBeVisible();
 });

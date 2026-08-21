@@ -23,7 +23,7 @@ test("magic-link email links to the production domain and signs in", async ({ re
   expect(link).not.toContain("wcag-score");
 
   await page.goto(link);
-  await page.waitForURL(/\/site/);
+  await page.waitForURL(/\/assess/);
 
   const cookies = await page.context().cookies();
   expect(cookies.find((c) => c.name === "wcag_session")).toBeTruthy();

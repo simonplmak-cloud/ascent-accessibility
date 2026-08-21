@@ -2,14 +2,14 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 type Status = "queued" | "running" | "completed" | "failed";
+type Conformance = "conforms" | "does-not-conform" | "undetermined" | null;
 
 interface Item {
   id: string;
   url: string;
   standard: string;
   status: Status;
-  score: number | null;
-  passBand: string | null;
+  conformance: Conformance;
   pagesScanned: number;
   partial: boolean;
   createdAt: string;
@@ -18,22 +18,27 @@ interface Item {
 
 function makeItems(): Item[] {
   return [
-    item("a1", "https://ascent-partners.com", "completed", 94, "2026-08-14T09:12:00Z"),
-    item("a2", "https://ascent-partners.com", "completed", 88, "2026-08-01T09:12:00Z"),
-    item("b1", "https://checkout.northwind-retail.com", "completed", 58, "2026-08-13T02:30:00Z"),
+    item("a1", "https://ascent-partners.com", "completed", "does-not-conform", "2026-08-14T09:12:00Z"),
+    item("a2", "https://ascent-partners.com", "completed", "does-not-conform", "2026-08-01T09:12:00Z"),
+    item("b1", "https://checkout.northwind-retail.com", "completed", "conforms", "2026-08-13T02:30:00Z"),
     item("c1", "https://app.fintrack.io/dashboard", "failed", null, "2026-08-12T08:05:00Z"),
     item("d1", "https://portal.meridian-health.org", "queued", null, "2026-08-15T08:00:00Z"),
   ];
 }
 
-function item(id: string, url: string, status: Status, score: number | null, createdAt: string): Item {
+function item(
+  id: string,
+  url: string,
+  status: Status,
+  conformance: Conformance,
+  createdAt: string,
+): Item {
   return {
     id: `assessment:${id}`,
     url,
     standard: "WCAG 2.2 AA",
     status,
-    score,
-    passBand: status === "completed" ? "pass" : null,
+    conformance,
     pagesScanned: status === "completed" ? 12 : 0,
     partial: false,
     createdAt,
@@ -63,7 +68,7 @@ async function mockHistoryApi(page: Page, items: Item[]) {
   });
 }
 
-test("history page lists assessments with URL, standard, status, score and date (AC-3)", async ({ page }) => {
+test("auditor page lists assessments with URL, standard, status, conformance and date (AC-3)", async ({ page }) => {
   const items = makeItems();
   await mockHistoryApi(page, items);
   await page.goto("/auditor");
@@ -74,10 +79,11 @@ test("history page lists assessments with URL, standard, status, score and date 
   await expect(table.getByText("checkout.northwind-retail.com")).toBeVisible();
   await expect(table.getByText("FAILED", { exact: true })).toBeVisible();
   await expect(table.getByText("QUEUED", { exact: true })).toBeVisible();
-  await expect(table.getByText("94", { exact: true })).toBeVisible();
+  await expect(table.getByText("Does not conform", { exact: true }).first()).toBeVisible();
+  await expect(table.getByText("Conforms", { exact: true })).toBeVisible();
 });
 
-test("history page filters by status (AC-6)", async ({ page }) => {
+test("auditor page filters by status (AC-6)", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
   await page.goto("/auditor");
 
@@ -87,25 +93,25 @@ test("history page filters by status (AC-6)", async ({ page }) => {
   await expect(table.getByText("ascent-partners.com")).toHaveCount(0);
 });
 
-test("history page sorts by score descending (AC-6)", async ({ page }) => {
+test("auditor page sorts by conformance (AC-6)", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
   await page.goto("/auditor");
 
-  await page.getByRole("button", { name: /Score/ }).click();
-  const firstScore = page.locator("tbody tr").first().locator("td").first();
-  await expect(firstScore).toHaveText("94");
+  await page.getByRole("button", { name: /Conformance/ }).click();
+  const firstConformance = page.locator("tbody tr").first().locator("td").nth(1);
+  await expect(firstConformance).toHaveText("Conforms");
 });
 
-test("history page shows score comparison for a repeated URL (AC-8)", async ({ page }) => {
+test("auditor page shows a conformance trend for a repeated URL (AC-8)", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
   await page.goto("/auditor");
 
-  await expect(page.getByRole("heading", { name: "Score comparison" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Conformance trend" })).toBeVisible();
   const comparison = page.getByText("ascent-partners.com").nth(1);
   await expect(comparison).toBeVisible();
 });
 
-test("history page deletes an assessment (AC-7)", async ({ page }) => {
+test("auditor page deletes an assessment (AC-7)", async ({ page }) => {
   const items = makeItems();
   await mockHistoryApi(page, items);
   page.on("dialog", (dialog) => dialog.accept());
@@ -117,7 +123,7 @@ test("history page deletes an assessment (AC-7)", async ({ page }) => {
   await expect(page.getByText("Assessment deleted.")).toBeVisible();
 });
 
-test("history page re-runs an assessment (AC-5)", async ({ page }) => {
+test("auditor page re-runs an assessment (AC-5)", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
   await page.goto("/auditor");
 
@@ -127,7 +133,7 @@ test("history page re-runs an assessment (AC-5)", async ({ page }) => {
   await expect(page.getByText(/Re-run queued/)).toBeVisible();
 });
 
-test("history page has no horizontal scroll at narrow viewport (AC-1)", async ({ page }) => {
+test("auditor page has no horizontal scroll at narrow viewport (AC-1)", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/auditor");
@@ -138,7 +144,7 @@ test("history page has no horizontal scroll at narrow viewport (AC-1)", async ({
   expect(overflow).toBe(false);
 });
 
-test("history page has no axe violations", async ({ page }) => {
+test("auditor page has no axe violations", async ({ page }) => {
   await mockHistoryApi(page, makeItems());
   await page.goto("/auditor");
   const results = await new AxeBuilder({ page }).analyze();
