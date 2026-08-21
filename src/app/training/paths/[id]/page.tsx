@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LESSON_META, PATH, getLesson, getQuiz } from "@/lib/training/curriculum";
+import { Disclosure } from "@/components/ui/disclosure";
 
 export default async function PathOverviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -13,14 +14,24 @@ export default async function PathOverviewPage({ params }: { params: Promise<{ i
         v{PATH.version} · 100% free — including the certificate
       </p>
 
-      <div className="mt-8 space-y-8">
+      <div className="mt-8 space-y-3">
         {PATH.modules.map((module, index) => (
-          <section key={module.id} aria-labelledby={`module-${module.id}`}>
-            <h2 id={`module-${module.id}`} className="font-mono text-lg font-semibold text-terminal-fg">
-              <span className="mr-2 text-terminal-muted">{index + 1} ·</span>
-              {module.title}
-            </h2>
-            <p className="mt-1 font-mono text-sm text-terminal-muted">{module.description}</p>
+          <Disclosure
+            key={module.id}
+            as="h2"
+            size="lg"
+            defaultOpen={index === 0}
+            title={
+              <>
+                <span className="mr-2 text-terminal-muted">{index + 1} ·</span>
+                {module.title}
+                <span className="ml-2 font-normal text-terminal-muted">
+                  ({module.activities.length})
+                </span>
+              </>
+            }
+          >
+            <p className="font-mono text-sm text-terminal-muted">{module.description}</p>
             <ul className="mt-3 space-y-2">
               {module.activities.map((activity) => {
                 const lesson = activity.type === "lesson" ? getLesson(activity.id) : undefined;
@@ -53,7 +64,7 @@ export default async function PathOverviewPage({ params }: { params: Promise<{ i
                 );
               })}
             </ul>
-          </section>
+          </Disclosure>
         ))}
       </div>
     </div>

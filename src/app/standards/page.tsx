@@ -3,7 +3,8 @@ import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
 import { InlineLink } from "@/components/ui/inline-link";
-import { listStandards, type Standard } from "@/lib/standards/catalog";
+import { StandardsView, type StandardTree } from "@/components/standards/standards-view";
+import { DEFAULT_STANDARD_ID, listStandards, type Standard } from "@/lib/standards/catalog";
 import { scsForStandard } from "@/lib/standards/version";
 import {
   WCAG_GUIDELINES,
@@ -23,128 +24,65 @@ export const metadata: Metadata = {
   alternates: { canonical: "/standards" },
 };
 
-const LEVEL_STYLE: Record<string, string> = {
-  A: "text-terminal-pass",
-  AA: "text-terminal-serious",
-  AAA: "text-terminal-moderate",
-};
-
 function scsFor(standard: Standard): WcagSc[] {
-  if (standard.version === "508") {
-    // Section 508 maps to WCAG 2.0 AA.
-    return scsForStandard("2.0", "AA");
-  }
+  // Section 508 maps to WCAG 2.0 AA.
+  if (standard.version === "508") return scsForStandard("2.0", "AA");
   return scsForStandard(standard.version, standard.level ?? "AA");
 }
 
-function groupByGuideline(scs: WcagSc[]): Map<string, WcagSc[]> {
-  const map = new Map<string, WcagSc[]>();
-  for (const sc of scs) {
+function buildTree(standard: Standard): StandardTree {
+  const byGuideline = new Map<string, WcagSc[]>();
+  for (const sc of scsFor(standard)) {
     const guideline = guidelineOf(sc.num);
-    const list = map.get(guideline) ?? [];
+    const list = byGuideline.get(guideline) ?? [];
     list.push(sc);
-    map.set(guideline, list);
+    byGuideline.set(guideline, list);
   }
-  return map;
-}
 
-function ScList({ scs }: { scs: WcagSc[] }) {
-  return (
-    <ul className="mt-2 divide-y divide-terminal-border rounded border border-terminal-border">
-      {scs.map((sc) => (
-        <li key={sc.num} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2">
-          <span
-            aria-hidden="true"
-            className={`w-8 font-mono text-xs font-bold ${LEVEL_STYLE[sc.level] ?? "text-terminal-muted"}`}
-          >
-            {sc.level}
-          </span>
-          <a
-            href={specUrl(sc)}
-            target="_blank"
-            rel="noreferrer"
-            className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
-          >
-            {sc.num}
-            <span className="sr-only"> (opens in a new window)</span>
-          </a>
-          <span className="font-mono text-sm text-terminal-fg">{sc.title}</span>
-          <a
-            href={understandingUrl(sc)}
-            target="_blank"
-            rel="noreferrer"
-            className="font-mono text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
-          >
-            Understanding<span className="sr-only"> (opens in a new window)</span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  );
-}
+  const principles = [1, 2, 3, 4]
+    .map((principle) => {
+      const guidelines = WCAG_GUIDELINES.filter(
+        (g) => guidelinePrinciple(g.num) === principle && byGuideline.has(g.num),
+      );
+      return {
+        num: principle,
+        name: principleName(principle),
+        guidelines: guidelines.map((g) => ({
+          num: g.num,
+          name: guidelineName(g.num),
+          scs: byGuideline.get(g.num)!.map((sc) => ({
+            num: sc.num,
+            title: sc.title,
+            level: sc.level,
+            specUrl: specUrl(sc),
+            understandingUrl: understandingUrl(sc),
+          })),
+        })),
+      };
+    })
+    .filter((principle) => principle.guidelines.length > 0);
 
-function Guidelines({ scs }: { scs: WcagSc[] }) {
-  const byGuideline = groupByGuideline(scs);
-  return (
-    <div className="mt-4 space-y-6">
-      {[1, 2, 3, 4].map((principle) => {
-        const guidelines = WCAG_GUIDELINES.filter((g) => guidelinePrinciple(g.num) === principle);
-        const visible = guidelines.filter((g) => byGuideline.has(g.num));
-        if (visible.length === 0) return null;
-        return (
-          <section key={principle} aria-labelledby={`p-${principle}`}>
-            <h3 id={`p-${principle}`} className="font-mono text-lg font-semibold text-terminal-fg">
-              {principle}. {principleName(principle)}
-            </h3>
-            <div className="mt-3 space-y-5">
-              {visible.map((guideline) => (
-                <section key={guideline.num} aria-labelledby={`g-${guideline.num}`}>
-                  <h4
-                    id={`g-${guideline.num}`}
-                    className="font-mono text-sm font-medium text-terminal-fg"
-                  >
-                    {guideline.num} {guidelineName(guideline.num)}{" "}
-                    <span className="text-terminal-muted">
-                      ({byGuideline.get(guideline.num)!.length})
-                    </span>
-                  </h4>
-                  <ScList scs={byGuideline.get(guideline.num)!} />
-                </section>
-              ))}
-            </div>
-          </section>
-        );
-      })}
-    </div>
-  );
+  return {
+    id: standard.id,
+    name: standard.name,
+    version: standard.version,
+    principles,
+  };
 }
 
 export default function StandardsPage() {
-  const standards = listStandards();
+  const standards = listStandards().map(buildTree);
 
   return (
     <PageShell width="4xl">
       <PageHeading>WCAG success criteria</PageHeading>
       <MutedText className="mt-4">
         Every success criterion the assessment tool scores against, grouped by principle and
-        guideline. The number links to the W3C specification; &ldquo;Understanding&rdquo; links to the
-        official explanatory document.
+        guideline. Choose a standard, then expand a guideline. The number links to the W3C
+        specification; &ldquo;Understanding&rdquo; links to the official explanatory document.
       </MutedText>
 
-      {standards.map((standard) => (
-        <section key={standard.id} aria-labelledby={`s-${standard.id}`} className="mt-10">
-          <h2 id={`s-${standard.id}`} className="font-mono text-xl font-semibold text-terminal-fg">
-            {standard.name}
-            {standard.version === "508" && (
-              <span className="font-mono text-sm font-normal text-terminal-muted">
-                {" "}
-                (maps to WCAG 2.0 AA)
-              </span>
-            )}
-          </h2>
-          <Guidelines scs={scsFor(standard)} />
-        </section>
-      ))}
+      <StandardsView standards={standards} defaultId={DEFAULT_STANDARD_ID} />
 
       <p className="mt-10 font-mono text-sm text-terminal-muted">
         Source:{" "}

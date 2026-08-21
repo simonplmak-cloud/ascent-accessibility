@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BulkActionBar } from "@/components/efficiency/bulk-action-bar";
@@ -22,6 +22,8 @@ const STATUS_LABELS: Record<HistoryItem["status"], string> = {
   completed: "COMPLETED",
   failed: "FAILED",
 };
+
+const PAGE_SIZE = 20;
 
 function statusClass(status: HistoryItem["status"]): string {
   switch (status) {
@@ -61,11 +63,20 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
   const [sortKey, setSortKey] = useState<HistorySortKey>("createdAt");
   const [sortDir, setSortDir] = useState<SortDirection>("desc");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    setPage(0);
+  }, [status, sortKey, sortDir]);
 
   const visible = useMemo(
     () => sortHistory(filterByStatus(items, status), sortKey, sortDir),
     [items, status, sortKey, sortDir],
   );
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const pageItems = visible.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE);
 
   const selectedItems = useMemo(
     () => visible.filter((item) => selected.has(item.id)),
@@ -107,17 +118,17 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
     });
   }
 
-  const allVisibleSelected = visible.length > 0 && visible.every((i) => selected.has(i.id));
+  const allVisibleSelected = pageItems.length > 0 && pageItems.every((i) => selected.has(i.id));
 
   function toggleSelectAll() {
     setSelected((prev) => {
       if (allVisibleSelected) {
         const next = new Set(prev);
-        for (const item of visible) next.delete(item.id);
+        for (const item of pageItems) next.delete(item.id);
         return next;
       }
       const next = new Set(prev);
-      for (const item of visible) next.add(item.id);
+      for (const item of pageItems) next.add(item.id);
       return next;
     });
   }
@@ -207,7 +218,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
             </tr>
           </thead>
           <tbody>
-            {visible.map((item) => {
+            {pageItems.map((item) => {
               const busy = busyIds.has(item.id);
               const isSelected = selected.has(item.id);
               return (
@@ -276,6 +287,36 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="font-mono text-sm text-terminal-muted">
+            Showing {visible.length === 0 ? 0 : currentPage * PAGE_SIZE + 1}–
+            {Math.min((currentPage + 1) * PAGE_SIZE, visible.length)} of {visible.length}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={currentPage === 0}
+            >
+              Previous
+            </Button>
+            <span className="font-mono text-sm text-terminal-muted">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={currentPage >= totalPages - 1}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

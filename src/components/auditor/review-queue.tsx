@@ -21,6 +21,8 @@ interface ConformanceRow {
 
 const VERDICTS = ["Passed", "Failed", "NotPresent"] as const;
 
+const MAX_VISIBLE = 20;
+
 export function ReviewQueue() {
   const [items, setItems] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +31,7 @@ export function ReviewQueue() {
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -150,7 +153,7 @@ export function ReviewQueue() {
     </div>
   );
 
-  const masterItems: MasterDetailItem[] = items.map((item) => ({
+  const masterItems: MasterDetailItem[] = (showAll ? items : items.slice(0, MAX_VISIBLE)).map((item) => ({
     id: item.id,
     render: ({ selected, active }) => (
       <div
@@ -212,6 +215,15 @@ export function ReviewQueue() {
             j/k to move · Enter to review · Esc to close
           </p>
           <MasterDetail items={masterItems} detail={detail} onOpen={(id) => void open(id)} />
+          {items.length > MAX_VISIBLE && (
+            <button
+              type="button"
+              onClick={() => setShowAll((value) => !value)}
+              className="mt-3 font-mono text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
+            >
+              {showAll ? "Show fewer" : `Show all ${items.length} assessments`}
+            </button>
+          )}
         </div>
       )}
     </section>

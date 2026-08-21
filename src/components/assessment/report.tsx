@@ -16,6 +16,21 @@ import type { AssessmentResult } from "./types";
 export function Report({ result }: { result: AssessmentResult }) {
   const [largePrint, setLargePrint] = useState(false);
 
+  const hasConformance = Boolean(result.comparison?.conformance);
+  const hasAnalysis = Boolean(result.comparison);
+  const cannotTellCount =
+    result.comparison?.conformance?.rows?.filter((row) => row.result === "CannotTell").length ?? 0;
+
+  const navSections = [
+    { id: "summary", label: "Summary" },
+    ...(hasConformance ? [{ id: "conformance", label: "Conformance" }] : []),
+    ...(cannotTellCount > 0 ? [{ id: "manual-review", label: "Manual review" }] : []),
+    ...(hasAnalysis ? [{ id: "analysis", label: "Analysis" }] : []),
+    { id: "findings", label: "Findings" },
+    { id: "methodology", label: "Methodology" },
+    { id: "log", label: "Log" },
+  ];
+
   return (
     <section
       aria-labelledby="report-heading"
@@ -40,11 +55,29 @@ export function Report({ result }: { result: AssessmentResult }) {
         </div>
       </div>
 
+      <nav
+        aria-label="Report sections"
+        className="sticky top-0 z-10 -mx-4 mt-4 border-b border-terminal-border bg-terminal-bg px-4 py-2"
+      >
+        <ul className="m-0 flex list-none flex-wrap gap-x-4 gap-y-1 p-0">
+          {navSections.map((section) => (
+            <li key={section.id}>
+              <a
+                href={`#${section.id}`}
+                className="font-mono text-sm text-terminal-fg underline-offset-4 hover:underline"
+              >
+                {section.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
       <p className="mt-4 font-mono leading-7 text-terminal-fg">
         {buildReportSummary(result)}
       </p>
 
-      <div className="mt-4">
+      <div id="summary" className="mt-4 scroll-mt-24">
         <ScoreSummary
           conformance={result.comparison?.conformance}
           findings={result.findings}
@@ -64,15 +97,23 @@ export function Report({ result }: { result: AssessmentResult }) {
         </p>
       )}
 
-      {result.comparison?.conformance && (
-        <ConformanceTable conformance={result.comparison.conformance} />
-      )}
-      {result.comparison?.conformance && (
-        <ManualReviewChecklist conformance={result.comparison.conformance} />
-      )}
-      <ComparisonPanel result={result} />
+      <div id="conformance" className="scroll-mt-24">
+        {result.comparison?.conformance && (
+          <ConformanceTable conformance={result.comparison.conformance} />
+        )}
+      </div>
 
-      <div className="mt-8">
+      <div id="manual-review" className="scroll-mt-24">
+        {result.comparison?.conformance && (
+          <ManualReviewChecklist conformance={result.comparison.conformance} />
+        )}
+      </div>
+
+      <div id="analysis" className="scroll-mt-24">
+        <ComparisonPanel result={result} />
+      </div>
+
+      <div id="findings" className="mt-8 scroll-mt-24">
         <h2 className="font-mono text-base font-semibold text-terminal-fg">
           Findings ({result.findings.length})
         </h2>
@@ -91,9 +132,11 @@ export function Report({ result }: { result: AssessmentResult }) {
         )}
       </div>
 
-      <Methodology result={result} />
+      <div id="methodology" className="scroll-mt-24">
+        <Methodology result={result} />
+      </div>
 
-      <div className="mt-6">
+      <div id="log" className="mt-6 scroll-mt-24">
         <LogPanel entries={result.log ?? []} />
       </div>
     </section>

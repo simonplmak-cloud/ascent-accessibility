@@ -1,4 +1,5 @@
 import type { Conformance } from "./types";
+import { Disclosure } from "@/components/ui/disclosure";
 
 const PRINCIPLES: Record<string, string> = {
   "1": "Perceivable",
@@ -50,13 +51,21 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
         <span className="text-terminal-fg">{conformance.levelAttained}</span>
       </p>
 
-      {[...grouped.entries()].map(([principle, rows]) => (
-        <div key={principle} className="mt-4">
-          <h3 className="font-mono text-sm font-semibold text-terminal-muted">
-            Principle {principle} — {PRINCIPLES[principle] ?? ""}
-          </h3>
-          <div className="mt-2 overflow-x-auto rounded border border-terminal-border">
-            <table className="w-full border-collapse font-mono text-sm">
+      <div className="mt-4 space-y-2">
+        {[...grouped.entries()].map(([principle, rows]) => (
+          <Disclosure
+            key={principle}
+            as="h3"
+            size="md"
+            title={
+              <>
+                Principle {principle} — {PRINCIPLES[principle] ?? ""}{" "}
+                <span className="font-normal text-terminal-muted">({rows.length})</span>
+              </>
+            }
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse font-mono text-sm">
               <thead>
                 <tr className="border-b border-terminal-border text-left text-terminal-muted">
                   <th scope="col" className="px-3 py-2 font-medium">SC</th>
@@ -78,9 +87,10 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
-      ))}
+            </div>
+          </Disclosure>
+        ))}
+      </div>
     </section>
   );
 }
