@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSc, understandingUrl } from "@/lib/standards/wcag-sc";
 import { linksForSc } from "@/lib/sc-links";
 import { impactColor } from "./severity";
+import { SuggestFixButton } from "./suggest-fix";
 import type { Finding } from "./types";
 
 function confidenceClass(confidence?: string): string {
@@ -112,6 +113,17 @@ export function FindingEvidence({
           )}
         </div>
       )}
+
+      <SuggestFixButton
+        finding={{
+          ruleId: finding.ruleId,
+          description: finding.description,
+          recommendation: finding.recommendation,
+          sc,
+          html: instances[0]?.html,
+          target: instances[0]?.target,
+        }}
+      />
     </article>
   );
 }
