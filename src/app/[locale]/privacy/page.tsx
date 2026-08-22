@@ -1,60 +1,59 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { LegalNote } from "@/components/legal/legal-note";
 
-export const metadata: Metadata = {
-  title: "Privacy policy",
-  description:
-    "How Ascent Accessibility handles personal data — what we collect, why, and how long we keep it.",
-  alternates: { canonical: "/privacy" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "privacy" });
+  return { title: t("title"), description: t("description") };
+}
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const t = await getTranslations("privacy");
+  const collectItems: Array<[string, string]> = [
+    [t("c1a"), t("c1aBody")],
+    [t("c1b"), t("c1bBody")],
+    [t("c1c"), t("c1cBody")],
+    [t("c1d"), t("c1dBody")],
+  ];
+
   return (
     <PageShell>
-      <PageHeading>Privacy policy</PageHeading>
-      <p className="mt-3 font-sans text-sm text-terminal-muted">Last updated: August 2026</p>
+      <PageHeading>{t("heading")}</PageHeading>
+      <p className="mt-3 font-sans text-sm text-terminal-muted">{t("lastUpdated")}</p>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">1. What we collect</h2>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("c1Title")}</h2>
       <ul className="mt-3 list-disc space-y-2 pl-6 font-sans leading-7 text-terminal-muted">
-        <li><strong className="text-terminal-fg">Account data</strong> — email address and name when you create an account.</li>
-        <li><strong className="text-terminal-fg">Assessment data</strong> — the URLs you scan, the findings, and any screenshot evidence we capture.</li>
-        <li><strong className="text-terminal-fg">Anonymous visitors</strong> — a random identifier stored in a cookie so you can see your own history without an account.</li>
-        <li><strong className="text-terminal-fg">Payment</strong> — handled entirely by Stripe. We do not receive or store card details.</li>
+        {collectItems.map(([label, body]) => (
+          <li key={label}>
+            <strong className="text-terminal-fg">{label}</strong> — {body}
+          </li>
+        ))}
       </ul>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">2. Why we process it</h2>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("c2Title")}</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">{t("c2Body")}</p>
+
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("c3Title")}</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">{t("c3Body")}</p>
+
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("c4Title")}</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">{t("c4Body")}</p>
+
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("c5Title")}</h2>
       <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        We use this data to run the assessment, store your history and reports, provide API
-        access to subscribers, and operate and improve the Service. We do not sell personal
-        data or use it for advertising.
+        {t.rich("c5Body", {
+          mail: (chunks) => <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4 hover:text-terminal-fg">{chunks}</a>,
+        })}
       </p>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">3. Retention</h2>
-      <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        Assessments and their evidence are retained so you can revisit and export your
-        reports. You can delete individual assessments from your history at any time. If you
-        would like your account and all associated data removed, contact us.
-      </p>
-
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">4. Your rights</h2>
-      <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        You may request access to, correction of, or deletion of your personal data by
-        contacting us. We respond within the timeframe required by the Personal Data
-        (Privacy) Ordinance of Hong Kong (Cap. 486).
-      </p>
-
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">5. Contact</h2>
-      <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        Privacy enquiries:{" "}
-        <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4 hover:text-terminal-fg">
-          contact@ascent-partners.com
-        </a>
-        .
-      </p>
-
-      <LegalNote label="privacy policy" />
+      <LegalNote label={t("label")} />
     </PageShell>
   );
 }

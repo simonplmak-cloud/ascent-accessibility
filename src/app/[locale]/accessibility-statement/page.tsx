@@ -1,53 +1,43 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
-import { InlineLink } from "@/components/ui/inline-link";
 
-export const metadata: Metadata = {
-  title: "Accessibility statement",
-  description:
-    "Ascent Accessibility's commitment to accessibility — the standard we design to, and how to report a problem.",
-  alternates: { canonical: "/accessibility-statement" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "a11yStatement" });
+  return { title: t("title"), description: t("description") };
+}
 
-export default function AccessibilityStatementPage() {
+export default async function AccessibilityStatementPage() {
+  const t = await getTranslations("a11yStatement");
+
   return (
     <PageShell>
-      <PageHeading>Accessibility statement</PageHeading>
-      <MutedText className="mt-4">
-        Ascent Partners Foundation is committed to making this site usable by everyone. We
-        design it alongside screen-reader and keyboard users, not as an afterthought.
-      </MutedText>
+      <PageHeading>{t("heading")}</PageHeading>
+      <MutedText className="mt-4">{t("intro")}</MutedText>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Our target</h2>
-      <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        We aim for WCAG 2.2 AAA — a stricter standard than the AA level the assessment tool
-        defaults to. The interface uses a high-contrast monospace theme, a single ordered
-        heading outline, standard landmarks, a skip link, visible focus, labelled form
-        fields, and live announcements for dynamic changes. You can adjust text size from
-        the header.
-      </p>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("targetTitle")}</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">{t("targetBody")}</p>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Known limitations</h2>
-      <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        The embedded payment form is provided by Stripe, whose accessibility is outside our
-        direct control. If you encounter a barrier on any part of the site, please tell us —
-        we treat accessibility reports as a priority.
-      </p>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("limitsTitle")}</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">{t("limitsBody")}</p>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Report a problem</h2>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("reportTitle")}</h2>
       <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        Email{" "}
-        <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4 hover:text-terminal-fg">
-          contact@ascent-partners.com
-        </a>{" "}
-        and describe what you were trying to do and what happened. We aim to respond within
-        a few business days.
+        {t.rich("reportBody", {
+          mail: (chunks) => <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4 hover:text-terminal-fg">{chunks}</a>,
+        })}
       </p>
 
       <p className="mt-8 font-sans text-sm text-terminal-fg">
-        <InlineLink href="/contact">Contact us</InlineLink>
+        <Link href="/contact" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("contactLink")}</Link>
       </p>
     </PageShell>
   );

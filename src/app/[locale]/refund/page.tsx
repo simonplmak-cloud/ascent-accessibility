@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
-import { InlineLink } from "@/components/ui/inline-link";
 import { LegalNote } from "@/components/legal/legal-note";
 
-export const metadata: Metadata = {
-  title: "Refund and cancellation",
-  description:
-    "Cancelling or requesting a refund for an Ascent Accessibility subscription.",
-  alternates: { canonical: "/refund" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "refund" });
+  return { title: t("title"), description: t("description") };
+}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -20,40 +24,36 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default function RefundPage() {
+export default async function RefundPage() {
+  const t = await getTranslations("refund");
+
   return (
     <PageShell>
-      <PageHeading>Refund and cancellation</PageHeading>
+      <PageHeading>{t("heading")}</PageHeading>
 
-      <Section title="Cancelling">
-        You can cancel your subscription at any time from the{" "}
-        <InlineLink href="/account">billing portal</InlineLink>{" "}
-        (&ldquo;Manage subscription&rdquo;). Cancellation takes effect at the end of the
-        current billing period — you keep whole-website and API access until then.
+      <Section title={t("cancelTitle")}>
+        {t.rich("cancelBody", {
+          link: (chunks) => (
+            <Link href="/account" className="text-brandLink underline underline-offset-4 hover:text-brand">{chunks}</Link>
+          ),
+        })}
       </Section>
 
-      <Section title="Refunds">
-        Subscriptions are billed in advance. If you cancel within 14 days of a charge and
-        have not made substantial use of whole-website scans or the API, contact us for a
-        refund of that charge. We assess refunds case-by-case and may decline requests after
-        substantial use.
+      <Section title={t("refundsTitle")}>
+        <p>{t("refundsBody")}</p>
       </Section>
 
-      <Section title="Donations">
-        Donations are voluntary contributions to Ascent Partners Foundation and are
-        generally non-refundable. If you believe a donation was made in error, contact us
-        promptly and we will review it.
+      <Section title={t("donationsTitle")}>
+        <p>{t("donationsBody")}</p>
       </Section>
 
-      <Section title="Contact">
-        Refund requests:{" "}
-        <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4 hover:text-terminal-fg">
-          contact@ascent-partners.com
-        </a>
-        .
+      <Section title={t("contactTitle")}>
+        {t.rich("contactBody", {
+          mail: (chunks) => <a href="mailto:contact@ascent-partners.com" className="underline underline-offset-4 hover:text-terminal-fg">{chunks}</a>,
+        })}
       </Section>
 
-      <LegalNote label="refund policy" />
+      <LegalNote label={t("label")} />
     </PageShell>
   );
 }
