@@ -594,5 +594,82 @@
     "maintBody": "我们可能短暂停止服务以部署修复及改进。我们通常不会事先公布维护时段。",
     "askTitle": "我们对你的期望",
     "askBody": "扫描适用于你拥有或获授权评估的网站。请保持账户及付款资料最新，并按照我们的<link>服务条款</link>使用服务。"
+  },
+  "resources": {
+    "heading": "资源",
+    "link1": "WCAG 2.2 规范（W3C）",
+    "link2": "如何符合 WCAG 2.2（快速参考）",
+    "link3": "Section 508 标准",
+    "note": "先使用我们的<link1>无障碍工具</link1>进行自我评估，或在我们的<link2>培训路径</link2>了解更多。"
+  },
+  "roadmap": {
+    "title": "路线图与更新记录",
+    "description": "Ascent Accessibility 已推出什么，以及接下来的计划。",
+    "heading": "路线图与更新记录",
+    "shipped": "已推出",
+    "planned": "计划中",
+    "s1": "洁净室设计的 Ascent Accessibility 规则引擎（无第三方扫描器）。",
+    "s2": "版本感知标准：WCAG 2.0 / 2.1 / 2.2（A/AA/AAA）另加 Section 508。",
+    "s3": "六阶段符合性流程，配以每项指令的性质分类（100% 准则覆盖）。",
+    "s4": "AI 辅助审核（视觉 + 音频），附置信度防故障机制。",
+    "s5": "符合性结论（符合 / 不符合 / 尚未确定）取代 0–100 分数。",
+    "s6": "草稿 ACR 导出（VPAT 结构，基于自动结果）；完整验证 ACR 将于人工审核后推出。",
+    "s7": "ESG 及法规对应（GRI、ESRS、SASB、EN 301 549、Section 508、EAA、AODA、BITV）。",
+    "s8": "每项准则的修复资料库。",
+    "p1": "由有亲身经历的工作团队（与服务残障人士的慈善机构合作）进行独立人工审核，附已签署并注明日期的符合性评估报告。",
+    "p2": "国际化 — 为产品及报告增加更多语言。",
+    "p3": "CI/CD 整合及用于程式化符合性评估的公开 API。",
+    "p4": "跨扫描的持续监察及回归警示。",
+    "p5": "待规范稳定后支援 WCAG 3.0。",
+    "p6": "对照 W3C/WAI 测试套件的公开基准结果。",
+    "methodology": "评估方法",
+    "validation": "验证方式",
+    "contact": "联系我们"
+  },
+  "esg": {
+    "title": "ESG 与合规对应",
+    "description": "Ascent Accessibility 符合性评估报告如何提供对应 GRI、ESRS、SASB、Disability:IN 及法规无障碍义务的证据。",
+    "heading": "ESG 与合规对应",
+    "intro": "数字无障碍是 ESG 中的“S”。符合性评估报告提供<strong>对应下列框架的证据</strong> — 这并非对这些框架的合规声明，亦没有任何框架规定单一的 WCAG 指标。",
+    "thFramework": "框架 / 标准",
+    "thWhere": "报告如何对应",
+    "footer": "了解工具如何评估网站，请参阅<link1>我们的评估方法</link1>；技术基础则参阅<link2>引擎验证方式</link2>。"
+  },
+  "regulations": {
+    "title": "法规对应",
+    "description": "WCAG 符合性如何对应无障碍法规及标准 — EN 301 549、Section 508、《欧洲无障碍法案》、AODA 及 BITV。",
+    "heading": "法规对应",
+    "intro": "WCAG 是下列无障碍法规的技术基础。符合 WCAG 2.2 AA 即可满足大部分法规所引用的 WCAG 要求；请就你的司法管辖区确认适用版本。本页属资讯性质，并非法律意见。",
+    "thReg": "法规 / 标准",
+    "thScope": "范围",
+    "thRef": "WCAG 参照",
+    "esgLink": "ESG 与报告对应",
+    "humanReview": "人工审核",
+    "validation": "验证方式"
+  },
+  "validationPage": {
+    "title": "我们如何验证引擎",
+    "description": "Ascent Accessibility 引擎的验证方式 — 规则对准则的覆盖、W3C ACT 规则对齐及测试覆盖。",
+    "heading": "我们如何验证引擎",
+    "intro": "每项成功准则都按其测试方式分类 — 机器可测试、AI 可侦测或仅限人工 — 引擎将每项自动规则连结至特定 WCAG 准则。规则目录分解为原子、可独立测试的检查，并对齐 W3C ACT 规则格式。",
+    "coverageTitle": "覆盖模型",
+    "coverageBody": "三个层次涵盖 100% 的成功准则：洁净室规则引擎（机器可测试）、附置信度防故障机制的 AI 辅助审核（AI 可侦测），以及由有亲身经历人士进行的独立人工审核（仅限人工 — 即将推出）。没有任何准则未经分类。",
+    "comparisonTitle": "比较",
+    "thTool": "工具",
+    "thAutomated": "自动",
+    "thAi": "AI 辅助",
+    "thHuman": "人工审核",
+    "thCoverage": "准则覆盖",
+    "thReport": "符合性报告",
+    "note": "功能比较反映撰写时的公开文件。~30–50% 数字是 WCAG 自动测试的已知上限，并非对任何工具的批评。",
+    "methodology": "评估方法",
+    "standards": "WCAG 成功准则",
+    "esg": "ESG 对应"
+  },
+  "remediation": {
+    "title": "修复资料库",
+    "description": "每项 WCAG 成功准则的浅白修复方法 — 改动什么及如何确认已解决。",
+    "heading": "修复资料库",
+    "intro": "修复每项 WCAG 成功准则的浅白指引。同样的指引会出现在评估工具报告的每项发现中。"
   }
 }

@@ -1,49 +1,36 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
-import { MutedText } from "@/components/ui/text";
-import { InlineLink } from "@/components/ui/inline-link";
 
-export const metadata: Metadata = {
-  title: "Roadmap & changelog",
-  description:
-    "What Ascent Accessibility has shipped and what is planned next.",
-  alternates: { canonical: "/roadmap" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "roadmap" });
+  return { title: t("title"), description: t("description") };
+}
 
-const shipped = [
-  "Clean-room Ascent Accessibility rule engine (no third-party scanners).",
-  "Version-aware standards: WCAG 2.0 / 2.1 / 2.2 (A/AA/AAA) plus Section 508.",
-  "Six-stage conformance pipeline with per-instruction nature taxonomy (100% SC coverage).",
-  "AI-assisted review (vision + audio) with a confidence fail-safe.",
-  "Conformance outcome (conforms / does not conform / not yet determined) replacing the 0–100 score.",
-  "Draft ACR export (VPAT-structured, from automated results); full verified ACR follows human review.",
-  "ESG & regulatory mapping (GRI, ESRS, SASB, EN 301 549, Section 508, EAA, AODA, BITV).",
-  "Per-SC remediation library.",
-];
+export default async function RoadmapPage() {
+  const t = await getTranslations("roadmap");
+  const shipped = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => t(`s${n}`));
+  const planned = [1, 2, 3, 4, 5, 6].map((n) => t(`p${n}`));
 
-const planned = [
-  "Independent human review by a lived-experience workforce (in partnership with disability-serving charities), with a signed, dated conformance evaluation report.",
-  "Internationalisation — additional languages for the product and report.",
-  "CI/CD integration and a public API for programmatic conformance evaluation.",
-  "Continuous monitoring and regression alerting across scans.",
-  "WCAG 3.0 support once the specification stabilises.",
-  "Public benchmark results against the W3C/WAI test suites.",
-];
-
-export default function RoadmapPage() {
   return (
     <PageShell width="4xl">
-      <PageHeading>Roadmap &amp; changelog</PageHeading>
+      <PageHeading>{t("heading")}</PageHeading>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Shipped</h2>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("shipped")}</h2>
       <ul className="mt-3 list-disc space-y-1 pl-6 font-sans text-sm text-terminal-muted">
         {shipped.map((item) => (
           <li key={item}>{item}</li>
         ))}
       </ul>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Planned</h2>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("planned")}</h2>
       <ul className="mt-3 list-disc space-y-1 pl-6 font-sans text-sm text-terminal-muted">
         {planned.map((item) => (
           <li key={item}>{item}</li>
@@ -51,9 +38,9 @@ export default function RoadmapPage() {
       </ul>
 
       <p className="mt-8 font-sans text-sm text-terminal-fg">
-        <InlineLink href="/methodology">Methodology</InlineLink> ·{" "}
-        <InlineLink href="/validation">How we validate</InlineLink> ·{" "}
-        <InlineLink href="/contact">Contact us</InlineLink>
+        <Link href="/methodology" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("methodology")}</Link>{" · "}
+        <Link href="/validation" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("validation")}</Link>{" · "}
+        <Link href="/contact" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("contact")}</Link>
       </p>
     </PageShell>
   );

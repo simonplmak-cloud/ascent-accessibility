@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
-import { InlineLink } from "@/components/ui/inline-link";
 
-export const metadata: Metadata = {
-  title: "ESG & compliance mapping",
-  description:
-    "How the Ascent Accessibility conformance evaluation report provides evidence aligned to GRI, ESRS, SASB, Disability:IN, and regulatory accessibility obligations.",
-  alternates: { canonical: "/esg" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "esg" });
+  return { title: t("title"), description: t("description") };
+}
 
 const rows: Array<[string, string]> = [
   ["GRI 405 (Diversity & Equal Opportunity)", "Evidence of inclusion of people with disabilities in products and services."],
@@ -26,23 +30,24 @@ const rows: Array<[string, string]> = [
   ["EAA / EN 301 549 / Section 508 / AODA / BITV", "Substantive legal and technical obligations for which WCAG is the technical basis."],
 ];
 
-export default function EsgPage() {
+export default async function EsgPage() {
+  const t = await getTranslations("esg");
+
   return (
     <PageShell width="4xl">
-      <PageHeading>ESG &amp; compliance mapping</PageHeading>
+      <PageHeading>{t("heading")}</PageHeading>
       <MutedText className="mt-4">
-        Digital accessibility is the &ldquo;S&rdquo; in ESG. The conformance evaluation report
-        provides <strong className="text-terminal-fg">evidence aligned to</strong> the frameworks
-        below — it is not a statement of compliance with them, and no framework mandates a single
-        WCAG metric.
+        {t.rich("intro", {
+          strong: (chunks) => <strong className="text-terminal-fg">{chunks}</strong>,
+        })}
       </MutedText>
 
       <div className="mt-8 overflow-x-auto rounded border border-terminal-border">
         <table className="w-full border-collapse font-sans text-sm">
           <thead>
             <tr className="border-b border-terminal-border text-left text-terminal-muted">
-              <th scope="col" className="px-3 py-2 font-medium">Framework / standard</th>
-              <th scope="col" className="px-3 py-2 font-medium">How the report plugs in</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thFramework")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thWhere")}</th>
             </tr>
           </thead>
           <tbody>
@@ -57,9 +62,14 @@ export default function EsgPage() {
       </div>
 
       <p className="mt-8 font-sans text-sm text-terminal-muted">
-        See how the tool evaluates a site in{" "}
-        <InlineLink href="/methodology">our methodology</InlineLink>, or the technical basis in{" "}
-        <InlineLink href="/validation">how we validate the engine</InlineLink>.
+        {t.rich("footer", {
+          link1: (chunks) => (
+            <Link href="/methodology" className="text-brandLink underline underline-offset-4 hover:text-brand">{chunks}</Link>
+          ),
+          link2: (chunks) => (
+            <Link href="/validation" className="text-brandLink underline underline-offset-4 hover:text-brand">{chunks}</Link>
+          ),
+        })}
       </p>
     </PageShell>
   );

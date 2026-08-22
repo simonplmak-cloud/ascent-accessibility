@@ -1,27 +1,30 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
 import { WCAG_SCS, principleName } from "@/lib/standards/wcag-sc";
 import { getScRemediation } from "@/lib/standards/sc-remediation";
 
-export const metadata: Metadata = {
-  title: "Remediation library",
-  description:
-    "Plain-language fixes for every WCAG success criterion — what to change and how to confirm it is resolved.",
-  alternates: { canonical: "/remediation" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "remediation" });
+  return { title: t("title"), description: t("description") };
+}
 
 const principles = [1, 2, 3, 4] as const;
 
-export default function RemediationPage() {
+export default async function RemediationPage() {
+  const t = await getTranslations("remediation");
+
   return (
     <PageShell width="4xl">
-      <PageHeading>Remediation library</PageHeading>
-      <MutedText className="mt-4">
-        Plain-language guidance for fixing each WCAG success criterion. The same guidance appears
-        in every finding the assessment tool reports.
-      </MutedText>
+      <PageHeading>{t("heading")}</PageHeading>
+      <MutedText className="mt-4">{t("intro")}</MutedText>
 
       {principles.map((principle) => (
         <section key={principle} aria-labelledby={`p-${principle}`} className="mt-10">

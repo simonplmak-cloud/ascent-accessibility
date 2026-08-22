@@ -594,5 +594,82 @@
     "maintBody": "We may take the service offline briefly to deploy fixes and improvements. We do not typically announce maintenance windows in advance.",
     "askTitle": "What we ask of you",
     "askBody": "Scans are intended for sites you own or are authorised to assess. Please keep your account and payment details current, and use the service in line with our <link>terms of service</link>."
+  },
+  "resources": {
+    "heading": "Resources",
+    "link1": "WCAG 2.2 Specification (W3C)",
+    "link2": "How to Meet WCAG 2.2 (Quick Reference)",
+    "link3": "Section 508 Standards",
+    "note": "Start with a self-assessment using our <link1>accessibility tool</link1>, or learn more in our <link2>training path</link2>."
+  },
+  "roadmap": {
+    "title": "Roadmap & changelog",
+    "description": "What Ascent Accessibility has shipped and what is planned next.",
+    "heading": "Roadmap & changelog",
+    "shipped": "Shipped",
+    "planned": "Planned",
+    "s1": "Clean-room Ascent Accessibility rule engine (no third-party scanners).",
+    "s2": "Version-aware standards: WCAG 2.0 / 2.1 / 2.2 (A/AA/AAA) plus Section 508.",
+    "s3": "Six-stage conformance pipeline with per-instruction nature taxonomy (100% SC coverage).",
+    "s4": "AI-assisted review (vision + audio) with a confidence fail-safe.",
+    "s5": "Conformance outcome (conforms / does not conform / not yet determined) replacing the 0–100 score.",
+    "s6": "Draft ACR export (VPAT-structured, from automated results); full verified ACR follows human review.",
+    "s7": "ESG & regulatory mapping (GRI, ESRS, SASB, EN 301 549, Section 508, EAA, AODA, BITV).",
+    "s8": "Per-SC remediation library.",
+    "p1": "Independent human review by a lived-experience workforce (in partnership with disability-serving charities), with a signed, dated conformance evaluation report.",
+    "p2": "Internationalisation — additional languages for the product and report.",
+    "p3": "CI/CD integration and a public API for programmatic conformance evaluation.",
+    "p4": "Continuous monitoring and regression alerting across scans.",
+    "p5": "WCAG 3.0 support once the specification stabilises.",
+    "p6": "Public benchmark results against the W3C/WAI test suites.",
+    "methodology": "Methodology",
+    "validation": "How we validate",
+    "contact": "Contact us"
+  },
+  "esg": {
+    "title": "ESG & compliance mapping",
+    "description": "How the Ascent Accessibility conformance evaluation report provides evidence aligned to GRI, ESRS, SASB, Disability:IN, and regulatory accessibility obligations.",
+    "heading": "ESG & compliance mapping",
+    "intro": "Digital accessibility is the \"S\" in ESG. The conformance evaluation report provides <strong>evidence aligned to</strong> the frameworks below — it is not a statement of compliance with them, and no framework mandates a single WCAG metric.",
+    "thFramework": "Framework / standard",
+    "thWhere": "How the report plugs in",
+    "footer": "See how the tool evaluates a site in <link1>our methodology</link1>, or the technical basis in <link2>how we validate the engine</link2>."
+  },
+  "regulations": {
+    "title": "Regulatory mapping",
+    "description": "How WCAG conformance maps to accessibility regulations and standards — EN 301 549, Section 508, the European Accessibility Act, AODA, and BITV.",
+    "heading": "Regulatory mapping",
+    "intro": "WCAG is the technical basis for the accessibility regulations below. Meeting WCAG 2.2 AA satisfies the WCAG requirements referenced by most of them; confirm the applicable version for your jurisdiction. This page is informational, not legal advice.",
+    "thReg": "Regulation / standard",
+    "thScope": "Scope",
+    "thRef": "WCAG reference",
+    "esgLink": "ESG & reporting mapping",
+    "humanReview": "Human review",
+    "validation": "How we validate"
+  },
+  "validationPage": {
+    "title": "How we validate the engine",
+    "description": "How the Ascent Accessibility engine is validated — rule-to-criterion coverage, W3C ACT-rules alignment, and test coverage.",
+    "heading": "How we validate the engine",
+    "intro": "Every success criterion is classified by how it is tested — machine-testable, AI-detectable, or manual-only — and the engine links each automated rule to a specific WCAG criterion. The rule catalogue is decomposed into atomic, independently testable checks aligned to the W3C ACT-rules format.",
+    "coverageTitle": "Coverage model",
+    "coverageBody": "Three layers cover 100% of success criteria: the clean-room rule engine (machine-testable), an AI-assisted review with a confidence fail-safe (AI-detectable), and independent human review by people with lived experience (manual-only — launching soon). No criterion is left unclassified.",
+    "comparisonTitle": "Comparison",
+    "thTool": "Tool",
+    "thAutomated": "Automated",
+    "thAi": "AI-assisted",
+    "thHuman": "Human review",
+    "thCoverage": "SC coverage",
+    "thReport": "Conformance report",
+    "note": "Feature comparison reflects public documentation at the time of writing. The ~30–50% figure is the documented automated-testing ceiling for WCAG, not a criticism of any tool.",
+    "methodology": "Methodology",
+    "standards": "WCAG success criteria",
+    "esg": "ESG mapping"
+  },
+  "remediation": {
+    "title": "Remediation library",
+    "description": "Plain-language fixes for every WCAG success criterion — what to change and how to confirm it is resolved.",
+    "heading": "Remediation library",
+    "intro": "Plain-language guidance for fixing each WCAG success criterion. The same guidance appears in every finding the assessment tool reports."
   }
 }

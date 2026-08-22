@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
-import { InlineLink } from "@/components/ui/inline-link";
 
-export const metadata: Metadata = {
-  title: "Regulatory mapping",
-  description:
-    "How WCAG conformance maps to accessibility regulations and standards — EN 301 549, Section 508, the European Accessibility Act, AODA, and BITV.",
-  alternates: { canonical: "/regulations" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "regulations" });
+  return { title: t("title"), description: t("description") };
+}
 
 const rows: Array<[string, string, string]> = [
   ["EN 301 549 (Europe)", "European harmonised accessibility standard for ICT", "References WCAG 2.1 AA (Table A.1)"],
@@ -21,23 +25,21 @@ const rows: Array<[string, string, string]> = [
   ["UK PSBAR 2018 (United Kingdom)", "Public Sector Bodies (Websites and Mobile Applications) Accessibility Regulations", "References WCAG 2.1 AA"],
 ];
 
-export default function RegulationsPage() {
+export default async function RegulationsPage() {
+  const t = await getTranslations("regulations");
+
   return (
     <PageShell width="4xl">
-      <PageHeading>Regulatory mapping</PageHeading>
-      <MutedText className="mt-4">
-        WCAG is the technical basis for the accessibility regulations below. Meeting WCAG 2.2 AA
-        satisfies the WCAG requirements referenced by most of them; confirm the applicable version
-        for your jurisdiction. This page is informational, not legal advice.
-      </MutedText>
+      <PageHeading>{t("heading")}</PageHeading>
+      <MutedText className="mt-4">{t("intro")}</MutedText>
 
       <div className="mt-8 overflow-x-auto rounded border border-terminal-border">
         <table className="w-full border-collapse font-sans text-sm">
           <thead>
             <tr className="border-b border-terminal-border text-left text-terminal-muted">
-              <th scope="col" className="px-3 py-2 font-medium">Regulation / standard</th>
-              <th scope="col" className="px-3 py-2 font-medium">Scope</th>
-              <th scope="col" className="px-3 py-2 font-medium">WCAG reference</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thReg")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thScope")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thRef")}</th>
             </tr>
           </thead>
           <tbody>
@@ -53,9 +55,9 @@ export default function RegulationsPage() {
       </div>
 
       <p className="mt-8 font-sans text-sm text-terminal-fg">
-        <InlineLink href="/esg">ESG &amp; reporting mapping</InlineLink> ·{" "}
-        <InlineLink href="/human-review">Human review</InlineLink> ·{" "}
-        <InlineLink href="/validation">How we validate</InlineLink>
+        <Link href="/esg" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("esgLink")}</Link>{" · "}
+        <Link href="/human-review" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("humanReview")}</Link>{" · "}
+        <Link href="/validation" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("validation")}</Link>
       </p>
     </PageShell>
   );

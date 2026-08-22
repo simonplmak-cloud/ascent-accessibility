@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
-import { InlineLink } from "@/components/ui/inline-link";
 
-export const metadata: Metadata = {
-  title: "How we validate the engine",
-  description:
-    "How the Ascent Accessibility engine is validated — rule-to-criterion coverage, W3C ACT-rules alignment, and test coverage.",
-  alternates: { canonical: "/validation" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "validationPage" });
+  return { title: t("title"), description: t("description") };
+}
 
 const comparison: Array<[string, string, string, string, string, string]> = [
   ["axe-core (open-source)", "✓", "—", "—", "~30–50%", "—"],
@@ -18,36 +22,28 @@ const comparison: Array<[string, string, string, string, string, string]> = [
   ["Ascent Accessibility", "✓", "✓", "coming soon (lived-experience)", "✓ 100%", "✓ signed, in-app + PDF"],
 ];
 
-export default function ValidationPage() {
+export default async function ValidationPage() {
+  const t = await getTranslations("validationPage");
+
   return (
     <PageShell width="4xl">
-      <PageHeading>How we validate the engine</PageHeading>
-      <MutedText className="mt-4">
-        Every success criterion is classified by how it is tested — machine-testable, AI-detectable,
-        or manual-only — and the engine links each automated rule to a specific WCAG criterion. The
-        rule catalogue is decomposed into atomic, independently testable checks aligned to the W3C
-        ACT-rules format.
-      </MutedText>
+      <PageHeading>{t("heading")}</PageHeading>
+      <MutedText className="mt-4">{t("intro")}</MutedText>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Coverage model</h2>
-      <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        Three layers cover 100% of success criteria: the clean-room rule engine (machine-testable),
-        an AI-assisted review with a confidence fail-safe (AI-detectable), and independent human
-        review by people with lived experience (manual-only — launching soon). No criterion is left
-        unclassified.
-      </p>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("coverageTitle")}</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">{t("coverageBody")}</p>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Comparison</h2>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("comparisonTitle")}</h2>
       <div className="mt-3 overflow-x-auto rounded border border-terminal-border">
         <table className="w-full border-collapse font-sans text-xs">
           <thead>
             <tr className="border-b border-terminal-border text-left text-terminal-muted">
-              <th scope="col" className="px-3 py-2 font-medium">Tool</th>
-              <th scope="col" className="px-3 py-2 font-medium">Automated</th>
-              <th scope="col" className="px-3 py-2 font-medium">AI-assisted</th>
-              <th scope="col" className="px-3 py-2 font-medium">Human review</th>
-              <th scope="col" className="px-3 py-2 font-medium">SC coverage</th>
-              <th scope="col" className="px-3 py-2 font-medium">Conformance report</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thTool")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thAutomated")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thAi")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thHuman")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thCoverage")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thReport")}</th>
             </tr>
           </thead>
           <tbody>
@@ -66,15 +62,12 @@ export default function ValidationPage() {
           </tbody>
         </table>
       </div>
-      <p className="mt-2 font-sans text-xs text-terminal-muted">
-        Feature comparison reflects public documentation at the time of writing. The ~30–50% figure
-        is the documented automated-testing ceiling for WCAG, not a criticism of any tool.
-      </p>
+      <p className="mt-2 font-sans text-xs text-terminal-muted">{t("note")}</p>
 
       <p className="mt-8 font-sans text-sm text-terminal-fg">
-        <InlineLink href="/methodology">Methodology</InlineLink> ·{" "}
-        <InlineLink href="/standards">WCAG success criteria</InlineLink> ·{" "}
-        <InlineLink href="/esg">ESG mapping</InlineLink>
+        <Link href="/methodology" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("methodology")}</Link>{" · "}
+        <Link href="/standards" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("standards")}</Link>{" · "}
+        <Link href="/esg" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("esg")}</Link>
       </p>
     </PageShell>
   );

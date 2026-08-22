@@ -594,5 +594,82 @@
     "maintBody": "我們可能短暫停止服務以部署修復及改進。我們通常不會事先公布維護時段。",
     "askTitle": "我們對你的期望",
     "askBody": "掃描適用於你擁有或獲授權評估的網站。請保持帳戶及付款資料最新，並按照我們的<link>服務條款</link>使用服務。"
+  },
+  "resources": {
+    "heading": "資源",
+    "link1": "WCAG 2.2 規範（W3C）",
+    "link2": "如何符合 WCAG 2.2（快速參考）",
+    "link3": "Section 508 標準",
+    "note": "先使用我們的<link1>無障礙工具</link1>進行自我評估，或在我們的<link2>培訓路徑</link2>了解更多。"
+  },
+  "roadmap": {
+    "title": "路線圖與更新紀錄",
+    "description": "Ascent Accessibility 已推出什麼，以及接下來的計劃。",
+    "heading": "路線圖與更新紀錄",
+    "shipped": "已推出",
+    "planned": "計劃中",
+    "s1": "潔淨室設計的 Ascent Accessibility 規則引擎（無第三方掃描器）。",
+    "s2": "版本感知標準：WCAG 2.0 / 2.1 / 2.2（A/AA/AAA）另加 Section 508。",
+    "s3": "六階段符合性流程，配以每項指令的性質分類（100% 準則覆蓋）。",
+    "s4": "AI 輔助審核（視覺 + 音訊），附置信度防故障機制。",
+    "s5": "符合性結論（符合 / 不符合 / 尚未確定）取代 0–100 分數。",
+    "s6": "草稿 ACR 匯出（VPAT 結構，基於自動結果）；完整驗證 ACR 將於人工審核後推出。",
+    "s7": "ESG 及法規對應（GRI、ESRS、SASB、EN 301 549、Section 508、EAA、AODA、BITV）。",
+    "s8": "每項準則的修復資料庫。",
+    "p1": "由有親身經歷的工作團隊（與服務殘疾人士的慈善機構合作）進行獨立人工審核，附已簽署並註明日期的符合性評估報告。",
+    "p2": "國際化 — 為產品及報告增加更多語言。",
+    "p3": "CI/CD 整合及用於程式化符合性評估的公開 API。",
+    "p4": "跨掃描的持續監察及回歸警示。",
+    "p5": "待規範穩定後支援 WCAG 3.0。",
+    "p6": "對照 W3C/WAI 測試套件的公開基準結果。",
+    "methodology": "評估方法",
+    "validation": "驗證方式",
+    "contact": "聯絡我們"
+  },
+  "esg": {
+    "title": "ESG 與合規對應",
+    "description": "Ascent Accessibility 符合性評估報告如何提供對應 GRI、ESRS、SASB、Disability:IN 及法規無障礙義務的證據。",
+    "heading": "ESG 與合規對應",
+    "intro": "數碼無障礙是 ESG 中的「S」。符合性評估報告提供<strong>對應下列框架的證據</strong> — 這並非對這些框架的合規聲明，亦沒有任何框架規定單一的 WCAG 指標。",
+    "thFramework": "框架 / 標準",
+    "thWhere": "報告如何對應",
+    "footer": "了解工具如何評估網站，請參閱<link1>我們的評估方法</link1>；技術基礎則參閱<link2>引擎驗證方式</link2>。"
+  },
+  "regulations": {
+    "title": "法規對應",
+    "description": "WCAG 符合性如何對應無障礙法規及標準 — EN 301 549、Section 508、《歐洲無障礙法案》、AODA 及 BITV。",
+    "heading": "法規對應",
+    "intro": "WCAG 是下列無障礙法規的技術基礎。符合 WCAG 2.2 AA 即可滿足大部分法規所引用的 WCAG 要求；請就你的司法管轄區確認適用版本。本頁屬資訊性質，並非法律意見。",
+    "thReg": "法規 / 標準",
+    "thScope": "範圍",
+    "thRef": "WCAG 參照",
+    "esgLink": "ESG 與報告對應",
+    "humanReview": "人工審核",
+    "validation": "驗證方式"
+  },
+  "validationPage": {
+    "title": "我們如何驗證引擎",
+    "description": "Ascent Accessibility 引擎的驗證方式 — 規則對準則的覆蓋、W3C ACT 規則對齊及測試覆蓋。",
+    "heading": "我們如何驗證引擎",
+    "intro": "每項成功準則都按其測試方式分類 — 機器可測試、AI 可偵測或僅限人工 — 引擎將每項自動規則連結至特定 WCAG 準則。規則目錄分解為原子、可獨立測試的檢查，並對齊 W3C ACT 規則格式。",
+    "coverageTitle": "覆蓋模型",
+    "coverageBody": "三個層次涵蓋 100% 的成功準則：潔淨室規則引擎（機器可測試）、附置信度防故障機制的 AI 輔助審核（AI 可偵測），以及由有親身經歷人士進行的獨立人工審核（僅限人工 — 即將推出）。沒有任何準則未經分類。",
+    "comparisonTitle": "比較",
+    "thTool": "工具",
+    "thAutomated": "自動",
+    "thAi": "AI 輔助",
+    "thHuman": "人工審核",
+    "thCoverage": "準則覆蓋",
+    "thReport": "符合性報告",
+    "note": "功能比較反映撰寫時的公開文件。~30–50% 數字是 WCAG 自動測試的已知上限，並非對任何工具的批評。",
+    "methodology": "評估方法",
+    "standards": "WCAG 成功準則",
+    "esg": "ESG 對應"
+  },
+  "remediation": {
+    "title": "修復資料庫",
+    "description": "每項 WCAG 成功準則的淺白修復方法 — 改動什麼及如何確認已解決。",
+    "heading": "修復資料庫",
+    "intro": "修復每項 WCAG 成功準則的淺白指引。同樣的指引會出現在評估工具報告的每項發現中。"
   }
 }
