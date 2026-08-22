@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { curriculumFor } from "@/lib/training/curriculum";
-import { getSc, understandingUrl } from "@/lib/standards/wcag-sc";
+import { getSc, scTitle, understandingUrl } from "@/lib/standards/wcag-sc";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import { getScRemediation } from "@/lib/standards/sc-remediation";
 import { CompleteLessonButton } from "@/components/training/complete-lesson-button";
@@ -48,7 +48,7 @@ export default async function LessonPage({
             return (
               <section key={sc} aria-labelledby={`sc-${sc}`} className="rounded border border-terminal-border bg-terminal-surface/40 p-4">
                 <h2 id={`sc-${sc}`} className="font-display text-lg font-semibold text-terminal-fg">
-                  {sc} {info.title}
+                  {sc} {scTitle(sc, locale)}
                 </h2>
                 <p className="mt-1 font-sans text-sm text-terminal-muted">
                   {t("principleLevel", { principle: info.principle, level: info.level })}

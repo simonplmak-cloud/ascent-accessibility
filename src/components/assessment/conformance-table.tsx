@@ -1,28 +1,27 @@
-import type { Conformance, ConformanceRow } from "./types";
-import { Disclosure } from "@/components/ui/disclosure";
+"use client";
 
-const PRINCIPLES: Record<string, string> = {
-  "1": "Perceivable",
-  "2": "Operable",
-  "3": "Understandable",
-  "4": "Robust",
-};
+import { useLocale, useTranslations } from "next-intl";
+import type { Conformance, ConformanceRow } from "./types";
+import { principleName, scTitle } from "@/lib/standards/wcag-sc";
+import { verdictLabel } from "@/lib/labels";
+import { Disclosure } from "@/components/ui/disclosure";
 
 // A10 provenance: how each criterion was resolved. Machine = the rule engine
 // decided it; AI = the AI-assisted review resolved it (not proof of conformance);
 // Needs human = only a person can judge it.
-function natureOf(row: ConformanceRow): { label: string; className: string } {
-  if (row.machineResult === "Passed" || row.machineResult === "Failed") {
-    return { label: "Machine", className: "text-terminal-muted" };
-  }
-  if (row.result === "CannotTell") {
-    return { label: "Needs human", className: "text-terminal-serious" };
-  }
-  if (row.result === "Passed" || row.result === "Failed") {
-    return { label: "AI", className: "text-terminal-serious" };
-  }
-  return { label: "—", className: "text-terminal-muted" };
+function natureOf(row: ConformanceRow): "machine" | "needsHuman" | "ai" | "dash" {
+  if (row.machineResult === "Passed" || row.machineResult === "Failed") return "machine";
+  if (row.result === "CannotTell") return "needsHuman";
+  if (row.result === "Passed" || row.result === "Failed") return "ai";
+  return "dash";
 }
+
+const NATURE_CLASS: Record<string, string> = {
+  machine: "text-terminal-muted",
+  needsHuman: "text-terminal-serious",
+  ai: "text-terminal-serious",
+  dash: "text-terminal-muted",
+};
 
 function resultClass(result: string): string {
   switch (result) {
@@ -37,14 +36,9 @@ function resultClass(result: string): string {
   }
 }
 
-function resultLabel(result: string): string {
-  if (result === "NotPresent") return "not present";
-  if (result === "CannotTell") return "cannot tell";
-  if (result === "NotChecked") return "not checked";
-  return result;
-}
-
 export function ConformanceTable({ conformance }: { conformance: Conformance }) {
+  const t = useTranslations("report");
+  const locale = useLocale();
   if (!conformance?.rows?.length) return null;
 
   const grouped = new Map<string, typeof conformance.rows>();
@@ -55,21 +49,29 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
     grouped.set(principle, list);
   }
 
+  function natureLabel(nature: string): string {
+    if (nature === "machine") return t("machine");
+    if (nature === "ai") return t("ai");
+    if (nature === "needsHuman") return t("needsHuman");
+    return "—";
+  }
+
   return (
     <section aria-labelledby="conformance-heading" className="mt-8">
       <h2 id="conformance-heading" className="font-display text-lg font-semibold text-terminal-fg">
-        All criteria — combined result
+        {t("conformanceHeading")}
       </h2>
       <p className="mt-1 font-sans text-sm text-terminal-muted">
-        {conformance.passed} passed · {conformance.failed} failed ·{" "}
-        {conformance.notPresent} not present · {conformance.cannotTell} cannot tell ·{" "}
-        {conformance.coverage}% tested · level attained:{" "}
-        <span className="text-terminal-fg">{conformance.levelAttained}</span>
+        {t("conformanceSummary", {
+          passed: conformance.passed,
+          failed: conformance.failed,
+          notPresent: conformance.notPresent,
+          cannotTell: conformance.cannotTell,
+          coverage: conformance.coverage,
+          level: conformance.levelAttained,
+        })}
       </p>
-      <p className="mt-1 font-sans text-xs text-terminal-muted">
-        &ldquo;Tested by&rdquo; shows how each criterion was resolved: Machine (rule engine), AI
-        (AI-assisted — not proof of conformance), or Needs human (manual review).
-      </p>
+      <p className="mt-1 font-sans text-xs text-terminal-muted">{t("testedByNote")}</p>
 
       <div className="mt-4 space-y-2">
         {[...grouped.entries()].map(([principle, rows]) => (
@@ -79,7 +81,7 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
             size="md"
             title={
               <>
-                Principle {principle} — {PRINCIPLES[principle] ?? ""}{" "}
+                {t("principleLabel", { principle })} — {principleName(Number(principle), locale)}{" "}
                 <span className="font-normal text-terminal-muted">({rows.length})</span>
               </>
             }
@@ -88,27 +90,30 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
               <table className="w-full border-collapse font-sans text-sm">
               <thead>
                 <tr className="border-b border-terminal-border text-left text-terminal-muted">
-                  <th scope="col" className="px-3 py-2 font-medium">SC</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Title</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Level</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Result</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Tested by</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thSc")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thTitle")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thLevel")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thResult")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thTestedBy")}</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
-                  <tr key={row.num} className="border-b border-terminal-border last:border-b-0">
-                    <td className="whitespace-nowrap px-3 py-2 text-terminal-fg">{row.num}</td>
-                    <td className="px-3 py-2 text-terminal-muted">{row.title}</td>
-                    <td className="px-3 py-2 text-terminal-muted">{row.level}</td>
-                    <td className="px-3 py-2">
-                      <span className={resultClass(row.result)}>{resultLabel(row.result)}</span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className={natureOf(row).className}>{natureOf(row).label}</span>
-                    </td>
-                  </tr>
-                ))}
+                {rows.map((row) => {
+                  const nature = natureOf(row);
+                  return (
+                    <tr key={row.num} className="border-b border-terminal-border last:border-b-0">
+                      <td className="whitespace-nowrap px-3 py-2 text-terminal-fg">{row.num}</td>
+                      <td className="px-3 py-2 text-terminal-muted">{scTitle(row.num, locale)}</td>
+                      <td className="px-3 py-2 text-terminal-muted">{row.level}</td>
+                      <td className="px-3 py-2">
+                        <span className={resultClass(row.result)}>{verdictLabel(row.result, locale)}</span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className={NATURE_CLASS[nature]}>{natureLabel(nature)}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ScoreSummary } from "./score-summary";
 import { ConformanceTable } from "./conformance-table";
 import { ReviewMethods } from "./review-methods";
@@ -13,12 +13,14 @@ import { ReportMark } from "./report-mark";
 import { buildReportSummary } from "@/lib/report-summary";
 import { priorityFindings } from "@/lib/report-priority";
 import { impactColor } from "./severity";
+import { impactLabel } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import type { AssessmentResult } from "./types";
 
 export function Report({ result }: { result: AssessmentResult }) {
   const t = useTranslations("report");
+  const locale = useLocale();
   const [largePrint, setLargePrint] = useState(false);
 
   const hasConformance = Boolean(result.comparison?.conformance);
@@ -92,7 +94,7 @@ export function Report({ result }: { result: AssessmentResult }) {
       </nav>
 
       <p className="mt-4 font-sans leading-7 text-terminal-fg">
-        {buildReportSummary(result)}
+        {buildReportSummary(result, locale)}
       </p>
 
       <div id="summary" className="mt-4 scroll-mt-24">
@@ -164,7 +166,7 @@ export function Report({ result }: { result: AssessmentResult }) {
                     >
                       <span className="font-sans text-xs text-terminal-muted">{index + 1}.</span>
                       <span className={`font-sans text-xs font-semibold uppercase ${impactColor(finding.impact)}`}>
-                        {finding.impact}
+                        {impactLabel(finding.impact, locale)}
                       </span>
                       <span className="font-sans text-sm text-terminal-fg">{finding.description}</span>
                       {sc && <span className="font-sans text-xs text-terminal-muted">WCAG {sc}</span>}

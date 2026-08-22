@@ -1,10 +1,11 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { getSc, understandingUrl } from "@/lib/standards/wcag-sc";
+import { getSc, scTitle, understandingUrl } from "@/lib/standards/wcag-sc";
 import { linksForSc } from "@/lib/sc-links";
 import { impactColor } from "./severity";
+import { impactLabel } from "@/lib/labels";
 import { SuggestFixButton } from "./suggest-fix";
 import type { Finding } from "./types";
 
@@ -24,6 +25,7 @@ export function FindingEvidence({
   assessmentId: string;
 }) {
   const t = useTranslations("report");
+  const locale = useLocale();
   const sc = finding.wcagSc?.[0];
   const scInfo = sc ? getSc(sc) : undefined;
   const links = sc ? linksForSc(sc) : null;
@@ -33,7 +35,7 @@ export function FindingEvidence({
     <article className="mt-4 rounded border border-terminal-border bg-terminal-surface/40 p-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className={`font-sans text-xs font-semibold uppercase ${impactColor(finding.impact)}`}>
-          {finding.impact}
+          {impactLabel(finding.impact, locale)}
         </span>
         {sc && scInfo && (
           <a
@@ -42,7 +44,7 @@ export function FindingEvidence({
             rel="noreferrer"
             className="font-sans text-xs text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
           >
-            WCAG {sc} · {scInfo.title} ({t("levelLabel", { level: scInfo.level })})
+            WCAG {sc} · {scTitle(sc, locale)} ({t("levelLabel", { level: scInfo.level })})
             <span className="sr-only">{t("opensNewWindow")}</span>
           </a>
         )}

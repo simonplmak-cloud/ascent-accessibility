@@ -1,3 +1,5 @@
+import { standardsFor } from "./standards-locales";
+
 export type WcagLevel = "A" | "AA" | "AAA";
 export type WcagVersion = "2.0" | "2.1" | "2.2";
 
@@ -142,6 +144,13 @@ export function getSc(num: string): WcagSc | undefined {
   return BY_NUM.get(num);
 }
 
+/** Localized SC title (official W3C Chinese where available), else the English title. */
+export function scTitle(num: string, locale?: string): string {
+  const localized = standardsFor(locale)?.sc[num];
+  if (localized) return localized;
+  return BY_NUM.get(num)?.title ?? num;
+}
+
 export function specUrl(sc: WcagSc): string {
   return `https://www.w3.org/TR/WCAG22/#${sc.slug}`;
 }
@@ -167,7 +176,9 @@ export function scsForTags(tags: readonly string[]): string[] {
   return [...out];
 }
 
-export function principleName(principle: number): string {
+export function principleName(principle: number, locale?: string): string {
+  const localized = standardsFor(locale)?.principles[principle];
+  if (localized) return localized;
   switch (principle) {
     case 1: return "Perceivable";
     case 2: return "Operable";
@@ -206,7 +217,9 @@ export function guidelineOf(scNum: string): string {
   return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : scNum;
 }
 
-export function guidelineName(guideline: string): string {
+export function guidelineName(guideline: string, locale?: string): string {
+  const localized = standardsFor(locale)?.guidelines[guideline];
+  if (localized) return localized;
   return WCAG_GUIDELINES.find((g) => g.num === guideline)?.title ?? guideline;
 }
 

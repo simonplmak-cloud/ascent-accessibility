@@ -13,6 +13,7 @@ import {
   guidelineOf,
   guidelinePrinciple,
   principleName,
+  scTitle,
   specUrl,
   understandingUrl,
   type WcagSc,
@@ -38,7 +39,7 @@ function scsFor(standard: Standard): WcagSc[] {
   return scsForStandard(standard.version, standard.level ?? "AA");
 }
 
-function buildTree(standard: Standard): StandardTree {
+function buildTree(standard: Standard, locale: string): StandardTree {
   const byGuideline = new Map<string, WcagSc[]>();
   for (const sc of scsFor(standard)) {
     const guideline = guidelineOf(sc.num);
@@ -54,13 +55,13 @@ function buildTree(standard: Standard): StandardTree {
       );
       return {
         num: principle,
-        name: principleName(principle),
+        name: principleName(principle, locale),
         guidelines: guidelines.map((g) => ({
           num: g.num,
-          name: guidelineName(g.num),
+          name: guidelineName(g.num, locale),
           scs: byGuideline.get(g.num)!.map((sc) => ({
             num: sc.num,
-            title: sc.title,
+            title: scTitle(sc.num, locale),
             level: sc.level,
             specUrl: specUrl(sc),
             understandingUrl: understandingUrl(sc),
@@ -86,7 +87,7 @@ export default async function StandardsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("standards");
-  const standards = listStandards().map(buildTree);
+  const standards = listStandards().map((s) => buildTree(s, locale));
 
   return (
     <PageShell width="4xl">

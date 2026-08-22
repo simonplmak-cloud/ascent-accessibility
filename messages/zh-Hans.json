@@ -670,7 +670,8 @@
     "title": "修复资料库",
     "description": "每项 WCAG 成功准则的浅白修复方法 — 改动什么及如何确认已解决。",
     "heading": "修复资料库",
-    "intro": "修复每项 WCAG 成功准则的浅白指引。同样的指引会出现在评估工具报告的每项发现中。"
+    "intro": "修复每项 WCAG 成功准则的浅白指引。同样的指引会出现在评估工具报告的每项发现中。",
+    "levelLabel": "等级 {level}"
   },
   "assess": {
     "urlLabel": "网站网址",
@@ -913,7 +914,19 @@
     "scanLog": "扫描记录",
     "autoScrollOn": "自动滚动开启",
     "autoScrollOff": "自动滚动关闭",
-    "noLogEntries": "尚无记录项目。"
+    "noLogEntries": "尚无记录项目。",
+    "conformanceHeading": "全部准则 — 综合结果",
+    "conformanceSummary": "{passed} 通过 · {failed} 未通过 · {notPresent} 不存在 · {cannotTell} 无法判断 · 已测试 {coverage}% · 达成等级：{level}",
+    "testedByNote": "「判定方式」显示每项准则如何解决：机器（规则引擎）、AI（AI 辅助 — 不构成合规证明）或需人工（人工审核）。",
+    "principleLabel": "原则 {principle}",
+    "thSc": "SC",
+    "thTitle": "标题",
+    "thLevel": "等级",
+    "thResult": "结果",
+    "thTestedBy": "判定方式",
+    "machine": "机器",
+    "ai": "AI",
+    "needsHuman": "需人工"
   },
   "reportPage": {
     "title": "评估报告",

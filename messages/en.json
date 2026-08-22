@@ -670,7 +670,8 @@
     "title": "Remediation library",
     "description": "Plain-language fixes for every WCAG success criterion — what to change and how to confirm it is resolved.",
     "heading": "Remediation library",
-    "intro": "Plain-language guidance for fixing each WCAG success criterion. The same guidance appears in every finding the assessment tool reports."
+    "intro": "Plain-language guidance for fixing each WCAG success criterion. The same guidance appears in every finding the assessment tool reports.",
+    "levelLabel": "Level {level}"
   },
   "assess": {
     "urlLabel": "Website URL",
@@ -913,7 +914,19 @@
     "scanLog": "Scan log",
     "autoScrollOn": "auto-scroll on",
     "autoScrollOff": "auto-scroll off",
-    "noLogEntries": "No log entries yet."
+    "noLogEntries": "No log entries yet.",
+    "conformanceHeading": "All criteria — combined result",
+    "conformanceSummary": "{passed} passed · {failed} failed · {notPresent} not present · {cannotTell} cannot tell · {coverage}% tested · level attained: {level}",
+    "testedByNote": "\u201cTested by\u201d shows how each criterion was resolved: Machine (rule engine), AI (AI-assisted — not proof of conformance), or Needs human (manual review).",
+    "principleLabel": "Principle {principle}",
+    "thSc": "SC",
+    "thTitle": "Title",
+    "thLevel": "Level",
+    "thResult": "Result",
+    "thTestedBy": "Tested by",
+    "machine": "Machine",
+    "ai": "AI",
+    "needsHuman": "Needs human"
   },
   "reportPage": {
     "title": "Assessment report",

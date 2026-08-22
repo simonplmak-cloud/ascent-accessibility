@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { groupByUrl, outcomeLabel, outcomeRank, type HistoryItem } from "@/lib/history";
 
 function formatShort(iso: string): string {
@@ -24,6 +24,7 @@ function deltaIndicator(current: HistoryItem, previous?: HistoryItem): string | 
 
 export function ScoreComparison({ items }: { items: HistoryItem[] }) {
   const t = useTranslations("auditor");
+  const locale = useLocale();
   const groups = groupByUrl(items);
   if (groups.length === 0) return null;
 
@@ -53,7 +54,7 @@ export function ScoreComparison({ items }: { items: HistoryItem[] }) {
                       {formatShort(scan.createdAt)}
                     </div>
                     <div className="font-sans text-sm font-semibold text-terminal-fg">
-                      {outcomeLabel(scan.conformance)}
+                      {outcomeLabel(scan.conformance, locale)}
                     </div>
                     {indicator && (
                       <div

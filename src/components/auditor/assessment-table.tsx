@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { BulkActionBar } from "@/components/efficiency/bulk-action-bar";
@@ -69,6 +69,7 @@ interface AssessmentTableProps {
 
 export function AssessmentTable({ items, busyIds, onReRun, onDelete }: AssessmentTableProps) {
   const t = useTranslations("auditor");
+  const locale = useLocale();
   const [status, setStatus] = useState<HistoryStatusFilter>("all");
   const [sortKey, setSortKey] = useState<HistorySortKey>("createdAt");
   const [sortDir, setSortDir] = useState<SortDirection>("desc");
@@ -245,7 +246,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
                       className="align-middle"
                     />
                   </td>
-                  <td className="px-3 py-2 text-terminal-fg">{outcomeLabel(item.conformance)}</td>
+                  <td className="px-3 py-2 text-terminal-fg">{outcomeLabel(item.conformance, locale)}</td>
                   <td className="max-w-[260px] truncate px-3 py-2 text-terminal-fg" title={item.url}>
                     {item.url}
                   </td>

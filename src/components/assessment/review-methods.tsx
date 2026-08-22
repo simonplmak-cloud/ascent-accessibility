@@ -1,10 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Disclosure } from "@/components/ui/disclosure";
 import { aiResults, humanReviewPending, machineResults } from "@/lib/report-methods";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
+import { scTitle } from "@/lib/standards/wcag-sc";
+import { verdictLabel } from "@/lib/labels";
 import type { ComparisonData, Conformance } from "./types";
 
 function verdictClass(result: string): string {
@@ -24,6 +26,7 @@ export function ReviewMethods({
   ai?: ComparisonData["ai"];
 }) {
   const t = useTranslations("report");
+  const locale = useLocale();
   if (!conformance?.rows?.length) return null;
 
   const machine = machineResults(conformance.rows);
@@ -61,10 +64,10 @@ export function ReviewMethods({
             {machine.rows.map((row) => (
               <li key={row.num} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2">
                 <span className="font-sans text-sm text-terminal-fg">{row.num}</span>
-                <span className="font-sans text-sm text-terminal-muted">{row.title}</span>
+                <span className="font-sans text-sm text-terminal-muted">{scTitle(row.num, locale)}</span>
                 <span className="ml-auto font-sans text-xs text-terminal-muted">{t("levelLabel", { level: row.level })}</span>
                 <span className={`font-sans text-xs font-semibold ${verdictClass(row.machineResult ?? "")}`}>
-                  {row.machineResult}
+                  {verdictLabel(row.machineResult ?? "", locale)}
                 </span>
               </li>
             ))}
@@ -112,7 +115,7 @@ export function ReviewMethods({
                     <tr key={v.sc} className="border-b border-terminal-border last:border-b-0">
                       <td className="px-3 py-2 text-terminal-fg">{v.sc}</td>
                       <td className="px-3 py-2">
-                        <span className={verdictClass(v.verdict)}>{v.verdict}</span>
+                        <span className={verdictClass(v.verdict)}>{verdictLabel(v.verdict, locale)}</span>
                       </td>
                       <td className="px-3 py-2 text-terminal-fg">{Math.round(v.confidence * 100)}%</td>
                       <td className="px-3 py-2 text-terminal-muted">{v.reasoning}</td>
@@ -142,7 +145,7 @@ export function ReviewMethods({
             {human.rows.map((row) => (
               <li key={row.num} className="rounded border border-terminal-border p-3">
                 <p className="font-sans text-sm text-terminal-fg">
-                  <span className="font-semibold">{row.num} {row.title}</span>{" "}
+                  <span className="font-semibold">{row.num} {scTitle(row.num, locale)}</span>{" "}
                   <span className="text-terminal-muted">{t("levelLabel", { level: row.level })}</span>
                 </p>
                 <p className="mt-1 font-sans text-sm text-terminal-muted">{getManualTest(row.num)}</p>

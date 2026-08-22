@@ -670,7 +670,8 @@
     "title": "修復資料庫",
     "description": "每項 WCAG 成功準則的淺白修復方法 — 改動什麼及如何確認已解決。",
     "heading": "修復資料庫",
-    "intro": "修復每項 WCAG 成功準則的淺白指引。同樣的指引會出現在評估工具報告的每項發現中。"
+    "intro": "修復每項 WCAG 成功準則的淺白指引。同樣的指引會出現在評估工具報告的每項發現中。",
+    "levelLabel": "等級 {level}"
   },
   "assess": {
     "urlLabel": "網站網址",
@@ -913,7 +914,19 @@
     "scanLog": "掃描記錄",
     "autoScrollOn": "自動捲動開啟",
     "autoScrollOff": "自動捲動關閉",
-    "noLogEntries": "尚無記錄項目。"
+    "noLogEntries": "尚無記錄項目。",
+    "conformanceHeading": "全部準則 — 綜合結果",
+    "conformanceSummary": "{passed} 通過 · {failed} 未通過 · {notPresent} 不存在 · {cannotTell} 無法判斷 · 已測試 {coverage}% · 達成等級：{level}",
+    "testedByNote": "「判定方式」顯示每項準則如何解決：機器（規則引擎）、AI（AI 輔助 — 不構成合規證明）或需人工（人工審核）。",
+    "principleLabel": "原則 {principle}",
+    "thSc": "SC",
+    "thTitle": "標題",
+    "thLevel": "等級",
+    "thResult": "結果",
+    "thTestedBy": "判定方式",
+    "machine": "機器",
+    "ai": "AI",
+    "needsHuman": "需人工"
   },
   "reportPage": {
     "title": "評估報告",

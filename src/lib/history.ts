@@ -28,11 +28,13 @@ const OUTCOME_RANK: Record<ConformanceOutcome, number> = {
   undetermined: 2,
 };
 
-export function outcomeLabel(outcome: ConformanceOutcome | null | undefined): string {
-  if (outcome === "conforms") return "Conforms";
-  if (outcome === "does-not-conform") return "Does not conform";
-  if (outcome === "undetermined") return "Not yet evaluated";
-  return "—";
+import { outcomeLabel as localizedOutcome } from "@/lib/labels";
+
+export function outcomeLabel(
+  outcome: ConformanceOutcome | null | undefined,
+  locale?: string,
+): string {
+  return localizedOutcome(outcome, locale);
 }
 
 export function outcomeRank(outcome: ConformanceOutcome | null | undefined): number {
