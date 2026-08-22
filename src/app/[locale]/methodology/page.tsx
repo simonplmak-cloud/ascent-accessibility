@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
+import { reviewableScs } from "@/lib/standards/sc-reviewers";
+import { scTitle } from "@/lib/standards/wcag-sc";
 
 export async function generateMetadata({
   params,
@@ -24,7 +26,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default async function MethodologyPage() {
+export default async function MethodologyPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations("methodology");
 
   return (
@@ -49,6 +57,29 @@ export default async function MethodologyPage() {
       <Section title={t("limitsTitle")}>
         <p>{t("limitsBody")}</p>
       </Section>
+
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("whoReviewsTitle")}</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">{t("whoReviewsBody")}</p>
+      <div className="mt-4 overflow-x-auto rounded border border-terminal-border">
+        <table className="w-full border-collapse font-sans text-sm">
+          <thead>
+            <tr className="border-b border-terminal-border text-left text-terminal-muted">
+              <th scope="col" className="px-3 py-2 font-medium">{t("thCriterion")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thReviewer")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thWhy")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {reviewableScs(locale).map((row) => (
+              <tr key={row.sc} className="border-b border-terminal-border last:border-b-0">
+                <td className="px-3 py-2 text-terminal-fg">{row.sc} {scTitle(row.sc, locale)}</td>
+                <td className="px-3 py-2 text-terminal-muted">{row.profile}</td>
+                <td className="px-3 py-2 text-terminal-muted">{row.why}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <p className="mt-8 font-sans text-sm text-terminal-fg">
         {t.rich("seeAll", {

@@ -3,6 +3,7 @@ import { WCAG_SCS } from "@/lib/standards/wcag-sc";
 import { understandingFor, understandingHref } from "@/lib/standards/understanding";
 import { standardName } from "@/lib/standards/standards-locales";
 import { listStandards } from "@/lib/standards/catalog";
+import { scReviewer, reviewableScs } from "@/lib/standards/sc-reviewers";
 
 describe("understanding", () => {
   it("returns localized content for a principle-1 SC", () => {
@@ -45,5 +46,19 @@ describe("standardName", () => {
     expect(standardName("wcag22aa", "zh-Hans")).toBe("网页内容无障碍指南 2.2 AA（WCAG 2.2 AA）");
     expect(standardName("section508", "zh-Hans")).toContain("Section 508");
     expect(standardName("wcag22aa", "en")).toBe("wcag22aa");
+  });
+});
+
+describe("sc-reviewers", () => {
+  it("maps manual-only SCs to a certified reviewer profile + why, in all locales", () => {
+    for (const locale of ["en", "zh-Hans", "zh-Hant"]) {
+      const r = scReviewer("3.3.1", locale); // not a manual-only SC -> undefined
+      expect(r).toBeUndefined();
+      const c = scReviewer("2.1.3", locale);
+      expect(c).toBeTruthy();
+      expect(c!.profile).toBeTruthy();
+      expect(c!.why).toBeTruthy();
+    }
+    expect(reviewableScs("zh-Hans").length).toBeGreaterThan(15);
   });
 });

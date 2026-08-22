@@ -586,7 +586,7 @@ export const QUIZZES: Record<string, Quiz> = {
 
 export const PATH: Path = {
   id: "web-accessibility",
-  title: "Web Accessibility",
+  title: "Ascent Web Accessibility Program",
   version: "2.0",
   modules: [
     {

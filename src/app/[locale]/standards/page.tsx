@@ -7,7 +7,7 @@ import { InlineLink } from "@/components/ui/inline-link";
 import { StandardsView, type StandardTree } from "@/components/standards/standards-view";
 import { DEFAULT_STANDARD_ID, listStandards, type Standard } from "@/lib/standards/catalog";
 import { scsForStandard } from "@/lib/standards/version";
-import { understandingHref } from "@/lib/standards/understanding";
+import { understandingFor, understandingHref } from "@/lib/standards/understanding";
 import {
   WCAG_GUIDELINES,
   guidelineName,
@@ -65,6 +65,7 @@ function buildTree(standard: Standard, locale: string): StandardTree {
             level: sc.level,
             specUrl: specUrl(sc),
             understandingUrl: understandingHref(sc.num, locale),
+            helps: understandingFor(sc.num, locale)?.benefits[0],
           })),
         })),
       };

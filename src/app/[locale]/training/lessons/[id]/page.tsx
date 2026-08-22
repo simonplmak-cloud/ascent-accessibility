@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { curriculumFor } from "@/lib/training/curriculum";
 import { getSc, scTitle } from "@/lib/standards/wcag-sc";
-import { isInternalHref, understandingHref } from "@/lib/standards/understanding";
+import { isInternalHref, understandingFor, understandingHref } from "@/lib/standards/understanding";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import { getScRemediation } from "@/lib/standards/sc-remediation";
 import { CompleteLessonButton } from "@/components/training/complete-lesson-button";
@@ -54,6 +54,12 @@ export default async function LessonPage({
                 <p className="mt-1 font-sans text-sm text-terminal-muted">
                   {t("principleLevel", { principle: info.principle, level: info.level })}
                 </p>
+                {understandingFor(sc, locale)?.benefits[0] && (
+                  <p className="mt-2 font-sans text-sm text-terminal-muted">
+                    <span className="text-terminal-fg">{t("whoItHelps")}</span>{" "}
+                    {understandingFor(sc, locale)!.benefits[0]}
+                  </p>
+                )}
                 <dl className="mt-4 space-y-3 font-sans text-sm">
                   <div>
                     <dt className="text-terminal-muted">{t("howToVerify")}</dt>

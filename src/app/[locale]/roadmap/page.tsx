@@ -16,7 +16,7 @@ export async function generateMetadata({
 
 export default async function RoadmapPage() {
   const t = await getTranslations("roadmap");
-  const shipped = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => t(`s${n}`));
+  const shipped = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => t(`s${n}`));
   const planned = [1, 2, 3, 4, 5, 6].map((n) => t(`p${n}`));
 
   return (

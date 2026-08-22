@@ -15,7 +15,7 @@ export async function generateMetadata({
   return { title: t("title"), description: t("description") };
 }
 
-const QA_KEYS = [1, 2, 3, 4, 5, 6, 7, 8];
+const QA_KEYS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export default async function FaqPage() {
   const t = await getTranslations("faqPage");

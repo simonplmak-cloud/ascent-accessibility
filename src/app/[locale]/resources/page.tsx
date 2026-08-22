@@ -41,6 +41,16 @@ export default async function ResourcesPage() {
             {t("link3")}<span className="sr-only"> (opens in a new window)</span>
           </a>
         </li>
+        <li>
+          <a
+            href="https://github.com/humanity4ai/ascent-accessibility"
+            className="underline underline-offset-4"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t("link4")}<span className="sr-only"> (opens in a new window)</span>
+          </a>
+        </li>
       </ul>
       <MutedText className="mt-6">
         {t.rich("note", {

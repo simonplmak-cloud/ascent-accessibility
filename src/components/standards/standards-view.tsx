@@ -13,6 +13,7 @@ export interface StandardSc {
   level: string;
   specUrl: string;
   understandingUrl: string;
+  helps?: string;
 }
 
 export interface GuidelineGroup {
@@ -62,6 +63,9 @@ function ScList({ scs }: { scs: StandardSc[] }) {
             <span className="sr-only">{t("opensNewWindow")}</span>
           </a>
           <span className="font-sans text-sm text-terminal-fg">{sc.title}</span>
+          {sc.helps && (
+            <span className="font-sans text-xs text-terminal-muted">{sc.helps}</span>
+          )}
           {isInternalHref(sc.understandingUrl) ? (
             <Link
               href={sc.understandingUrl}

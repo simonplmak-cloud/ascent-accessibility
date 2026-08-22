@@ -6,7 +6,7 @@ import type { LocaleOverlay } from "./curriculum";
 
 export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
   "zh-Hant": {
-    pathTitle: "網頁無障礙",
+    pathTitle: "Ascent 網頁無障礙計劃",
     modules: {
       advocacy: {
         title: "倡導",
@@ -579,7 +579,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
     },
   },
   "zh-Hans": {
-    pathTitle: "网页无障碍",
+    pathTitle: "Ascent 网页无障碍计划",
     modules: {
       advocacy: {
         title: "倡导",
