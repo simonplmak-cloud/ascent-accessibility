@@ -1,67 +1,49 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { InlineLink } from "@/components/ui/inline-link";
 
-export const metadata: Metadata = {
-  title: "About",
-  description:
-    "Ascent Partners Foundation is a Hong Kong registered charity connecting leaders with the tools to turn sustainability into action.",
-  alternates: { canonical: "/about" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "about" });
+  return { title: t("title"), description: t("description") };
+}
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const t = await getTranslations("about");
+
   return (
     <PageShell>
-      <PageHeading>About Ascent Partners Foundation</PageHeading>
+      <PageHeading>{t("heading")}</PageHeading>
 
-      <p className="mt-6 font-sans leading-7 text-terminal-fg">
-        Ascent Partners Foundation is a Hong Kong registered charity, established in 2017, that
-        connects leaders with the ideas and tools to turn sustainability into action. We bring
-        together decision-makers across government, civil society, and the private sector to
-        address environmental and social challenges across the Asia-Pacific.
-      </p>
-      <p className="mt-4 font-sans text-sm text-terminal-muted">
-        A Hong Kong Registered Charity (IRD Section 88).
-      </p>
+      <p className="mt-6 font-sans leading-7 text-terminal-fg">{t("intro")}</p>
+      <p className="mt-4 font-sans text-sm text-terminal-muted">{t("charityNote")}</p>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Areas of focus</h2>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("focusTitle")}</h2>
       <ul className="mt-4 space-y-3 font-sans leading-7 text-terminal-muted">
         <li>
-          <span className="text-terminal-fg">Climate action</span> — supporting climate dialogue,
-          nature-based solutions, and decarbonisation pathways.
+          <span className="text-terminal-fg">{t("focus1Title")}</span> — {t("focus1Body")}
         </li>
         <li>
-          <span className="text-terminal-fg">ESG integration</span> — educational resources and
-          guidance on environmental, social, and governance principles for businesses and
-          practitioners.
+          <span className="text-terminal-fg">{t("focus2Title")}</span> — {t("focus2Body")}
         </li>
         <li>
-          <span className="text-terminal-fg">Biodiversity</span> — an IUCN partnership connecting
-          conservation initiatives with philanthropic communities, and professional conservation
-          education.
+          <span className="text-terminal-fg">{t("focus3Title")}</span> — {t("focus3Body")}
         </li>
       </ul>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Our tools</h2>
-      <p className="mt-4 font-sans leading-7 text-terminal-muted">
-        Connecting leaders is not just about conversation — it is about giving them practical ways
-        to act. That is why we built this accessibility assessment. An inclusive website is part
-        of the “social” in ESG, and every leader should be able to see, in a moment, whether their
-        site welcomes everyone. Submit a website and it checks the pages against recognised
-        standards such as WCAG 2.2 AA, returning a plain-language score with findings and gentle
-        guidance. It is a friendly starting point, never a verdict, and not a substitute for a
-        certified audit.
-      </p>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("toolsTitle")}</h2>
+      <p className="mt-4 font-sans leading-7 text-terminal-muted">{t("toolsBody")}</p>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Our people</h2>
-      <p className="mt-4 font-sans leading-7 text-terminal-muted">
-        We are a small, caring team, and we welcome people who share this mission — whether you
-        would like help with your own site, want to contribute your expertise, or are interested
-        in joining us. Please say hello.
-      </p>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("peopleTitle")}</h2>
+      <p className="mt-4 font-sans leading-7 text-terminal-muted">{t("peopleBody")}</p>
       <p className="mt-4 font-sans text-sm text-terminal-fg">
-        <InlineLink href="/contact">Get in touch</InlineLink>
+        <InlineLink href="/contact">{t("getInTouch")}</InlineLink>
       </p>
     </PageShell>
   );

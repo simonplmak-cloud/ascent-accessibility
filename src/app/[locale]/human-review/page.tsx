@@ -1,69 +1,55 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
-import { InlineLink } from "@/components/ui/inline-link";
 import { ButtonLink } from "@/components/ui/button-link";
 
-export const metadata: Metadata = {
-  title: "Human review — coming soon",
-  description:
-    "Independent human review is coming soon. We are building a review workforce in partnership with charities that serve people with visual and hearing disabilities — lived-experience experts who will verify what automation cannot.",
-  alternates: { canonical: "/human-review" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "humanReviewPage" });
+  return { title: t("title"), description: t("description") };
+}
 
-export default function HumanReviewPage() {
+export default async function HumanReviewPage() {
+  const t = await getTranslations("humanReviewPage");
+
   return (
     <PageShell width="4xl">
       <p className="inline-block rounded border border-terminal-serious px-2 py-0.5 font-sans text-xs font-semibold uppercase tracking-wide text-terminal-serious">
-        Coming soon
+        {t("comingSoon")}
       </p>
-      <PageHeading>Independent human review</PageHeading>
-      <MutedText className="mt-4">
-        Automated scanning and AI-assisted review resolve most success criteria today. The rest —
-        the criteria that require judgement — will be verified by people with lived experience of
-        disability. We are building that review workforce now, in partnership with charities that
-        serve people with visual and hearing disabilities.
-      </MutedText>
+      <PageHeading>{t("heading")}</PageHeading>
+      <MutedText className="mt-4">{t("intro")}</MutedText>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">
-        Why lived experience matters
-      </h2>
-      <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        A reviewer who navigates the web with a screen reader notices in seconds what a checklist
-        misses — focus order that doesn&apos;t match reading order, alt text that describes the wrong
-        thing, a form error that is announced but not actionable. That judgement turns a score into
-        an assurance you can defend. When the service launches, reviewers will be paid for that
-        expertise: their insight is the product, not an afterthought.
-      </p>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("whyTitle")}</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">{t("whyBody")}</p>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">What it will review</h2>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("whatTitle")}</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">{t("whatBody")}</p>
+
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("receiveTitle")}</h2>
       <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        Every success criterion the automated engine and AI cannot determine is flagged
-        &ldquo;Cannot tell&rdquo;. When human review launches, a reviewer whose own experience
-        matches the barrier will resolve each one to Passed, Failed, or Not present — with a
-        written rationale — against the exact page snapshot captured at scan time, so the result is
-        reproducible even if the live site changes.
+        {t.rich("receiveBody", {
+          link: (chunks) => (
+            <Link href="/esg" className="text-brandLink underline underline-offset-4 hover:text-brand">
+              {chunks}
+            </Link>
+          ),
+        })}
       </p>
 
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">What you will receive</h2>
-      <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        A signed, dated <InlineLink href="/esg">conformance evaluation report</InlineLink>, structured
-        like an assurance engagement: scope, evaluators, review process, per-criterion results, a
-        conformance claim, and key findings — in-app and as a PDF, with a VPAT/ACR export for
-        procurement.
-      </p>
-
-      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">In the meantime</h2>
-      <p className="mt-3 font-sans leading-7 text-terminal-muted">
-        You can already run a free scan and get a partial, automated result — clearly marked as
-        such — with a suggested fix for each issue. Independent human review will complete the
-        picture when it launches.
-      </p>
+      <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">{t("meantimeTitle")}</h2>
+      <p className="mt-3 font-sans leading-7 text-terminal-muted">{t("meantimeBody")}</p>
       <div className="mt-4 flex flex-wrap gap-3">
-        <ButtonLink href="/assess">Scan your site free</ButtonLink>
+        <ButtonLink href="/assess">{t("scanFree")}</ButtonLink>
         <ButtonLink href="/contact" variant="outline">
-          Register your interest
+          {t("registerInterest")}
         </ButtonLink>
       </div>
     </PageShell>

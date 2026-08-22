@@ -1,118 +1,110 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
-import { InlineLink } from "@/components/ui/inline-link";
 import { ButtonLink } from "@/components/ui/button-link";
 
-export const metadata: Metadata = {
-  title: "Plans",
-  description:
-    "Ascent Accessibility is free to use. Single-page and whole-site scans are free for verified accounts; AI-assisted review is bring-your-own-key, and human review is billed per page.",
-  alternates: { canonical: "/pricing" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "plans" });
+  return { title: t("title"), description: t("description") };
+}
 
-const free = [
-  "Single-page and whole-website scans — no charge",
-  "WCAG 2.2 A/AA/AAA, 2.1 and 2.0, plus Section 508",
-  "Conformance outcome with 'x of y applicable SCs meet'",
-  "Findings with impact, affected elements, and pages",
-  "Plain-language remediation guidance for every finding",
-  "Evidence screenshots of each violation",
-];
+const freeKeys = ["free1", "free2", "free3", "free4", "free5", "free6"];
+const byokKeys = ["byok1", "byok2", "byok3", "byok4"];
+const humanKeys = ["human1", "human2", "human3", "human4", "human5"];
 
-const byok = [
-  "AI-assisted review of criteria automation cannot resolve",
-  "Bring your own key for OpenRouter, OpenAI, Qwen, Gemini, or Anthropic — or any OpenAI-compatible endpoint",
-  "Fail-safe: nothing is marked passed without high confidence",
-  "Covered by your existing key; no per-scan fee",
-];
+export default async function PricingPage() {
+  const t = await getTranslations("plans");
 
-const human = [
-  "Independent review by people with lived experience of disability",
-  "Resolves every 'Cannot tell' criterion with a written rationale",
-  "A signed, dated conformance evaluation report (in-app + PDF)",
-  "VPAT/ACR export for procurement",
-  "Launching soon — register your interest below",
-];
-
-export default function PricingPage() {
   return (
     <PageShell width="4xl">
-      <PageHeading>Plans</PageHeading>
-      <MutedText className="mt-4">
-        The assessment is free for everyone. We fund it through donations (and, soon, paid human
-        review) — not by charging for scans.
-      </MutedText>
+      <PageHeading>{t("heading")}</PageHeading>
+      <MutedText className="mt-4">{t("intro")}</MutedText>
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         <Card className="p-6">
-          <h2 className="font-display text-xl font-semibold text-terminal-fg">Free</h2>
+          <h2 className="font-display text-xl font-semibold text-terminal-fg">{t("freeTitle")}</h2>
           <p className="mt-1 font-display text-3xl font-bold text-terminal-fg">
-            US$0
-            <span className="text-base font-normal text-terminal-muted"> / always</span>
+            {t("freePrice")}
+            <span className="text-base font-normal text-terminal-muted"> {t("freeSuffix")}</span>
           </p>
           <ul className="mt-4 space-y-2 font-sans text-sm text-terminal-muted">
-            {free.map((item) => (
-              <li key={item} className="flex gap-2">
+            {freeKeys.map((key) => (
+              <li key={key} className="flex gap-2">
                 <span aria-hidden="true" className="text-terminal-pass">✓</span>
-                {item}
+                {t(key)}
               </li>
             ))}
           </ul>
           <ButtonLink href="/assess" className="mt-6 inline-block">
-            Scan your site
+            {t("freeCta")}
           </ButtonLink>
         </Card>
 
         <Card className="p-6">
-          <h2 className="font-display text-xl font-semibold text-terminal-fg">AI-assisted review</h2>
-          <p className="mt-1 font-display text-3xl font-bold text-terminal-fg">BYOK</p>
+          <h2 className="font-display text-xl font-semibold text-terminal-fg">{t("aiTitle")}</h2>
+          <p className="mt-1 font-display text-3xl font-bold text-terminal-fg">{t("aiPrice")}</p>
           <ul className="mt-4 space-y-2 font-sans text-sm text-terminal-muted">
-            {byok.map((item) => (
-              <li key={item} className="flex gap-2">
+            {byokKeys.map((key) => (
+              <li key={key} className="flex gap-2">
                 <span aria-hidden="true" className="text-terminal-pass">✓</span>
-                {item}
+                {t(key)}
               </li>
             ))}
           </ul>
           <ButtonLink href="/assess" className="mt-6 inline-block">
-            Whole-website scan
+            {t("aiCta")}
           </ButtonLink>
         </Card>
 
         <Card className="p-6">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-display text-xl font-semibold text-terminal-fg">Human review</h2>
+            <h2 className="font-display text-xl font-semibold text-terminal-fg">{t("humanTitle")}</h2>
             <span className="rounded border border-terminal-serious px-2 py-0.5 font-sans text-xs font-semibold uppercase tracking-wide text-terminal-serious">
-              Coming soon
+              {t("comingSoon")}
             </span>
           </div>
           <p className="mt-1 font-display text-3xl font-bold text-terminal-fg">
-            Per page
-            <span className="text-base font-normal text-terminal-muted"> · on launch</span>
+            {t("humanPrice")}
+            <span className="text-base font-normal text-terminal-muted"> {t("humanSuffix")}</span>
           </p>
           <ul className="mt-4 space-y-2 font-sans text-sm text-terminal-muted">
-            {human.map((item) => (
-              <li key={item} className="flex gap-2">
+            {humanKeys.map((key) => (
+              <li key={key} className="flex gap-2">
                 <span aria-hidden="true" className="text-terminal-pass">✓</span>
-                {item}
+                {t(key)}
               </li>
             ))}
           </ul>
           <ButtonLink href="/contact" variant="outline" className="mt-6 inline-block">
-            Register your interest
+            {t("registerInterest")}
           </ButtonLink>
         </Card>
       </div>
 
       <p className="mt-8 font-sans text-sm text-terminal-muted">
-        Prefer to support the service?{" "}
-        <InlineLink href="/donate">Make a donation</InlineLink> — it keeps the scans free. See our{" "}
-        <InlineLink href="/terms">terms</InlineLink>,{" "}
-        <InlineLink href="/refund">refund policy</InlineLink>, and{" "}
-        <InlineLink href="/sla">service commitment</InlineLink>.
+        {t.rich("supportNote", {
+          donate: (chunks) => (
+            <Link href="/donate" className="text-brandLink underline underline-offset-4 hover:text-brand">{chunks}</Link>
+          ),
+          terms: (chunks) => (
+            <Link href="/terms" className="text-brandLink underline underline-offset-4 hover:text-brand">{chunks}</Link>
+          ),
+          refund: (chunks) => (
+            <Link href="/refund" className="text-brandLink underline underline-offset-4 hover:text-brand">{chunks}</Link>
+          ),
+          sla: (chunks) => (
+            <Link href="/sla" className="text-brandLink underline underline-offset-4 hover:text-brand">{chunks}</Link>
+          ),
+        })}
       </p>
     </PageShell>
   );

@@ -1,55 +1,30 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
-import { InlineLink } from "@/components/ui/inline-link";
 import { FaqJsonLd } from "@/components/faq-json-ld";
 
-export const metadata: Metadata = {
-  title: "Frequently asked questions",
-  description: "Common questions about Ascent Accessibility — costs, scanning, data, and limitations.",
-  alternates: { canonical: "/faq" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "faqPage" });
+  return { title: t("title"), description: t("description") };
+}
 
-const faqs = [
-  {
-    q: "Is the scan really free?",
-    a: "Yes — single-page and whole-website scans are free for verified accounts. You just need to sign in and confirm your email.",
-  },
-  {
-    q: "What does a verified account unlock?",
-    a: "Whole-website scans (full sitemap and link crawl), the conformance table, site audit signals, PDF export, API access, and saved history — all free.",
-  },
-  {
-    q: "How much does AI-assisted review cost?",
-    a: "Bring your own key. Save your own API key for OpenRouter, OpenAI, Qwen/DashScope, Google Gemini, Anthropic, or any OpenAI-compatible endpoint, and pay the token cost directly; the platform bears no cost and charges no fee.",
-  },
-  {
-    q: "How long does a scan take?",
-    a: "A single page usually completes in under a minute. Whole-website scans take longer — a large site can take several minutes or more. Scans run in a queue, so during busy periods they may wait.",
-  },
-  {
-    q: "Is a good score a guarantee of legal compliance?",
-    a: "No. The tool is a self-assessment aid, not a certified audit or legal advice. Automated checks cover only part of WCAG; many criteria still need manual review.",
-  },
-  {
-    q: "Can I scan any website?",
-    a: "Please only scan sites you own or are authorised to assess, and use the service in line with our terms.",
-  },
-  {
-    q: "Do you store my data?",
-    a: "We store the URLs you scan, the findings, and any evidence so you can revisit your reports. You can delete assessments from your history at any time. See the privacy policy for detail.",
-  },
-  {
-    q: "How do I cancel?",
-    a: "From the billing portal on the site scans page — cancellation takes effect at the end of the current billing period.",
-  },
-];
+const QA_KEYS = [1, 2, 3, 4, 5, 6, 7, 8];
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const t = await getTranslations("faqPage");
+  const faqs = QA_KEYS.map((n) => ({ q: t(`q${n}`), a: t(`a${n}`) }));
+
   return (
     <PageShell>
       <FaqJsonLd faqs={faqs} />
-      <PageHeading>Frequently asked questions</PageHeading>
+      <PageHeading>{t("heading")}</PageHeading>
 
       <div className="mt-8 space-y-6">
         {faqs.map((faq) => (
@@ -64,7 +39,13 @@ export default function FaqPage() {
       </div>
 
       <p className="mt-8 font-sans text-sm text-terminal-muted">
-        Something else? <InlineLink href="/contact">Get in touch</InlineLink>.
+        {t.rich("somethingElse", {
+          link: (chunks) => (
+            <Link href="/contact" className="text-brandLink underline underline-offset-4 hover:text-brand">
+              {chunks}
+            </Link>
+          ),
+        })}
       </p>
     </PageShell>
   );

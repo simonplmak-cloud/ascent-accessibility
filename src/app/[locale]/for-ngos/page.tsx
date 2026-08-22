@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
-import { InlineLink } from "@/components/ui/inline-link";
 import { ButtonLink } from "@/components/ui/button-link";
 
-export const metadata: Metadata = {
-  title: "For NGOs",
-  description:
-    "Free website accessibility checking for NGOs and community services — reach every person you serve, including people with disabilities. Free forever, no expertise needed.",
-  alternates: { canonical: "/for-ngos" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "forNgos" });
+  return { title: t("title"), description: t("description") };
+}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -21,66 +25,56 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default function ForNgosPage() {
+export default async function ForNgosPage() {
+  const t = await getTranslations("forNgos");
+
   return (
     <PageShell width="3xl">
-      <PageHeading>Accessibility for NGOs and community services</PageHeading>
-      <MutedText className="mt-4">
-        Reach every person you serve — including people with disabilities. Free forever, and you
-        do not need to be a technical expert.
-      </MutedText>
+      <PageHeading>{t("heading")}</PageHeading>
+      <MutedText className="mt-4">{t("intro")}</MutedText>
 
-      <Section title="Your mission includes everyone">
+      <Section title={t("missionTitle")}>
+        <p>{t("missionBody")}</p>
+      </Section>
+
+      <Section title={t("freeTitle")}>
+        <p>{t("freeBody")}</p>
+      </Section>
+
+      <Section title={t("evidenceTitle")}>
         <p>
-          The people you exist to help are often the people most affected by an inaccessible
-          website. If someone cannot read your page with a screen reader, navigate it by keyboard,
-          or understand your forms, they are cut off from your service. Accessibility is how you
-          make sure no one is left out.
+          {t.rich("evidenceBody", {
+            link: (chunks) => (
+              <Link href="/esg" className="text-brandLink underline underline-offset-4 hover:text-brand">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       </Section>
 
-      <Section title="Free forever — built for non-profit budgets">
-        <p>
-          Scanning is free, always. We are a registered charity, funded by donations (and, soon,
-          paid independent review) — not by charging you for scans. There is no paywall and no
-          trial that expires.
-        </p>
-      </Section>
-
-      <Section title="Evidence your funders will value">
-        <p>
-          Digital inclusion is part of the &ldquo;social&rdquo; in ESG. A clear accessibility
-          report shows funders and grant assessors that you take inclusion seriously — with
-          evidence, not just intention.{" "}
-          <InlineLink href="/esg">See how it maps to GRI, ESRS, and SASB</InlineLink>.
-        </p>
-      </Section>
-
-      <Section title="What you get">
+      <Section title={t("getTitle")}>
         <ul className="list-disc space-y-2 pl-6">
           <li>
-            <span className="text-terminal-fg">A plain-language report</span> — a score and the top
-            issues to fix first, in words anyone can follow.
+            <span className="text-terminal-fg">{t("getItem1Title")}</span> — {t("getItem1Body")}
           </li>
           <li>
-            <span className="text-terminal-fg">A suggested fix</span> for each issue, with the
-            evidence.
+            <span className="text-terminal-fg">{t("getItem2Title")}</span> — {t("getItem2Body")}
           </li>
           <li>
-            <span className="text-terminal-fg">A free course</span> for your team, so you can keep
-            your site accessible as it grows.
+            <span className="text-terminal-fg">{t("getItem3Title")}</span> — {t("getItem3Body")}
           </li>
         </ul>
       </Section>
 
-      <Section title="Get started">
+      <Section title={t("startTitle")}>
         <div className="flex flex-wrap gap-3">
-          <ButtonLink href="/assess">Scan your site free</ButtonLink>
+          <ButtonLink href="/assess">{t("scanFree")}</ButtonLink>
           <ButtonLink href="/training" variant="outline">
-            Free team course
+            {t("courseCta")}
           </ButtonLink>
           <ButtonLink href="/what-is-accessibility" variant="outline">
-            What is accessibility?
+            {t("primerCta")}
           </ButtonLink>
         </div>
       </Section>
