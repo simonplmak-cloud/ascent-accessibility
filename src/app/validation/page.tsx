@@ -15,7 +15,7 @@ const comparison: Array<[string, string, string, string, string, string]> = [
   ["axe-core (open-source)", "✓", "—", "—", "~30–50%", "—"],
   ["Lighthouse", "✓ (uses axe-core)", "—", "—", "~30–50%", "—"],
   ["Enterprise audit services", "✓", "varies", "expert-led (not lived-experience)", "full (manual)", "report, not in-app"],
-  ["Ascent Accessibility", "✓", "✓", "✓ lived-experience workforce", "✓ 100%", "✓ signed, in-app + PDF"],
+  ["Ascent Accessibility", "✓", "✓", "coming soon (lived-experience)", "✓ 100%", "✓ signed, in-app + PDF"],
 ];
 
 export default function ValidationPage() {
@@ -33,7 +33,8 @@ export default function ValidationPage() {
       <p className="mt-3 font-sans leading-7 text-terminal-muted">
         Three layers cover 100% of success criteria: the clean-room rule engine (machine-testable),
         an AI-assisted review with a confidence fail-safe (AI-detectable), and independent human
-        review by people with lived experience (manual-only). No criterion is left unclassified.
+        review by people with lived experience (manual-only — launching soon). No criterion is left
+        unclassified.
       </p>
 
       <h2 className="mt-8 font-display text-xl font-semibold text-terminal-fg">Comparison</h2>

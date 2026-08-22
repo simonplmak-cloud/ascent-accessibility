@@ -41,9 +41,9 @@ export default function ForNgosPage() {
 
       <Section title="Free forever — built for non-profit budgets">
         <p>
-          Scanning is free, always. We are a registered charity, funded by donations and by paid
-          independent review — not by charging you for scans. There is no paywall and no trial
-          that expires.
+          Scanning is free, always. We are a registered charity, funded by donations (and, soon,
+          paid independent review) — not by charging you for scans. There is no paywall and no
+          trial that expires.
         </p>
       </Section>
 

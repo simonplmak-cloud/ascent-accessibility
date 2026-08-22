@@ -20,11 +20,11 @@ const faqs = [
   },
   {
     q: "Why does third-party verification matter?",
-    a: "Anyone can write a self-declared conformance claim. Independent verification — by reviewers with lived experience of disability, outside your team — is what makes the claim credible to procurement, auditors, and funders.",
+    a: "Anyone can write a self-declared conformance claim. Independent verification — by reviewers with lived experience of disability, outside your team — is what makes the claim credible to procurement, auditors, and funders. Our human-review service is launching soon.",
   },
   {
     q: "Do I need a VPAT for a government contract?",
-    a: "Often, yes. Public-sector procurement increasingly asks for an ACR (a completed VPAT) as evidence of accessibility. Our signed, dated conformance report plus independent human review supports exactly that.",
+    a: "Often, yes. Public-sector procurement increasingly asks for an ACR (a completed VPAT) as evidence of accessibility. Our signed, dated conformance report — plus independent human review once it launches — supports exactly that.",
   },
 ];
 

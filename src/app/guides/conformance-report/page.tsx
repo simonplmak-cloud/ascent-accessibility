@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 const faqs = [
   {
     q: "Does a good score mean my site is compliant?",
-    a: "Not on its own. An automated score covers only part of WCAG. A signed conformance report that includes independent human review is stronger evidence — but even that is a professional opinion, not a legal guarantee.",
+    a: "Not on its own. An automated score covers only part of WCAG. A signed conformance report that includes independent human review (launching soon) is stronger evidence — but even that is a professional opinion, not a legal guarantee.",
   },
   {
     q: "What does 'needs human review' mean?",

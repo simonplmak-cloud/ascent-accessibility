@@ -8,6 +8,7 @@ import { ComparisonPanel } from "./comparison-panel";
 import { FindingEvidence } from "./finding-evidence";
 import { Methodology } from "./methodology";
 import { LogPanel } from "./log-panel";
+import { ReportMark } from "./report-mark";
 import { buildReportSummary } from "@/lib/report-summary";
 import { priorityFindings } from "@/lib/report-priority";
 import { impactColor } from "./severity";
@@ -23,6 +24,12 @@ export function Report({ result }: { result: AssessmentResult }) {
   const cannotTellCount =
     result.comparison?.conformance?.rows?.filter((row) => row.result === "CannotTell").length ?? 0;
 
+  // Partial completion (Phase 2): the report is partial unless human review is done.
+  // Human review is coming soon, so today every report is partial — mark it honestly.
+  const conformance = result.comparison?.conformance;
+  const isPartial = hasConformance && result.reviewStatus !== "reviewed";
+  const resolvedCount = conformance ? conformance.passed + conformance.failed : 0;
+
   // Priority-first (A2): deterministic impact × reach ordering; top 5 surfaced.
   const orderedFindings = priorityFindings(result.findings);
   const top = orderedFindings.slice(0, 5);
@@ -34,6 +41,7 @@ export function Report({ result }: { result: AssessmentResult }) {
     ...(cannotTellCount > 0 ? [{ id: "manual-review", label: "Manual review" }] : []),
     ...(hasAnalysis ? [{ id: "analysis", label: "Analysis" }] : []),
     { id: "findings", label: "Findings" },
+    { id: "mark", label: "Mark" },
     { id: "methodology", label: "Methodology" },
     { id: "log", label: "Log" },
   ];
@@ -50,6 +58,9 @@ export function Report({ result }: { result: AssessmentResult }) {
         <div className="flex flex-wrap items-center gap-2">
           <ButtonLink href={`/api/v1/assessments/${result.id}/export?format=pdf`} variant="outline" size="sm">
             Download PDF
+          </ButtonLink>
+          <ButtonLink href={`/api/v1/assessments/${result.id}/vpat`} variant="outline" size="sm">
+            Download ACR (draft)
           </ButtonLink>
           <Button
             variant="outline"
@@ -90,6 +101,17 @@ export function Report({ result }: { result: AssessmentResult }) {
           findings={result.findings}
         />
       </div>
+
+      {isPartial && conformance && (
+        <div role="note" className="mt-4 rounded border border-terminal-serious bg-terminal-surface/40 p-3">
+          <p className="font-sans text-sm text-terminal-fg">
+            <span className="font-semibold text-terminal-serious">Partial result.</span> This report
+            is based on automated and AI-assisted checks only: {resolvedCount} of {conformance.total}{" "}
+            criteria resolved by machine; {conformance.cannotTell} still need human review (coming
+            soon). It is not a full conformance evaluation.
+          </p>
+        </div>
+      )}
 
       {result.partial && (
         <p className="mt-3 font-sans text-sm text-terminal-moderate">
@@ -173,6 +195,10 @@ export function Report({ result }: { result: AssessmentResult }) {
             </div>
           ))
         )}
+      </div>
+
+      <div id="mark" className="scroll-mt-24">
+        <ReportMark assessmentId={result.id} />
       </div>
 
       <div id="methodology" className="scroll-mt-24">

@@ -15,14 +15,14 @@ const rows: Array<[string, string]> = [
   ["GRI 405 (Diversity & Equal Opportunity)", "Evidence of inclusion of people with disabilities in products and services."],
   ["GRI 406 (Non-discrimination)", "Accessibility barriers are discrimination risks; the report is mitigation evidence."],
   ["GRI 1 (Foundation)", "Reporting itself should be accessible — our report targets WCAG 2.2 AAA."],
-  ["ESRS S1 (Own Workforce)", "S1-12 disability disclosure; our lived-experience review workforce evidences inclusion."],
+  ["ESRS S1 (Own Workforce)", "S1-12 disability disclosure; our lived-experience review workforce (launching soon) will evidence inclusion."],
   ["ESRS S4 (Consumers & End-users)", "Digital accessibility of products and services where material — accessible services are an explicit example."],
   ["IFRS S1 / S2 (ISSB)", "Sustainability-related risk and opportunity disclosure (S2 is climate-only; no accessibility metric)."],
   ["SASB Standards", "Industry-specific metrics; check the applicable sector for customer/accessibility items."],
   ["ILO &lsquo;Putting the I in ESG&rsquo;", "Disability-inclusion indicators for investors."],
   ["Disability:IN — Disability Equality Index", "Digital accessibility is a scored category; the conformance report is the artifact."],
   ["UN SDG 10 / 8 / 9.c", "Reduced inequalities, decent work, and ICT access."],
-  ["VPAT / ACR", "The procurement conformance template, exported from the same per-criterion data."],
+  ["VPAT / ACR", "The procurement conformance template, exported as a draft from the same per-criterion data (full verified ACR follows human review)."],
   ["EAA / EN 301 549 / Section 508 / AODA / BITV", "Substantive legal and technical obligations for which WCAG is the technical basis."],
 ];
 

@@ -30,11 +30,11 @@ const byok = [
 ];
 
 const human = [
-  "Independent review by a paid workforce of people with lived experience",
+  "Independent review by people with lived experience of disability",
   "Resolves every 'Cannot tell' criterion with a written rationale",
   "A signed, dated conformance evaluation report (in-app + PDF)",
   "VPAT/ACR export for procurement",
-  "Billed per page — contact us for a quote",
+  "Launching soon — register your interest below",
 ];
 
 export default function PricingPage() {
@@ -42,8 +42,8 @@ export default function PricingPage() {
     <PageShell width="4xl">
       <PageHeading>Plans</PageHeading>
       <MutedText className="mt-4">
-        The assessment is free for everyone. We fund it through donations and paid human review —
-        not by charging for scans.
+        The assessment is free for everyone. We fund it through donations (and, soon, paid human
+        review) — not by charging for scans.
       </MutedText>
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -82,11 +82,16 @@ export default function PricingPage() {
           </ButtonLink>
         </Card>
 
-        <Card className="border-terminal-pass p-6">
-          <h2 className="font-display text-xl font-semibold text-terminal-fg">Human review</h2>
+        <Card className="p-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-display text-xl font-semibold text-terminal-fg">Human review</h2>
+            <span className="rounded border border-terminal-serious px-2 py-0.5 font-sans text-xs font-semibold uppercase tracking-wide text-terminal-serious">
+              Coming soon
+            </span>
+          </div>
           <p className="mt-1 font-display text-3xl font-bold text-terminal-fg">
             Per page
-            <span className="text-base font-normal text-terminal-muted"> · quoted</span>
+            <span className="text-base font-normal text-terminal-muted"> · on launch</span>
           </p>
           <ul className="mt-4 space-y-2 font-sans text-sm text-terminal-muted">
             {human.map((item) => (
@@ -96,8 +101,8 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <ButtonLink href="/contact" className="mt-6 inline-block">
-            Request a quote
+          <ButtonLink href="/contact" variant="outline" className="mt-6 inline-block">
+            Register your interest
           </ButtonLink>
         </Card>
       </div>

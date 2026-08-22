@@ -31,12 +31,12 @@ const personas = [
 const outcomes = [
   { title: "Reach everyone", body: "WCAG 2.0, 2.1, 2.2 (A/AA/AAA) and Section 508, mapped to EN 301 549 and regional regulations." },
   { title: "Evidence you can defend", body: "Every finding carries the affected element, page, and WCAG reference — an auditable record." },
-  { title: "Independent human expertise", body: "Paid reviewers with lived experience of disability resolve what automation cannot." },
+  { title: "Independent human review — coming soon", body: "People with lived experience of disability will verify what automation cannot. We are building that review workforce now." },
   { title: "A report you can act on", body: "Signed, dated, and ranked by what to fix first — with a suggested fix for each issue." },
 ];
 
 const trustPoints = [
-  "Independent human review by people with lived experience of disability — paid experts, not tokens.",
+  "Independent human review is coming soon — we are building a review workforce with charities that serve people with visual and hearing disabilities.",
   "Free forever — funded by donations, not by charging for scans.",
   "We hold ourselves to the same standard — this site targets WCAG 2.2 AAA.",
   "Open about how it works — read our methodology and how we validate the engine.",
@@ -111,9 +111,9 @@ export default async function Home() {
         <p className="mt-3 max-w-3xl font-sans leading-7 text-terminal-muted">
           Most tools only run automated checks and mark the rest &ldquo;needs review&rdquo;. We go
           further. Automated scanning finds the clear issues. AI-assisted review helps with the
-          rest. Then independent reviewers — people who live with visual, hearing, and motor
-          disabilities, and are paid for their expertise — confirm what machines cannot. You get a
-          signed, evidence-based report, not just a list of errors.
+          rest. And independent human review by people with lived experience of disability —
+          launching soon — will confirm what machines cannot, producing a signed, evidence-based
+          report, not just a list of errors.
         </p>
       </section>
 
@@ -227,8 +227,9 @@ export default async function Home() {
           Simon Mak is an entrepreneur, author, and sustainability advocate — and he lives with
           Parkinson&rsquo;s disease. He founded Ascent Partners Foundation because accessibility is
           not an abstract cause to him; it is personal. That is why this tool is built by people
-          with lived experience of disability — from our founder to the reviewers who verify what
-          machines cannot — for everyone who is too often excluded from the web.
+          with lived experience of disability — from our founder to the review workforce we are
+          building with disability-serving charities — for everyone who is too often excluded from
+          the web.
         </p>
         <p className="mt-3 max-w-3xl font-sans leading-7 text-terminal-muted">
           His work connects finance and sustainability — and digital accessibility is the

@@ -17,13 +17,13 @@ const shipped = [
   "Six-stage conformance pipeline with per-instruction nature taxonomy (100% SC coverage).",
   "AI-assisted review (vision + audio) with a confidence fail-safe.",
   "Conformance outcome (conforms / does not conform / not yet determined) replacing the 0–100 score.",
-  "Independent human review by a lived-experience workforce, with a signed, dated conformance evaluation report.",
-  "VPAT/ACR export (WCAG / Section 508 / EN 301 549 editions).",
+  "Draft ACR export (VPAT-structured, from automated results); full verified ACR follows human review.",
   "ESG & regulatory mapping (GRI, ESRS, SASB, EN 301 549, Section 508, EAA, AODA, BITV).",
   "Per-SC remediation library.",
 ];
 
 const planned = [
+  "Independent human review by a lived-experience workforce (in partnership with disability-serving charities), with a signed, dated conformance evaluation report.",
   "Internationalisation — additional languages for the product and report.",
   "CI/CD integration and a public API for programmatic conformance evaluation.",
   "Continuous monitoring and regression alerting across scans.",

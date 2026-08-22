@@ -59,8 +59,8 @@ export default function ForGovernmentPage() {
             first, each with a suggested fix and the evidence.
           </li>
           <li>
-            <span className="text-terminal-fg">Independent human review</span> — people with lived
-            experience of disability confirm what automation cannot.
+            <span className="text-terminal-fg">Independent human review (coming soon)</span> —
+            people with lived experience of disability will confirm what automation cannot.
           </li>
           <li>
             <span className="text-terminal-fg">A signed, dated report</span> — an auditable record
@@ -74,7 +74,8 @@ export default function ForGovernmentPage() {
           We hold ourselves to the same standard — this site targets WCAG 2.2 AAA. Our method is
           open (<InlineLink href="/methodology">methodology</InlineLink>) and our engine is
           documented (<InlineLink href="/validation">how we validate it</InlineLink>). Human review
-          is done by paid experts with lived experience of disability — not a token check.
+          (launching soon) will be done by paid experts with lived experience of disability — not a
+          token check.
         </p>
       </Section>
 
@@ -82,7 +83,7 @@ export default function ForGovernmentPage() {
         <div className="flex flex-wrap gap-3">
           <ButtonLink href="/assess">Scan your site free</ButtonLink>
           <ButtonLink href="/human-review" variant="outline">
-            Request independent review
+            Human review — coming soon
           </ButtonLink>
         </div>
       </Section>
