@@ -24,13 +24,14 @@ export async function runAudioReview(
   model: AudioModel,
   scs: string[],
   mediaUrls: string[],
+  locale?: string,
 ): Promise<AiReview[]> {
   if (scs.length === 0 || mediaUrls.length === 0) return [];
   try {
     return await model.review({
       mediaUrls,
       scs,
-      system: buildTriageSystemPrompt(),
+      system: buildTriageSystemPrompt(locale),
       prompt:
         "Assess each WCAG time-based-media criterion against the provided media. " +
         "Return Passed / Failed / Cannot tell with a confidence from 0.0 to 1.0 " +

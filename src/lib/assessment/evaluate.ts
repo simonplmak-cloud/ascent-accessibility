@@ -30,6 +30,7 @@ export interface EvaluateDeps {
   aiEnabled?: boolean;
   threshold?: number;
   getConfig?: GetConfig;
+  locale?: string;
 }
 
 export interface EvaluateOutput {
@@ -71,6 +72,7 @@ export async function evaluateStandard(
         incompleteContext: deps.incompleteContext ?? [],
         threshold: deps.threshold,
         getConfig: deps.getConfig,
+        locale: deps.locale,
       });
       aiBudget.calls += triage.budget.calls;
       aiBudget.images += triage.budget.images;
@@ -96,7 +98,7 @@ export async function evaluateStandard(
       hasAudio: input.features.hasAudio,
     });
     if (mediaScs.length > 0) {
-      const audioVerdicts = await runAudioReview(deps.audioModel, mediaScs, deps.mediaUrls);
+      const audioVerdicts = await runAudioReview(deps.audioModel, mediaScs, deps.mediaUrls, deps.locale);
       const applied = await applyAiVerdicts(findings, passedScs, audioVerdicts, input.pageUrl, deps.getConfig);
       findings = applied.findings;
       passedScs = applied.passedScs;

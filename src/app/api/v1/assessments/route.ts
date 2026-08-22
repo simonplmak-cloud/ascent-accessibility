@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { url, standard, depth, pageCap, scope } = parsed.data;
+  const { url, standard, depth, pageCap, scope, locale } = parsed.data;
 
   // Per-account daily scan limits (bound the slow whole-site path).
   if (sessionUserId) {
@@ -104,6 +104,7 @@ export async function POST(req: Request) {
     depth: crawlScope.depth,
     pageCap: crawlScope.pageCap,
     ownerId,
+    locale,
   });
 
   withCorrelationId(assessment.id).info({ ip }, "assessment queued");

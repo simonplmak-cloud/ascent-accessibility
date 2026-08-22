@@ -6,6 +6,7 @@ export const assessRequestSchema = z.object({
   scope: z.enum(["page", "site"]).default("site"),
   depth: z.number().int().min(1).max(3).optional(),
   pageCap: z.number().int().min(1).max(100).optional(),
+  locale: z.enum(["en", "zh-Hant", "zh-Hans"]).optional().default("en"),
 });
 
 export const apiKeyCreateSchema = z.object({

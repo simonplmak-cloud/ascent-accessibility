@@ -87,6 +87,7 @@ export interface TriageInput {
   incompleteContext?: string[];
   threshold?: number;
   getConfig?: GetConfig;
+  locale?: string;
 }
 
 export interface TriageOutput {
@@ -119,8 +120,8 @@ export async function runTriage(input: TriageInput): Promise<TriageOutput> {
     }
 
     const settings = resolveSettings(config.settings);
-    const prompt = buildScPrompt(config);
-    const system = buildTriageSystemPrompt();
+    const prompt = buildScPrompt(config, input.locale);
+    const system = buildTriageSystemPrompt(input.locale);
 
     calls += 1;
     let raw: AiReview[] | null = null;

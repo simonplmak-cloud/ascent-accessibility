@@ -65,6 +65,7 @@ const assessment: AssessmentRecord = {
   depth: 3,
   pageCap: 100,
   ownerId: "user@example.com",
+  locale: null,
 };
 
 const scanOk = async (url: string) => ({

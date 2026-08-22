@@ -68,6 +68,7 @@ export interface Assessment {
   findings: Finding[];
   log: LogEntry[];
   ownerId: string | null;
+  locale: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -78,6 +79,7 @@ export interface NewAssessment {
   depth?: number;
   pageCap?: number;
   ownerId?: string | null;
+  locale?: string;
 }
 
 export interface ApiKey {
@@ -171,6 +173,7 @@ DEFINE FIELD findings ON assessment TYPE option<string> DEFAULT "";
 DEFINE FIELD log ON assessment TYPE option<string> DEFAULT "";
 DEFINE FIELD comparison ON assessment TYPE option<string> DEFAULT "";
 DEFINE FIELD ownerId ON assessment TYPE option<string> DEFAULT NONE;
+DEFINE FIELD locale ON assessment TYPE option<string> DEFAULT NONE;
 DEFINE FIELD createdAt ON assessment TYPE datetime DEFAULT time::now();
 DEFINE FIELD updatedAt ON assessment TYPE datetime DEFAULT time::now();
 DEFINE INDEX assessment_status_created_idx ON assessment FIELDS status, createdAt;

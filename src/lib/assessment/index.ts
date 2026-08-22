@@ -28,6 +28,7 @@ export interface AssessmentRecord {
   depth: number;
   pageCap: number;
   ownerId: string | null;
+  locale: string | null;
 }
 
 export interface ComparisonData {
@@ -219,6 +220,7 @@ export async function runAssessment(
         mediaUrls: output.mediaUrls,
         aiEnabled: ENABLE_AI_REVIEW,
         threshold: Number(process.env.AI_REVIEW_CONFIDENCE_THRESHOLD ?? 0.8),
+        locale: assessment.locale ?? undefined,
       },
     );
 
