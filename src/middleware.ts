@@ -30,10 +30,11 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Match all paths except api, Next internals, and real static files. The
-  // extension list (not a bare `.*\..*`) is deliberate: SC lesson slugs like
-  // /training/lessons/sc-1.4.3 contain dots but are pages, not static files.
+  // Match all paths except API routes (/api/*), Next internals, and real static
+  // files. Two deliberate choices: `api(?:/|$)` excludes only /api and /api/*
+  // (not the /api-keys page); the extension list (not a bare `.*\..*`) allows
+  // dotted page slugs like /training/lessons/sc-1.4.3.
   matcher: [
-    "/((?!api|_next|_vercel|.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|css|js|map|json|xml|txt|woff|woff2|ttf|otf|pdf|webmanifest)$).*)",
+    "/((?!api(?:/|$)|_next|_vercel|.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|css|js|map|json|xml|txt|woff|woff2|ttf|otf|pdf|webmanifest)$).*)",
   ],
 };
