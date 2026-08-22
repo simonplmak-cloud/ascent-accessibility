@@ -1,6 +1,7 @@
 // Single source of truth for site navigation. The header (primary nav + account
 // menu) and the footer (columns + legal strip) both consume this so grouping and
-// ordering live in one place.
+// ordering live in one place. `label` values are i18n message keys resolved via
+// useTranslations("nav") in the header/footer components.
 
 export interface NavLink {
   href: string;
@@ -15,35 +16,37 @@ export interface NavItem {
 
 // Desktop primary navigation — 5 categories (count categories, not utilities).
 export const PRIMARY_NAV: NavItem[] = [
-  { label: "Training", href: "/training" },
-  { label: "Standards", href: "/standards" },
-  { label: "Plans", href: "/pricing" },
+  { label: "training", href: "/training" },
+  { label: "standards", href: "/standards" },
+  { label: "plans", href: "/pricing" },
   {
-    label: "Guides",
+    label: "guides",
     children: [
-      { href: "/methodology", label: "Methodology" },
-      { href: "/remediation", label: "Remediation" },
-      { href: "/regulations", label: "Regulations" },
-      { href: "/faq", label: "FAQ" },
+      { href: "/methodology", label: "methodology" },
+      { href: "/remediation", label: "remediation" },
+      { href: "/regulations", label: "regulations" },
+      { href: "/faq", label: "faq" },
     ],
   },
   {
-    label: "Company",
+    label: "company",
     children: [
-      { href: "/about", label: "About" },
-      { href: "/human-review", label: "Human review" },
-      { href: "/esg", label: "ESG mapping" },
-      { href: "/validation", label: "Validation" },
-      { href: "/roadmap", label: "Roadmap" },
+      { href: "/about", label: "about" },
+      { href: "/for-government", label: "forGovernment" },
+      { href: "/for-ngos", label: "forNgos" },
+      { href: "/human-review", label: "humanReview" },
+      { href: "/esg", label: "esgMapping" },
+      { href: "/validation", label: "validation" },
+      { href: "/roadmap", label: "roadmap" },
     ],
   },
 ];
 
 // Signed-in account menu (shown under the account control).
 export const ACCOUNT_MENU: NavLink[] = [
-  { href: "/auditor", label: "Auditor" },
-  { href: "/api-keys", label: "API access" },
-  { href: "/account", label: "Account" },
+  { href: "/auditor", label: "auditor" },
+  { href: "/api-keys", label: "apiAccess" },
+  { href: "/account", label: "account" },
 ];
 
 export interface FooterColumn {
@@ -53,54 +56,54 @@ export interface FooterColumn {
 
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
-    heading: "Tool",
+    heading: "tool",
     links: [
-      { href: "/assess", label: "Scan your site" },
-      { href: "/training", label: "Training" },
-      { href: "/auditor", label: "Auditor" },
-      { href: "/api-keys", label: "API access" },
-      { href: "/pricing", label: "Plans" },
+      { href: "/assess", label: "scanYourSite" },
+      { href: "/training", label: "training" },
+      { href: "/auditor", label: "auditor" },
+      { href: "/api-keys", label: "apiAccess" },
+      { href: "/pricing", label: "plans" },
     ],
   },
   {
-    heading: "Learn",
+    heading: "learn",
     links: [
-      { href: "/what-is-accessibility", label: "What is accessibility?" },
-      { href: "/glossary", label: "Glossary" },
-      { href: "/guides", label: "Guides" },
-      { href: "/standards", label: "Standards" },
-      { href: "/methodology", label: "Methodology" },
-      { href: "/remediation", label: "Remediation" },
-      { href: "/regulations", label: "Regulations" },
+      { href: "/what-is-accessibility", label: "whatIsAccessibility" },
+      { href: "/glossary", label: "glossary" },
+      { href: "/guides", label: "guides" },
+      { href: "/standards", label: "standards" },
+      { href: "/methodology", label: "methodology" },
+      { href: "/remediation", label: "remediation" },
+      { href: "/regulations", label: "regulations" },
     ],
   },
   {
-    heading: "Company",
+    heading: "company",
     links: [
-      { href: "/about", label: "About" },
-      { href: "/for-government", label: "For government" },
-      { href: "/for-ngos", label: "For NGOs" },
-      { href: "/human-review", label: "Human review" },
-      { href: "/esg", label: "ESG mapping" },
-      { href: "/validation", label: "Validation" },
-      { href: "/roadmap", label: "Roadmap" },
+      { href: "/about", label: "about" },
+      { href: "/for-government", label: "forGovernment" },
+      { href: "/for-ngos", label: "forNgos" },
+      { href: "/human-review", label: "humanReview" },
+      { href: "/esg", label: "esgMapping" },
+      { href: "/validation", label: "validation" },
+      { href: "/roadmap", label: "roadmap" },
     ],
   },
   {
-    heading: "Support",
+    heading: "support",
     links: [
-      { href: "/faq", label: "FAQ" },
-      { href: "/resources", label: "Resources" },
-      { href: "/contact", label: "Contact" },
-      { href: "/donate", label: "Donate" },
+      { href: "/faq", label: "faq" },
+      { href: "/resources", label: "resources" },
+      { href: "/contact", label: "contact" },
+      { href: "/donate", label: "donate" },
     ],
   },
 ];
 
 export const LEGAL_LINKS: NavLink[] = [
-  { href: "/terms", label: "Terms" },
-  { href: "/privacy", label: "Privacy" },
-  { href: "/sla", label: "Service commitment" },
-  { href: "/refund", label: "Refunds" },
-  { href: "/accessibility-statement", label: "Accessibility statement" },
+  { href: "/terms", label: "terms" },
+  { href: "/privacy", label: "privacy" },
+  { href: "/sla", label: "serviceCommitment" },
+  { href: "/refund", label: "refunds" },
+  { href: "/accessibility-statement", label: "accessibilityStatement" },
 ];

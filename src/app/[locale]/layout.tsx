@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Open_Sans, Titillium_Web } from "next/font/google";
-import "./globals.css";
+import { notFound } from "next/navigation";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Open_Sans, Titillium_Web, Noto_Sans_TC, Noto_Sans_SC } from "next/font/google";
+import "../globals.css";
+import { routing } from "@/i18n/routing";
 import { SiteHeader, type HeaderAuthState } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CookieBanner } from "@/components/cookie-banner";
@@ -26,6 +30,19 @@ const fontDisplay = Titillium_Web({
   subsets: ["latin"],
   weight: ["600", "700"],
   variable: "--font-display",
+  display: "swap",
+});
+// CJK fallbacks for the Chinese locales (Traditional + Simplified).
+const fontCjkTc = Noto_Sans_TC({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-cjk-tc",
+  display: "swap",
+});
+const fontCjkSc = Noto_Sans_SC({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-cjk-sc",
   display: "swap",
 });
 
@@ -101,39 +118,47 @@ async function getHeaderAuthState(): Promise<HeaderAuthState> {
   }
 }
 
-export default async function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
-  const authState = await getHeaderAuthState();
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 
-  const body = (
-    <body className="min-h-screen bg-terminal-bg text-terminal-fg antialiased">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
-      />
-      <a href="#main" className="skip-link">
-        Skip to main content
-      </a>
-      <KeyboardProvider>
-        <SiteHeader authState={authState} />
-        <main id="main">{children}</main>
-        <SiteFooter />
-      </KeyboardProvider>
-      <CookieBanner />
-    </body>
-  );
+export default async function LocaleLayout({
+  children,
+  params,
+}: Readonly<{ children: React.ReactNode; params: Promise<{ locale: string }> }>) {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) notFound();
+  setRequestLocale(locale);
+
+  const authState = await getHeaderAuthState();
+  const t = await getTranslations({ locale, namespace: "nav" });
 
   return (
     <html
-      lang="en"
-      className={`dark ${fontSans.variable} ${fontDisplay.variable}`}
+      lang={locale}
+      className={`dark ${fontSans.variable} ${fontDisplay.variable} ${fontCjkTc.variable} ${fontCjkSc.variable}`}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      {body}
+      <body className="min-h-screen bg-terminal-bg text-terminal-fg antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
+        />
+        <a href="#main" className="skip-link">
+          {t("skipLink")}
+        </a>
+        <NextIntlClientProvider>
+          <KeyboardProvider>
+            <SiteHeader authState={authState} />
+            <main id="main">{children}</main>
+            <SiteFooter />
+          </KeyboardProvider>
+        </NextIntlClientProvider>
+        <CookieBanner />
+      </body>
     </html>
   );
 }

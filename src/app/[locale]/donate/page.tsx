@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EmbeddedCheckoutForm } from "@/components/checkout/embedded-checkout";
 
@@ -51,12 +52,12 @@ export default function DonatePage() {
           Your support keeps the accessibility assessment tool free and available to everyone. A
           receipt will be emailed to you by Stripe.
         </p>
-        <a
+        <Link
           href="/donate"
           className="mt-6 inline-block rounded bg-terminal-fg px-6 py-2 font-sans text-terminal-bg hover:bg-terminal-serious"
         >
           Make another donation
-        </a>
+        </Link>
       </div>
     );
   }

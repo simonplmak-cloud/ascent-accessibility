@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { useRouter } from "next/navigation";
 import { ACCOUNT_MENU, PRIMARY_NAV, type NavItem } from "@/lib/navigation";
 import { PreferencesDialog } from "@/components/preferences-dialog";
 import { AccountMenu } from "@/components/account-menu";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { ButtonLink } from "@/components/ui/button-link";
 
 export interface HeaderAuthState {
@@ -15,6 +17,7 @@ export interface HeaderAuthState {
 }
 
 export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
+  const t = useTranslations("nav");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdown, setDropdown] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
@@ -53,7 +56,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
           href={item.href!}
           className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
         >
-          {item.label}
+          {t(item.label)}
         </Link>
       );
     }
@@ -67,7 +70,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
           aria-controls={id}
           className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
         >
-          {item.label} <span aria-hidden="true">▾</span>
+          {t(item.label)} <span aria-hidden="true">▾</span>
         </button>
         {dropdown === item.label && (
           <ul
@@ -81,7 +84,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                   onClick={() => setDropdown(null)}
                   className="block rounded px-3 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-bg"
                 >
-                  {child.label}
+                  {t(child.label)}
                 </Link>
               </li>
             ))}
@@ -94,11 +97,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
   return (
     <header className="border-b border-terminal-border">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link
-          href="/"
-          aria-label="Ascent Partners Foundation home"
-          className="flex shrink-0 items-center"
-        >
+        <Link href="/" aria-label={t("home")} className="flex shrink-0 items-center">
           <Image
             src="/images/apf-logo.png"
             alt="Ascent Partners Foundation"
@@ -119,30 +118,32 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
           </ul>
 
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <PreferencesDialog />
             {authState.signedIn ? (
               <AccountMenu email={authState.email} onSignOut={signOut} signingOut={signingOut} />
             ) : (
               <ButtonLink href="/sign-in" variant="outline" size="sm">
-                Sign in
+                {t("signIn")}
               </ButtonLink>
             )}
             <ButtonLink href="/assess" size="sm">
-              Scan your site
+              {t("scanYourSite")}
             </ButtonLink>
           </div>
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitcher />
           <ButtonLink href="/assess" size="sm">
-            Scan your site
+            {t("scanYourSite")}
           </ButtonLink>
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-label={mobileOpen ? t("closeMenu") : t("openMenu")}
             className="rounded border border-terminal-border p-2 text-terminal-fg"
           >
             <svg
@@ -178,7 +179,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
               item.children ? (
                 <li key={item.label} className="border-b border-terminal-border/40 px-4 py-2">
                   <p className="font-sans text-xs uppercase tracking-wider text-terminal-muted">
-                    {item.label}
+                    {t(item.label)}
                   </p>
                   <ul className="m-0 list-none p-0">
                     {item.children.map((child) => (
@@ -188,7 +189,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                           onClick={() => setMobileOpen(false)}
                           className="block px-2 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
                         >
-                          {child.label}
+                          {t(child.label)}
                         </Link>
                       </li>
                     ))}
@@ -201,14 +202,14 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                     onClick={() => setMobileOpen(false)}
                     className="block px-4 py-3 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
                   >
-                    {item.label}
+                    {t(item.label)}
                   </Link>
                 </li>
               ),
             )}
 
             <li className="flex items-center justify-between px-4 py-3">
-              <span className="font-sans text-sm text-terminal-muted">Display</span>
+              <span className="font-sans text-sm text-terminal-muted">{t("display")}</span>
               <PreferencesDialog />
             </li>
 
@@ -221,7 +222,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                       onClick={() => setMobileOpen(false)}
                       className="block px-4 py-3 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
                     >
-                      {item.label}
+                      {t(item.label)}
                     </Link>
                   </li>
                 ))}
@@ -235,7 +236,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                     disabled={signingOut}
                     className="block w-full rounded border border-terminal-border px-4 py-2 text-center font-sans text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
                   >
-                    {signingOut ? "Signing out…" : "Sign out"}
+                    {signingOut ? `${t("signOut")}…` : t("signOut")}
                   </button>
                 </li>
               </>
@@ -247,7 +248,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                   className="block text-center"
                   onClick={() => setMobileOpen(false)}
                 >
-                  Sign in
+                  {t("signIn")}
                 </ButtonLink>
               </li>
             )}
