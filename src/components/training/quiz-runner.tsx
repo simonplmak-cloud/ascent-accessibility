@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { PATH } from "@/lib/training/curriculum";
 
@@ -21,6 +22,9 @@ interface QuizResult {
 }
 
 export function QuizRunner({ id }: { id: string }) {
+  const t = useTranslations("training");
+  const locale = useLocale();
+  const pathId = PATH.id;
   const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [result, setResult] = useState<QuizResult | null>(null);
@@ -30,21 +34,21 @@ export function QuizRunner({ id }: { id: string }) {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`/api/v1/training/quizzes/${id}`);
+        const res = await fetch(`/api/v1/training/quizzes/${id}?locale=${locale}`);
         if (!res.ok) throw new Error("not found");
         setQuiz((await res.json()) as QuizData);
       } catch {
-        setError("Could not load this quiz.");
+        setError(t("couldNotLoadQuiz"));
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, locale]);
 
   async function submit() {
     setError(null);
     try {
-      const res = await fetch(`/api/v1/training/quizzes/${id}`, {
+      const res = await fetch(`/api/v1/training/quizzes/${id}?locale=${locale}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers }),
@@ -57,24 +61,24 @@ export function QuizRunner({ id }: { id: string }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          path: PATH.id,
+          path: pathId,
           activity: id,
           status: r.passed ? "completed" : "needs_retry",
           score: r.score,
         }),
       }).catch(() => {});
     } catch {
-      setError("Could not submit your answers.");
+      setError(t("couldNotSubmitQuiz"));
     }
   }
 
   if (loading) {
-    return <p className="font-sans text-sm text-terminal-muted">Loading…</p>;
+    return <p className="font-sans text-sm text-terminal-muted">{t("loading")}</p>;
   }
   if (!quiz) {
     return (
       <p role="alert" className="font-sans text-sm text-terminal-critical">
-        {error ?? "Quiz not found."}
+        {error ?? t("quizNotFound")}
       </p>
     );
   }
@@ -82,14 +86,14 @@ export function QuizRunner({ id }: { id: string }) {
   if (result) {
     return (
       <div className="space-y-4">
-        <h2 className="font-display text-lg font-semibold text-terminal-fg">Results</h2>
+        <h2 className="font-display text-lg font-semibold text-terminal-fg">{t("results")}</h2>
         <p role="status" className="font-sans text-sm text-terminal-fg">
           {result.score}/100 ·{" "}
           {result.passed ? (
-            <span className="text-terminal-pass">Passed</span>
+            <span className="text-terminal-pass">{t("passed")}</span>
           ) : (
             <span className="text-terminal-fail">
-              Not yet passed · {result.passThreshold}% required
+              {t("notYetPassed", { threshold: result.passThreshold })}
             </span>
           )}
         </p>
@@ -117,10 +121,10 @@ export function QuizRunner({ id }: { id: string }) {
               setAnswers({});
             }}
           >
-            Retake
+            {t("retake")}
           </Button>
-          <Link href={`/training/paths/${PATH.id}`} className="font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious">
-            Back to path
+          <Link href={`/training/paths/${pathId}`} className="font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious">
+            {t("backToPath")}
           </Link>
         </div>
       </div>
@@ -140,7 +144,7 @@ export function QuizRunner({ id }: { id: string }) {
       {quiz.questions.map((q, i) => (
         <fieldset key={q.id}>
           <legend className="font-sans text-sm font-semibold text-terminal-fg">
-            Q {i + 1} of {quiz.questions.length} — {q.prompt}
+            {t("questionHeading", { index: i + 1, total: quiz.questions.length })} — {q.prompt}
           </legend>
           <div className="mt-2 space-y-2">
             {q.options.map((opt, oi) => (
@@ -165,7 +169,7 @@ export function QuizRunner({ id }: { id: string }) {
       )}
 
       <Button type="submit" disabled={!allAnswered}>
-        Submit
+        {t("submit")}
       </Button>
     </form>
   );

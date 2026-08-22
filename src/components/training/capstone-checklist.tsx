@@ -1,16 +1,11 @@
 "use client";
 
 import { useState } from "react";
-
-const STEPS = [
-  "Define the evaluation scope (target site, WCAG 2.2 AA)",
-  "Explore the site and choose a representative sample",
-  "Evaluate the sample — automated + manual + screen reader",
-  "Record evidence for each finding (URL, SC, impact, steps)",
-  "Report the outcome and a conformance conclusion",
-];
+import { useTranslations } from "next-intl";
 
 export function CapstoneChecklist() {
+  const t = useTranslations("training");
+  const steps = t.raw("capstoneSteps") as string[];
   const [done, setDone] = useState<Set<number>>(new Set());
 
   function toggle(i: number) {
@@ -22,15 +17,15 @@ export function CapstoneChecklist() {
     });
   }
 
-  const complete = done.size === STEPS.length;
+  const complete = done.size === steps.length;
 
   return (
     <div className="mt-6 rounded border border-terminal-border bg-terminal-surface/40 p-4">
       <h2 className="font-sans text-sm font-semibold text-terminal-fg">
-        Capstone checklist ({done.size}/{STEPS.length})
+        {t("capstoneChecklist", { done: done.size, total: steps.length })}
       </h2>
       <ul className="mt-2 space-y-2">
-        {STEPS.map((step, i) => (
+        {steps.map((step, i) => (
           <li key={i}>
             <label className="flex items-start gap-2 font-sans text-sm text-terminal-fg">
               <input
@@ -46,7 +41,7 @@ export function CapstoneChecklist() {
       </ul>
       {complete && (
         <p role="status" className="mt-3 font-sans text-sm text-terminal-pass">
-          All steps complete — finish the lesson to earn your certificate.
+          {t("capstoneComplete")}
         </p>
       )}
     </div>

@@ -1,9 +1,17 @@
 import { notFound } from "next/navigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { trainingRepository } from "@/db/repository";
-import { PATH } from "@/lib/training/curriculum";
+import { curriculumFor } from "@/lib/training/curriculum";
 
-export default async function CertificatePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function CertificatePage({
+  params,
+}: {
+  params: Promise<{ id: string; locale: string }>;
+}) {
+  const { id, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("certificate");
+  const { path } = curriculumFor(locale);
   const credential = await trainingRepository.getCredential(id);
   if (!credential) notFound();
 
@@ -19,20 +27,20 @@ export default async function CertificatePage({ params }: { params: Promise<{ id
           Ascent Accessibility
         </p>
         <h1 className="mt-6 font-display text-3xl font-bold text-terminal-fg">
-          Certificate of Completion
+          {t("title")}
         </h1>
-        <p className="mt-6 font-sans text-sm text-terminal-muted">This certifies that</p>
+        <p className="mt-6 font-sans text-sm text-terminal-muted">{t("certifies")}</p>
         <p className="mt-2 font-display text-2xl font-semibold text-terminal-fg">
-          {credential.name || "Learner"}
+          {credential.name || t("learner")}
         </p>
-        <p className="mt-4 font-sans text-sm text-terminal-muted">has completed</p>
+        <p className="mt-4 font-sans text-sm text-terminal-muted">{t("hasCompleted")}</p>
         <p className="mt-2 font-display text-lg font-semibold text-terminal-fg">
-          {credential.path}{" "}
+          {path.title}{" "}
           <span className="text-terminal-muted">(v{credential.pathVersion})</span>
         </p>
         <p className="mt-6 font-sans text-sm text-terminal-fg">
-          Completed {date}
-          {credential.score != null ? ` · Score ${credential.score}%` : ""}
+          {t("completedOn", { date })}
+          {credential.score != null ? t("scoreSuffix", { score: credential.score }) : ""}
         </p>
 
         <div className="mt-8">
@@ -40,13 +48,13 @@ export default async function CertificatePage({ params }: { params: Promise<{ id
             href={`/training/certificate/${credential.id}/download.pdf`}
             className="inline-block rounded bg-terminal-fg px-4 py-2 font-sans text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
           >
-            Download PDF
+            {t("downloadPdf")}
           </a>
         </div>
       </div>
 
       <p className="mt-6 text-center font-sans text-xs text-terminal-muted">
-        Credential ID {credential.id} · Verify at {PATH.title}
+        {t("credentialId", { id: credential.id, path: path.title })}
       </p>
     </div>
   );

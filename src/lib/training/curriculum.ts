@@ -1,3 +1,5 @@
+import { LOCALE_OVERLAYS } from "./curriculum-locales";
+
 // Training curriculum — versioned in code (not the DB). Concept lessons carry
 // authored prose; sc-reference lessons render the WCAG SC data from
 // `src/lib/standards/*` live (plus a short deep-dive body). Quizzes carry their
@@ -668,6 +670,86 @@ export function getLesson(id: string): Lesson | undefined {
 
 export function getQuiz(id: string): Quiz | undefined {
   return QUIZZES[id];
+}
+
+// ---------------------------------------------------------------------------
+// Locale-aware curriculum (content-in-code, translated via overlays)
+// ---------------------------------------------------------------------------
+
+export interface LocaleOverlay {
+  pathTitle?: string;
+  modules?: Record<string, { title: string; description: string }>;
+  lessons?: Record<string, { title: string; body?: string }>;
+  quizzes?: Record<
+    string,
+    { title: string; questions: Record<string, { prompt: string; options: string[]; explanation: string }> }
+  >;
+  meta?: Record<
+    string,
+    { outcome: string; check?: { prompt: string; options: string[]; explanation: string } }
+  >;
+}
+
+export interface Curriculum {
+  path: Path;
+  lessons: Record<string, Lesson>;
+  quizzes: Record<string, Quiz>;
+  lessonMeta: Record<string, LessonMeta>;
+}
+
+export function curriculumFor(locale?: string): Curriculum {
+  const overlay = (locale && LOCALE_OVERLAYS[locale]) || undefined;
+  if (!overlay) {
+    return { path: PATH, lessons: LESSONS, quizzes: QUIZZES, lessonMeta: LESSON_META };
+  }
+
+  const lessons: Record<string, Lesson> = {};
+  for (const [id, lesson] of Object.entries(LESSONS)) {
+    const o = overlay.lessons?.[id];
+    lessons[id] = o ? { ...lesson, title: o.title, body: o.body ?? lesson.body } : lesson;
+  }
+
+  const quizzes: Record<string, Quiz> = {};
+  for (const [id, quiz] of Object.entries(QUIZZES)) {
+    const o = overlay.quizzes?.[id];
+    quizzes[id] = o
+      ? {
+          ...quiz,
+          title: o.title,
+          questions: quiz.questions.map((question) => {
+            const tq = o.questions[question.id];
+            return tq
+              ? { ...question, prompt: tq.prompt, options: tq.options, explanation: tq.explanation }
+              : question;
+          }),
+        }
+      : quiz;
+  }
+
+  const lessonMeta: Record<string, LessonMeta> = {};
+  for (const [id, meta] of Object.entries(LESSON_META)) {
+    const o = overlay.meta?.[id];
+    lessonMeta[id] = o
+      ? {
+          ...meta,
+          outcome: o.outcome,
+          check: o.check
+            ? { ...meta.check, prompt: o.check.prompt, options: o.check.options, explanation: o.check.explanation }
+            : meta.check,
+        }
+      : meta;
+  }
+
+  const path: Path = {
+    ...PATH,
+    title: overlay.pathTitle ?? PATH.title,
+    modules: PATH.modules.map((module) => {
+      const o = overlay.modules?.[module.id];
+      return o ? { ...module, title: o.title, description: o.description } : module;
+    }),
+  };
+
+  return { path, lessons, quizzes, lessonMeta };
 }
 
 // Per-lesson metadata + a single formative practice check (answer key stays

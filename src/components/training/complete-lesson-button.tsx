@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { PATH } from "@/lib/training/curriculum";
 
 export function CompleteLessonButton({ lessonId }: { lessonId: string }) {
+  const t = useTranslations("training");
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -19,13 +21,13 @@ export function CompleteLessonButton({ lessonId }: { lessonId: string }) {
         body: JSON.stringify({ path: PATH.id, activity: lessonId, status: "completed" }),
       });
       if (res.status === 401) {
-        setError("Sign in to save your progress.");
+        setError(t("signInToSave"));
         return;
       }
       if (!res.ok) throw new Error("save failed");
       setDone(true);
     } catch {
-      setError("Could not save progress.");
+      setError(t("couldNotSave"));
     } finally {
       setSaving(false);
     }
@@ -34,7 +36,7 @@ export function CompleteLessonButton({ lessonId }: { lessonId: string }) {
   if (done) {
     return (
       <p role="status" className="mt-8 font-sans text-sm text-terminal-pass">
-        Lesson completed ✓
+        {t("lessonCompleted")}
       </p>
     );
   }
@@ -42,7 +44,7 @@ export function CompleteLessonButton({ lessonId }: { lessonId: string }) {
   return (
     <div className="mt-8 space-y-2">
       <Button onClick={complete} disabled={saving}>
-        {saving ? "Saving…" : "Complete & continue"}
+        {saving ? t("saving") : t("completeContinue")}
       </Button>
       {error && (
         <p role="alert" className="font-sans text-sm text-terminal-critical">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
 export function ClaimCertificateButton({
@@ -13,6 +14,7 @@ export function ClaimCertificateButton({
   pathVersion: string;
   score: number | null;
 }) {
+  const t = useTranslations("training");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -32,13 +34,13 @@ export function ClaimCertificateButton({
         }),
       });
       if (!res.ok) {
-        setError("Could not issue the certificate. Please try again.");
+        setError(t("couldNotIssue"));
         return;
       }
       const data = (await res.json()) as { credential: { id: string } };
       router.push(`/training/certificate/${data.credential.id}`);
     } catch {
-      setError("Could not issue the certificate. Please try again.");
+      setError(t("couldNotIssue"));
     } finally {
       setBusy(false);
     }
@@ -47,7 +49,7 @@ export function ClaimCertificateButton({
   return (
     <div className="space-y-2">
       <Button onClick={claim} disabled={busy}>
-        {busy ? "Issuing…" : "Claim certificate"}
+        {busy ? t("issuing") : t("claimCertificate")}
       </Button>
       {error && (
         <p role="alert" className="font-sans text-sm text-terminal-critical">

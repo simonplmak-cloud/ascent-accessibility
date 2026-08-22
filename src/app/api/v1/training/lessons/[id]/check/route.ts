@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { LESSON_META } from "@/lib/training/curriculum";
+import { curriculumFor } from "@/lib/training/curriculum";
 import { gradeCheck } from "@/lib/training/quiz";
 
 // Grade a single per-lesson practice check (formative). Answer keys never reach
@@ -9,7 +9,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const meta = LESSON_META[id];
+  const url = new URL(req.url);
+  const locale = url.searchParams.get("locale") ?? undefined;
+  const meta = curriculumFor(locale).lessonMeta[id];
   if (!meta?.check) {
     return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
   }

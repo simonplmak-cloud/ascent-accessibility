@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { LESSON_META, PATH, getLesson } from "@/lib/training/curriculum";
+import { curriculumFor } from "@/lib/training/curriculum";
 import { getSc, understandingUrl } from "@/lib/standards/wcag-sc";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import { getScRemediation } from "@/lib/standards/sc-remediation";
@@ -9,22 +10,29 @@ import { CompleteLessonButton } from "@/components/training/complete-lesson-butt
 import { PracticeCheck } from "@/components/training/practice-check";
 import { CapstoneChecklist } from "@/components/training/capstone-checklist";
 
-export default async function LessonPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const lesson = getLesson(id);
+export default async function LessonPage({
+  params,
+}: {
+  params: Promise<{ id: string; locale: string }>;
+}) {
+  const { id, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("training");
+  const { path, lessons, lessonMeta } = curriculumFor(locale);
+  const lesson = lessons[id];
   if (!lesson) notFound();
-  const meta = LESSON_META[id];
+  const meta = lessonMeta[id];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
       <Breadcrumbs
-        trail={[{ href: `/training/paths/${PATH.id}`, label: PATH.title }, { label: lesson.title }]}
+        trail={[{ href: `/training/paths/${path.id}`, label: path.title }, { label: lesson.title }]}
       />
       <h1 className="mt-2 font-display text-3xl font-bold text-terminal-fg">{lesson.title}</h1>
 
       {meta && (
         <p className="mt-2 font-sans text-sm text-terminal-muted">
-          {meta.outcome} · ~{meta.durationMinutes} min
+          {t("outcomeDuration", { outcome: meta.outcome, minutes: meta.durationMinutes })}
         </p>
       )}
 
@@ -43,15 +51,15 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
                   {sc} {info.title}
                 </h2>
                 <p className="mt-1 font-sans text-sm text-terminal-muted">
-                  Principle {info.principle} · Level {info.level}
+                  {t("principleLevel", { principle: info.principle, level: info.level })}
                 </p>
                 <dl className="mt-4 space-y-3 font-sans text-sm">
                   <div>
-                    <dt className="text-terminal-muted">How to verify</dt>
+                    <dt className="text-terminal-muted">{t("howToVerify")}</dt>
                     <dd className="mt-1 text-terminal-fg">{getManualTest(sc)}</dd>
                   </div>
                   <div>
-                    <dt className="text-terminal-muted">How to fix</dt>
+                    <dt className="text-terminal-muted">{t("howToFix")}</dt>
                     <dd className="mt-1 text-terminal-fg">{getScRemediation(sc)}</dd>
                   </div>
                 </dl>
@@ -62,7 +70,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
                     rel="noreferrer"
                     className="font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
                   >
-                    Understanding {sc} (opens in a new tab)
+                    {t("understandingSc", { sc })}
                   </a>
                 </p>
               </section>
@@ -74,7 +82,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
       {lesson.references && lesson.references.length > 0 && (
         <section aria-labelledby="lesson-refs" className="mt-8">
           <h2 id="lesson-refs" className="font-sans text-sm font-semibold text-terminal-fg">
-            Further reading
+            {t("furtherReading")}
           </h2>
           <ul className="mt-2 list-disc pl-5 font-sans text-sm text-terminal-muted">
             {lesson.references.map((ref) => (
@@ -101,10 +109,10 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
 
       <p className="mt-4">
         <Link
-          href={`/training/paths/${PATH.id}`}
+          href={`/training/paths/${path.id}`}
           className="font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
         >
-          Back to path
+          {t("backToPath")}
         </Link>
       </p>
     </div>
