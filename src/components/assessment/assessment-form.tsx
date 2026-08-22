@@ -215,7 +215,7 @@ export function AssessmentForm({
           )}
         </fieldset>
         <Button type="submit" disabled={loading} className="self-start">
-          {loading ? "Assessing…" : "Run assessment"}
+          {loading ? "Scanning…" : "Run scan"}
         </Button>
       </form>
 

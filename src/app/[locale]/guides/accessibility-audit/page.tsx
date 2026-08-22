@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { MutedText } from "@/components/ui/text";
 import { InlineLink } from "@/components/ui/inline-link";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -41,6 +42,7 @@ export default function AccessibilityAuditGuide() {
   return (
     <PageShell width="3xl">
       <FaqJsonLd faqs={faqs} />
+      <Breadcrumbs trail={[{ href: "/guides", label: "Guides" }, { label: "What is an accessibility audit?" }]} />
       <PageHeading>What is an accessibility audit?</PageHeading>
       <MutedText className="mt-4">
         A plain-language guide to checking how accessible a website really is — and what a

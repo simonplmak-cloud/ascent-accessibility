@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { MutedText } from "@/components/ui/text";
 import { InlineLink } from "@/components/ui/inline-link";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -41,6 +42,7 @@ export default function ConformanceReportGuide() {
   return (
     <PageShell width="3xl">
       <FaqJsonLd faqs={faqs} />
+      <Breadcrumbs trail={[{ href: "/guides", label: "Guides" }, { label: "What is a WCAG conformance report?" }]} />
       <PageHeading>What is a WCAG conformance report?</PageHeading>
       <MutedText className="mt-4">
         A plain-language guide to the document that shows, with evidence, how accessible a

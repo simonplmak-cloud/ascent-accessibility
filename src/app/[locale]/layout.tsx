@@ -48,7 +48,7 @@ const fontCjkSc = Noto_Sans_SC({
 
 const SITE_TITLE = "Ascent Accessibility — Free WCAG Assessment by Ascent Partners Foundation";
 const SITE_DESCRIPTION =
-  "A free tool by Ascent Partners Foundation. Assess your website against WCAG 2.2 AA and get a score, evidence-backed findings, and remediation guidance.";
+  "A free tool by Ascent Partners Foundation. Scan your website against WCAG 2.2 AA and get a score, evidence-backed findings, and remediation guidance.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

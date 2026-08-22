@@ -62,7 +62,7 @@ export default function PricingPage() {
             ))}
           </ul>
           <ButtonLink href="/assess" className="mt-6 inline-block">
-            Start an assessment
+            Scan your site
           </ButtonLink>
         </Card>
 

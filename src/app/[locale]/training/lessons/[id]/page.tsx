@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { LESSON_META, PATH, getLesson } from "@/lib/training/curriculum";
 import { getSc, understandingUrl } from "@/lib/standards/wcag-sc";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
@@ -16,12 +17,9 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
-      <p className="font-sans text-sm text-terminal-muted">
-        <Link href={`/training/paths/${PATH.id}`} className="underline-offset-4 hover:underline">
-          {PATH.title}
-        </Link>{" "}
-        › {lesson.title}
-      </p>
+      <Breadcrumbs
+        trail={[{ href: `/training/paths/${PATH.id}`, label: PATH.title }, { label: lesson.title }]}
+      />
       <h1 className="mt-2 font-display text-3xl font-bold text-terminal-fg">{lesson.title}</h1>
 
       {meta && (

@@ -54,7 +54,7 @@ export default function RegulationsPage() {
 
       <p className="mt-8 font-sans text-sm text-terminal-fg">
         <InlineLink href="/esg">ESG &amp; reporting mapping</InlineLink> ·{" "}
-        <InlineLink href="/human-review">Conformance review</InlineLink> ·{" "}
+        <InlineLink href="/human-review">Human review</InlineLink> ·{" "}
         <InlineLink href="/validation">How we validate</InlineLink>
       </p>
     </PageShell>
