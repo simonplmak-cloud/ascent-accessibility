@@ -30,5 +30,10 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
+  // Match all paths except api, Next internals, and real static files. The
+  // extension list (not a bare `.*\..*`) is deliberate: SC lesson slugs like
+  // /training/lessons/sc-1.4.3 contain dots but are pages, not static files.
+  matcher: [
+    "/((?!api|_next|_vercel|.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|css|js|map|json|xml|txt|woff|woff2|ttf|otf|pdf|webmanifest)$).*)",
+  ],
 };

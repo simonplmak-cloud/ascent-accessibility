@@ -250,7 +250,7 @@ export default async function Home() {
       {/* 9 · Trust strip + closing CTA */}
       <section className="mt-20 border-t border-terminal-border pt-10" aria-labelledby="learn-more">
         <h2 id="learn-more" className="sr-only">
-          {t("whoTitle")}
+          {t("learnMoreStart")}
         </h2>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="font-sans text-sm text-terminal-muted">
