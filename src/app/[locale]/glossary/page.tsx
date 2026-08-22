@@ -1,41 +1,51 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
-import { InlineLink } from "@/components/ui/inline-link";
 import { ButtonLink } from "@/components/ui/button-link";
-import { GLOSSARY } from "@/lib/glossary";
+import { GLOSSARY_TERMS } from "@/lib/glossary";
 
-export const metadata: Metadata = {
-  title: "Accessibility glossary",
-  description:
-    "Plain-language definitions of web accessibility and WCAG terms — written for non-experts in NGOs and government. What each term means and why it matters.",
-  alternates: { canonical: "/glossary" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "glossary" });
+  return { title: t("heading"), description: t("description") };
+}
 
-export default function GlossaryPage() {
+export default async function GlossaryPage() {
+  const t = await getTranslations("glossary");
+
   return (
     <PageShell width="4xl">
-      <PageHeading>Accessibility glossary</PageHeading>
+      <PageHeading>{t("heading")}</PageHeading>
       <MutedText className="mt-4">
-        Plain-language definitions of the terms used on this site and across web accessibility.
-        Each one says what it means and why it matters — no jargon. New to accessibility? Start
-        with our{" "}
-        <InlineLink href="/what-is-accessibility">plain-language introduction</InlineLink>.
+        {t.rich("intro", {
+          link: (chunks) => (
+            <Link href="/what-is-accessibility" className="text-brandLink underline underline-offset-4 hover:text-brand">
+              {chunks}
+            </Link>
+          ),
+        })}
       </MutedText>
 
       <dl className="mt-8 space-y-4">
-        {GLOSSARY.map((entry) => (
+        {GLOSSARY_TERMS.map((entry) => (
           <div
-            key={entry.term}
+            key={entry.id}
             className="rounded border border-terminal-border bg-terminal-surface/40 p-4"
           >
-            <dt className="font-display text-base font-semibold text-terminal-fg">{entry.term}</dt>
-            <dd className="mt-1 font-sans text-sm text-terminal-muted">{entry.definition}</dd>
+            <dt className="font-display text-base font-semibold text-terminal-fg">
+              {t(`${entry.id}.term`)}
+            </dt>
+            <dd className="mt-1 font-sans text-sm text-terminal-muted">{t(`${entry.id}.definition`)}</dd>
             <dd className="mt-1 font-sans text-sm text-terminal-fg">
-              <span className="text-terminal-muted">Why it matters: </span>
-              {entry.why}
+              <span className="text-terminal-muted">{t("whyLabel")}</span>
+              {t(`${entry.id}.why`)}
             </dd>
             {entry.href && (
               <dd className="mt-2 font-sans text-sm">
@@ -43,7 +53,7 @@ export default function GlossaryPage() {
                   href={entry.href}
                   className="text-brandLink underline underline-offset-4 hover:text-brand"
                 >
-                  {entry.hrefLabel ?? "Learn more"} →
+                  {t(`${entry.id}.hrefLabel`)} →
                 </Link>
               </dd>
             )}
@@ -53,9 +63,9 @@ export default function GlossaryPage() {
 
       <div className="mt-10 flex flex-wrap items-center gap-3">
         <ButtonLink href="/what-is-accessibility" variant="outline">
-          Read the introduction
+          {t("readIntro")}
         </ButtonLink>
-        <ButtonLink href="/assess">Scan your site free</ButtonLink>
+        <ButtonLink href="/assess">{t("scanFree")}</ButtonLink>
       </div>
     </PageShell>
   );

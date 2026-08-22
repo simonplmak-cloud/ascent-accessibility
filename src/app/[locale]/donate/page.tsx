@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
 import { EmbeddedCheckoutForm } from "@/components/checkout/embedded-checkout";
 
 const PRESETS = [50, 100, 250, 500];
 
 export default function DonatePage() {
+  const t = useTranslations("donate");
   const [amount, setAmount] = useState(100);
   const [recurring, setRecurring] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,12 +35,12 @@ export default function DonatePage() {
       });
       const data = await res.json();
       if (!res.ok || !data.clientSecret) {
-        setError(data.message ?? "Payment is temporarily unavailable. Please try again.");
+        setError(data.message ?? t("errorFallback"));
         return;
       }
       setClientSecret(data.clientSecret);
     } catch {
-      setError("Payment is temporarily unavailable. Please try again.");
+      setError(t("errorFallback"));
     } finally {
       setSubmitting(false);
     }
@@ -47,16 +49,13 @@ export default function DonatePage() {
   if (thankYou) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16">
-        <h1 className="font-display text-3xl font-bold text-terminal-pass">Thank you</h1>
-        <p className="mt-4 font-sans leading-7 text-terminal-muted">
-          Your support keeps the accessibility assessment tool free and available to everyone. A
-          receipt will be emailed to you by Stripe.
-        </p>
+        <h1 className="font-display text-3xl font-bold text-terminal-pass">{t("thankYou")}</h1>
+        <p className="mt-4 font-sans leading-7 text-terminal-muted">{t("thankYouBody")}</p>
         <Link
           href="/donate"
           className="mt-6 inline-block rounded bg-terminal-fg px-6 py-2 font-sans text-terminal-bg hover:bg-terminal-serious"
         >
-          Make another donation
+          {t("anotherDonation")}
         </Link>
       </div>
     );
@@ -65,19 +64,19 @@ export default function DonatePage() {
   if (clientSecret) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16">
-        <h1 className="font-display text-3xl font-bold text-terminal-fg">Complete your donation</h1>
+        <h1 className="font-display text-3xl font-bold text-terminal-fg">{t("completeTitle")}</h1>
         <p className="mt-2 font-sans text-terminal-muted">
-          {recurring ? "Monthly" : "One-time"} donation of ${amount} USD.
+          {t("donationSummary", { frequency: recurring ? t("monthly") : t("oneTime"), amount })}
         </p>
         <div className="mt-6">
-          <EmbeddedCheckoutForm clientSecret={clientSecret} submitLabel="Donate" />
+          <EmbeddedCheckoutForm clientSecret={clientSecret} submitLabel={t("donate")} />
         </div>
         <button
           type="button"
           onClick={() => setClientSecret(null)}
           className="mt-4 font-sans text-sm text-terminal-muted underline underline-offset-4 hover:text-terminal-fg"
         >
-          Change amount
+          {t("changeAmount")}
         </button>
       </div>
     );
@@ -85,22 +84,20 @@ export default function DonatePage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-16">
-      <h1 className="font-display text-3xl font-bold text-terminal-fg">Support the tool</h1>
-      <p className="mt-4 font-sans text-terminal-muted">
-        Your donation keeps the assessment tool free and available to everyone. Give once, or set
-        up a monthly donation.
-      </p>
+      <h1 className="font-display text-3xl font-bold text-terminal-fg">{t("supportTitle")}</h1>
+      <p className="mt-4 font-sans text-terminal-muted">{t("supportBody")}</p>
 
       <div className="mt-6 rounded border border-terminal-pass bg-terminal-surface p-4">
         <p className="font-sans text-sm text-terminal-fg">
-          <strong className="text-terminal-pass">US$250/month keeps the service running</strong> —
-          it covers the scan infrastructure so scans stay free for everyone.
+          {t.rich("impactNote", {
+            strong: (chunks) => <strong className="text-terminal-pass">{chunks}</strong>,
+          })}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <fieldset>
-          <legend className="font-sans text-sm text-terminal-fg">Frequency</legend>
+          <legend className="font-sans text-sm text-terminal-fg">{t("frequencyLabel")}</legend>
           <div className="mt-2 flex gap-2">
             <label className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
               <input
@@ -109,7 +106,7 @@ export default function DonatePage() {
                 checked={!recurring}
                 onChange={() => setRecurring(false)}
               />
-              One-time
+              {t("oneTime")}
             </label>
             <label className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
               <input
@@ -118,13 +115,13 @@ export default function DonatePage() {
                 checked={recurring}
                 onChange={() => setRecurring(true)}
               />
-              Monthly
+              {t("monthly")}
             </label>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend className="font-sans text-sm text-terminal-fg">Amount (USD)</legend>
+          <legend className="font-sans text-sm text-terminal-fg">{t("amountLabel")}</legend>
           <div className="mt-2 flex gap-2">
             {PRESETS.map((value) => (
               <button
@@ -146,7 +143,7 @@ export default function DonatePage() {
 
         <div>
           <label htmlFor="amount" className="block font-sans text-sm text-terminal-fg">
-            Custom amount (USD)
+            {t("customAmount")}
           </label>
           <input
             id="amount"
@@ -164,7 +161,7 @@ export default function DonatePage() {
           disabled={submitting}
           className="rounded bg-terminal-fg px-6 py-2 font-sans text-terminal-bg hover:bg-terminal-serious disabled:opacity-50"
         >
-          {submitting ? "Preparing…" : recurring ? "Donate monthly" : "Donate"}
+          {submitting ? t("preparing") : recurring ? t("donateMonthly") : t("donate")}
         </button>
       </form>
 
