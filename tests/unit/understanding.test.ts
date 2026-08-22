@@ -13,8 +13,8 @@ describe("understanding", () => {
     expect(tw?.normative).toContain("非文字內容");
   });
 
-  it("covers every principle-1 SC in both zh locales", () => {
-    for (const sc of WCAG_SCS.filter((s) => s.principle === 1)) {
+  it("covers every principle-1 and principle-2 SC in both zh locales", () => {
+    for (const sc of WCAG_SCS.filter((s) => s.principle <= 2)) {
       expect(understandingFor(sc.num, "zh-Hans"), `zh-Hans missing ${sc.num}`).toBeTruthy();
       expect(understandingFor(sc.num, "zh-Hant"), `zh-Hant missing ${sc.num}`).toBeTruthy();
     }
