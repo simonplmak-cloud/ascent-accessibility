@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Tabs } from "@/components/ui/tabs";
 import { Disclosure } from "@/components/ui/disclosure";
 
@@ -37,6 +38,7 @@ const LEVEL_STYLE: Record<string, string> = {
 };
 
 function ScList({ scs }: { scs: StandardSc[] }) {
+  const t = useTranslations("standards");
   return (
     <ul className="mt-2 divide-y divide-terminal-border rounded border border-terminal-border">
       {scs.map((sc) => (
@@ -54,7 +56,7 @@ function ScList({ scs }: { scs: StandardSc[] }) {
             className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
           >
             {sc.num}
-            <span className="sr-only"> (opens in a new window)</span>
+            <span className="sr-only">{t("opensNewWindow")}</span>
           </a>
           <span className="font-sans text-sm text-terminal-fg">{sc.title}</span>
           <a
@@ -63,7 +65,8 @@ function ScList({ scs }: { scs: StandardSc[] }) {
             rel="noreferrer"
             className="font-sans text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
           >
-            Understanding<span className="sr-only"> (opens in a new window)</span>
+            {t("understanding")}
+            <span className="sr-only">{t("opensNewWindow")}</span>
           </a>
         </li>
       ))}
@@ -104,10 +107,11 @@ export function StandardsView({
   standards: StandardTree[];
   defaultId?: string;
 }) {
+  const t = useTranslations("standards");
   return (
     <div className="mt-10">
       <Tabs
-        label="WCAG standard"
+        label={t("tabsLabel")}
         defaultId={defaultId}
         tabs={standards.map((standard) => ({ id: standard.id, label: standard.name }))}
       >

@@ -1,32 +1,46 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { assessmentRepository } from "@/db/repository";
 import { Report } from "@/components/assessment/report";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import type { AssessmentResult, ComparisonData } from "@/components/assessment/types";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string; locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "reportPage" });
+  return { title: t("title") };
+}
+
 export default async function ShareableReportPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 }) {
-  const { id } = await params;
+  const { id, locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("reportPage");
   const assessmentId = decodeURIComponent(id);
   const assessment = await assessmentRepository.findById(assessmentId);
   if (!assessment) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
         <h1 className="font-display text-2xl font-bold text-terminal-fg">
-          Assessment not found
+          {t("notFound")}
         </h1>
         <p className="mt-2 font-sans text-sm text-terminal-muted">
-          This report may have been deleted, or the link is incorrect.
+          {t("notFoundBody")}
         </p>
         <p className="mt-4">
           <Link
             href="/auditor"
             className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
           >
-            Back to workspace
+            {t("backToWorkspace")}
           </Link>
         </p>
       </div>
@@ -37,22 +51,19 @@ export default async function ShareableReportPage({
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
         <h1 className="font-display text-2xl font-bold text-terminal-fg">
-          Assessment {assessment.status}
+          {t("title")}: {assessment.status}
         </h1>
         <p className="mt-2 font-sans text-sm text-terminal-muted">
-          {assessment.status === "queued" &&
-            "This assessment is queued and has not started yet."}
-          {assessment.status === "running" &&
-            "This assessment is currently running. Check back shortly."}
-          {assessment.status === "failed" &&
-            "This assessment could not be completed."}
+          {assessment.status === "queued" && t("statusQueued")}
+          {assessment.status === "running" && t("statusRunning")}
+          {assessment.status === "failed" && t("statusFailed")}
         </p>
         <p className="mt-4">
           <Link
             href="/auditor"
             className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
           >
-            Back to workspace
+            {t("backToWorkspace")}
           </Link>
         </p>
       </div>
@@ -80,7 +91,7 @@ export default async function ShareableReportPage({
   return (
     <div className="mx-auto max-w-4xl px-4 py-16">
       <Breadcrumbs
-        trail={[{ href: "/auditor", label: "Workspace" }, { label: "Report" }]}
+        trail={[{ href: "/auditor", label: t("breadcrumbWorkspace") }, { label: t("breadcrumbReport") }]}
       />
       <h1 className="mt-4 font-display text-xl font-bold text-terminal-fg">
         <a
@@ -88,13 +99,13 @@ export default async function ShareableReportPage({
           className="underline-offset-4 hover:underline"
           target="_blank"
           rel="noreferrer"
-          aria-label={`${assessment.url} (opens in a new window)`}
+          aria-label={t("opensNewWindow", { url: assessment.url })}
         >
           {assessment.url}
         </a>
       </h1>
       <p className="mt-2 font-sans text-sm text-terminal-muted">
-        {assessment.standard} · {assessment.depth === 0 ? "Single page" : "Whole website"}
+        {assessment.standard} · {assessment.depth === 0 ? t("singlePage") : t("wholeSite")}
       </p>
       <Report result={result} />
     </div>

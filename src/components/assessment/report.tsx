@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ScoreSummary } from "./score-summary";
 import { ConformanceTable } from "./conformance-table";
 import { ReviewMethods } from "./review-methods";
@@ -17,6 +18,7 @@ import { ButtonLink } from "@/components/ui/button-link";
 import type { AssessmentResult } from "./types";
 
 export function Report({ result }: { result: AssessmentResult }) {
+  const t = useTranslations("report");
   const [largePrint, setLargePrint] = useState(false);
 
   const hasConformance = Boolean(result.comparison?.conformance);
@@ -33,15 +35,15 @@ export function Report({ result }: { result: AssessmentResult }) {
   const top = orderedFindings.slice(0, 5);
 
   const navSections = [
-    { id: "summary", label: "Summary" },
-    ...(orderedFindings.length > 0 ? [{ id: "top-issues", label: "Top issues" }] : []),
-    ...(hasConformance ? [{ id: "methods", label: "By method" }] : []),
-    ...(hasConformance ? [{ id: "conformance", label: "All criteria" }] : []),
-    ...(hasAnalysis ? [{ id: "analysis", label: "Site signals" }] : []),
-    { id: "findings", label: "Findings" },
-    { id: "mark", label: "Mark" },
-    { id: "methodology", label: "Methodology" },
-    { id: "log", label: "Log" },
+    { id: "summary", label: t("navSummary") },
+    ...(orderedFindings.length > 0 ? [{ id: "top-issues", label: t("navTopIssues") }] : []),
+    ...(hasConformance ? [{ id: "methods", label: t("navByMethod") }] : []),
+    ...(hasConformance ? [{ id: "conformance", label: t("navAllCriteria") }] : []),
+    ...(hasAnalysis ? [{ id: "analysis", label: t("navSiteSignals") }] : []),
+    { id: "findings", label: t("navFindings") },
+    { id: "mark", label: t("navMark") },
+    { id: "methodology", label: t("navMethodology") },
+    { id: "log", label: t("navLog") },
   ];
 
   return (
@@ -51,14 +53,14 @@ export function Report({ result }: { result: AssessmentResult }) {
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="report-heading" className="font-display text-lg font-semibold text-terminal-fg">
-          Assessment report
+          {t("reportTitle")}
         </h2>
         <div className="flex flex-wrap items-center gap-2">
           <ButtonLink href={`/api/v1/assessments/${result.id}/export?format=pdf`} variant="outline" size="sm">
-            Download PDF
+            {t("downloadPdf")}
           </ButtonLink>
           <ButtonLink href={`/api/v1/assessments/${result.id}/vpat`} variant="outline" size="sm">
-            Download ACR (draft)
+            {t("downloadAcr")}
           </ButtonLink>
           <Button
             variant="outline"
@@ -66,13 +68,13 @@ export function Report({ result }: { result: AssessmentResult }) {
             onClick={() => setLargePrint((value) => !value)}
             aria-pressed={largePrint}
           >
-            {largePrint ? "Normal print" : "Large print"}
+            {largePrint ? t("normalPrint") : t("largePrint")}
           </Button>
         </div>
       </div>
 
       <nav
-        aria-label="Report sections"
+        aria-label={t("navAria")}
         className="sticky top-0 z-10 -mx-4 mt-4 border-b border-terminal-border bg-terminal-bg px-4 py-2"
       >
         <ul className="m-0 flex list-none flex-wrap gap-x-4 gap-y-1 p-0">
@@ -103,24 +105,25 @@ export function Report({ result }: { result: AssessmentResult }) {
       {isPartial && conformance && (
         <div role="note" className="mt-4 rounded border border-terminal-serious bg-terminal-surface/40 p-3">
           <p className="font-sans text-sm text-terminal-fg">
-            <span className="font-semibold text-terminal-serious">Partial result.</span> This report
-            is based on automated and AI-assisted checks only: {resolvedCount} of {conformance.total}{" "}
-            criteria resolved by machine; {conformance.cannotTell} still need human review (coming
-            soon). It is not a full conformance evaluation.
+            <span className="font-semibold text-terminal-serious">{t("partialTitle")}</span>{" "}
+            {t("partialBody", {
+              resolved: resolvedCount,
+              total: conformance.total,
+              cannotTell: conformance.cannotTell,
+            })}
           </p>
         </div>
       )}
 
       {result.partial && (
         <p className="mt-3 font-sans text-sm text-terminal-moderate">
-          Note: crawl limits reached — this report covers a subset of pages.
+          {t("crawlLimitNote")}
         </p>
       )}
 
       {result.reviewStatus === "reviewed" && result.snapshotAt && (
         <p className="mt-3 font-sans text-xs text-terminal-muted">
-          Conformance evaluated as at {new Date(result.snapshotAt).toUTCString()}. This report is a
-          professional opinion, not a certified audit or legal advice.
+          {t("reviewedNote", { date: new Date(result.snapshotAt).toUTCString() })}
         </p>
       )}
 
@@ -146,9 +149,9 @@ export function Report({ result }: { result: AssessmentResult }) {
       <div id="findings" className="mt-8 scroll-mt-24">
         {orderedFindings.length > 0 && (
           <div id="top-issues" className="mb-8 scroll-mt-24">
-            <h2 className="font-display text-base font-semibold text-terminal-fg">Top issues</h2>
+            <h2 className="font-display text-base font-semibold text-terminal-fg">{t("topIssuesHeading")}</h2>
             <p className="mt-1 font-sans text-sm text-terminal-muted">
-              Fix these first — ranked by user impact × reach. Full evidence below.
+              {t("topIssuesIntro")}
             </p>
             <ol className="mt-3 space-y-2">
               {top.map((finding, index) => {
@@ -167,7 +170,7 @@ export function Report({ result }: { result: AssessmentResult }) {
                       {sc && <span className="font-sans text-xs text-terminal-muted">WCAG {sc}</span>}
                       {index === 0 && (
                         <span className="ml-auto font-sans text-xs font-semibold text-terminal-serious">
-                          Fix this first
+                          {t("fixFirst")}
                         </span>
                       )}
                     </a>
@@ -179,11 +182,11 @@ export function Report({ result }: { result: AssessmentResult }) {
         )}
 
         <h2 className="font-display text-base font-semibold text-terminal-fg">
-          Findings ({result.findings.length})
+          {t("findingsHeading", { count: result.findings.length })}
         </h2>
         {result.findings.length === 0 ? (
           <p className="mt-2 font-sans text-sm text-terminal-pass">
-            No automated violations detected.
+            {t("noViolations")}
           </p>
         ) : (
           orderedFindings.map((finding, index) => (

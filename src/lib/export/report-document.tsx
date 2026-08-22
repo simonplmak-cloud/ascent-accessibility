@@ -158,10 +158,11 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
     { href: "#executive-summary", label: "1. Executive summary" },
     { href: "#methodology", label: "2. Methodology" },
     { href: "#conformance", label: "3. WCAG conformance" },
-    { href: "#severity", label: "4. Severity distribution" },
-    { href: "#findings", label: "5. Findings" },
-    { href: "#recommendations", label: "6. Remediation recommendations" },
-    ...(comparison ? [{ href: "#comparison", label: "7. Cross-tool comparison" }] : []),
+    { href: "#methods", label: "4. Results by review method" },
+    { href: "#severity", label: "5. Severity distribution" },
+    { href: "#findings", label: "6. Findings" },
+    { href: "#recommendations", label: "7. Remediation recommendations" },
+    ...(comparison ? [{ href: "#comparison", label: "8. Cross-tool comparison" }] : []),
   ];
 
   return (
@@ -270,13 +271,87 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
           )}
         </View>
 
+        {conformance?.rows && conformance.rows.length > 0 ? (
+          <View id="methods" style={styles.section}>
+            <Text style={styles.h2}>4. Results by review method</Text>
+            <Text style={styles.muted}>
+              How each criterion was decided — by the machine, by AI, or still needing human review. An AI &ldquo;cannot tell&rdquo; is escalated to human review.
+            </Text>
+
+            <Text style={styles.h3}>Machine review (automated) — {machine.passed} passed · {machine.failed} failed</Text>
+            {machine.rows.length === 0 ? (
+              <Text style={styles.empty}>No criteria decided by the machine.</Text>
+            ) : (
+              <View>
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>SC</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.8 }]}>Title</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.6 }]}>Level</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>Verdict</Text>
+                </View>
+                {machine.rows.map((row) => (
+                  <View key={row.num} style={styles.tableRow}>
+                    <Text style={[styles.tableCell, { flex: 0.8 }]}>{row.num}</Text>
+                    <Text style={[styles.tableCell, { flex: 1.8 }]}>{row.title}</Text>
+                    <Text style={[styles.tableCell, { flex: 0.6 }]}>{row.level}</Text>
+                    <Text style={[styles.tableCell, { flex: 1 }]}>{row.machineResult}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <Text style={styles.h3}>AI-assisted review — {aiRes.passed} passed · {aiRes.failed} failed · {aiRes.cannotTell} cannot tell</Text>
+            {aiRes.verdicts.length === 0 ? (
+              <Text style={styles.empty}>No machine-untestable criteria required AI review.</Text>
+            ) : (
+              <View>
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>SC</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>Verdict</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>Confidence</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.6 }]}>Reasoning</Text>
+                </View>
+                {aiRes.verdicts.map((v) => (
+                  <View key={v.sc} style={styles.tableRow}>
+                    <Text style={[styles.tableCell, { flex: 0.8 }]}>{v.sc}</Text>
+                    <Text style={[styles.tableCell, { flex: 0.8 }]}>{v.verdict}</Text>
+                    <Text style={[styles.tableCell, { flex: 0.8 }]}>{Math.round(v.confidence * 100)}%</Text>
+                    <Text style={[styles.tableCell, { flex: 1.6 }]}>{v.reasoning}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            <Text style={[styles.muted, { marginTop: 2 }]}>AI-assisted — not proof of conformance.</Text>
+
+            <Text style={styles.h3}>Human review (pending — coming soon) — {human.count} criteria</Text>
+            {human.rows.length === 0 ? (
+              <Text style={styles.empty}>Nothing needs human review for this page.</Text>
+            ) : (
+              <View>
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>SC</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.8 }]}>Title</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.4 }]}>How to verify</Text>
+                </View>
+                {human.rows.map((row) => (
+                  <View key={row.num} style={styles.tableRow}>
+                    <Text style={[styles.tableCell, { flex: 0.8 }]}>{row.num}</Text>
+                    <Text style={[styles.tableCell, { flex: 1.8 }]}>{row.title}</Text>
+                    <Text style={[styles.tableCell, { flex: 1.4 }]}>{getManualTest(row.num)}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        ) : null}
+
         <View id="severity" style={styles.section}>
-          <Text style={styles.h2}>4. Severity distribution</Text>
+          <Text style={styles.h2}>5. Severity distribution</Text>
           <SeverityBars counts={counts} />
         </View>
 
         <View id="findings" style={styles.section}>
-          <Text style={styles.h2}>5. Findings</Text>
+          <Text style={styles.h2}>6. Findings</Text>
           {totalFindings === 0 ? (
             <Text style={styles.empty}>No automated findings detected.</Text>
           ) : (
@@ -307,7 +382,7 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
         </View>
 
         <View id="recommendations" style={styles.section}>
-          <Text style={styles.h2}>6. Remediation recommendations</Text>
+          <Text style={styles.h2}>7. Remediation recommendations</Text>
           {totalFindings === 0 ? (
             <Text style={styles.empty}>No remediation required by this scan.</Text>
           ) : (
@@ -323,7 +398,7 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
 
         {comparison ? (
           <View id="comparison" style={styles.section}>
-            <Text style={styles.h2}>7. Ascent Accessibility analysis</Text>
+            <Text style={styles.h2}>8. Ascent Accessibility analysis</Text>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>Signal</Text>
               <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>Result</Text>

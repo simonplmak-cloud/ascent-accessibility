@@ -820,5 +820,61 @@
     "next": "Next",
     "trendTitle": "Conformance trend",
     "scans": "{count} scans"
+  },
+  "report": {
+    "reportTitle": "Assessment report",
+    "downloadPdf": "Download PDF",
+    "downloadAcr": "Download ACR (draft)",
+    "normalPrint": "Normal print",
+    "largePrint": "Large print",
+    "navAria": "Report sections",
+    "navSummary": "Summary",
+    "navTopIssues": "Top issues",
+    "navByMethod": "By method",
+    "navAllCriteria": "All criteria",
+    "navSiteSignals": "Site signals",
+    "navFindings": "Findings",
+    "navMark": "Mark",
+    "navMethodology": "Methodology",
+    "navLog": "Log",
+    "partialTitle": "Partial result.",
+    "partialBody": "This report is based on automated and AI-assisted checks only: {resolved} of {total} criteria resolved by machine; {cannotTell} still need human review (coming soon). It is not a full conformance evaluation.",
+    "crawlLimitNote": "Note: crawl limits reached — this report covers a subset of pages.",
+    "reviewedNote": "Conformance evaluated as at {date}. This report is a professional opinion, not a certified audit or legal advice.",
+    "topIssuesHeading": "Top issues",
+    "topIssuesIntro": "Fix these first — ranked by user impact × reach. Full evidence below.",
+    "fixFirst": "Fix this first",
+    "findingsHeading": "Findings ({count})",
+    "noViolations": "No automated violations detected."
+  },
+  "reportPage": {
+    "title": "Assessment report",
+    "notFound": "Assessment not found",
+    "notFoundBody": "This report may have been deleted, or the link is incorrect.",
+    "backToWorkspace": "Back to workspace",
+    "statusQueued": "This assessment is queued and has not started yet.",
+    "statusRunning": "This assessment is currently running. Check back shortly.",
+    "statusFailed": "This assessment could not be completed.",
+    "breadcrumbWorkspace": "Workspace",
+    "breadcrumbReport": "Report",
+    "singlePage": "Single page",
+    "wholeSite": "Whole website",
+    "opensNewWindow": "{url} (opens in a new window)"
+  },
+  "reviewPage": {
+    "title": "Review queue",
+    "description": "Review queue for the partner review workforce.",
+    "accessDenied": "Access denied",
+    "workforceOnly": "This area is for the review workforce only."
+  },
+  "standards": {
+    "title": "WCAG success criteria",
+    "description": "The success criteria the assessment tool scores against — WCAG 2.0, 2.1, 2.2, and Section 508 — grouped by principle and guideline, with links to the specification and Understanding documents.",
+    "heading": "WCAG success criteria",
+    "intro": "Every success criterion the assessment tool scores against, grouped by principle and guideline. Choose a standard, then expand a guideline. The number links to the W3C specification; \u201cUnderstanding\u201d links to the official explanatory document.",
+    "source": "Source: <wcag>Web Content Accessibility Guidelines (WCAG)</wcag> by the W3C. Learn how the tool scores against these in <methodology>our methodology</methodology>.",
+    "understanding": "Understanding",
+    "opensNewWindow": " (opens in a new window)",
+    "tabsLabel": "WCAG standard"
   }
 }

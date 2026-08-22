@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
@@ -17,12 +18,19 @@ import {
   type WcagSc,
 } from "@/lib/standards/wcag-sc";
 
-export const metadata: Metadata = {
-  title: "WCAG success criteria",
-  description:
-    "The success criteria the assessment tool scores against — WCAG 2.0, 2.1, 2.2, and Section 508 — grouped by principle and guideline, with links to the specification and Understanding documents.",
-  alternates: { canonical: "/standards" },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "standards" });
+  return {
+    title: t("title"),
+    description: t("description"),
+    alternates: { canonical: "/standards" },
+  };
+}
 
 function scsFor(standard: Standard): WcagSc[] {
   // Section 508 maps to WCAG 2.0 AA.
@@ -70,32 +78,37 @@ function buildTree(standard: Standard): StandardTree {
   };
 }
 
-export default function StandardsPage() {
+export default async function StandardsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("standards");
   const standards = listStandards().map(buildTree);
 
   return (
     <PageShell width="4xl">
-      <PageHeading>WCAG success criteria</PageHeading>
-      <MutedText className="mt-4">
-        Every success criterion the assessment tool scores against, grouped by principle and
-        guideline. Choose a standard, then expand a guideline. The number links to the W3C
-        specification; &ldquo;Understanding&rdquo; links to the official explanatory document.
-      </MutedText>
+      <PageHeading>{t("heading")}</PageHeading>
+      <MutedText className="mt-4">{t("intro")}</MutedText>
 
       <StandardsView standards={standards} defaultId={DEFAULT_STANDARD_ID} />
 
       <p className="mt-10 font-sans text-sm text-terminal-muted">
-        Source:{" "}
-        <a
-          href="https://www.w3.org/TR/WCAG22/"
-          target="_blank"
-          rel="noreferrer"
-          className="underline underline-offset-4 hover:text-terminal-fg"
-        >
-          Web Content Accessibility Guidelines (WCAG)
-        </a>{" "}
-        by the W3C. Learn how the tool scores against these in{" "}
-        <InlineLink href="/methodology">our methodology</InlineLink>.
+        {t.rich("source", {
+          wcag: (chunks) => (
+            <a
+              href="https://www.w3.org/TR/WCAG22/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4 hover:text-terminal-fg"
+            >
+              {chunks}
+            </a>
+          ),
+          methodology: (chunks) => <InlineLink href="/methodology">{chunks}</InlineLink>,
+        })}
       </p>
     </PageShell>
   );

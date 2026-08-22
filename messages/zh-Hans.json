@@ -820,5 +820,61 @@
     "next": "下一页",
     "trendTitle": "合规趋势",
     "scans": "{count} 次扫描"
+  },
+  "report": {
+    "reportTitle": "评估报告",
+    "downloadPdf": "下载 PDF",
+    "downloadAcr": "下载 ACR (草稿)",
+    "normalPrint": "一般打印",
+    "largePrint": "大字打印",
+    "navAria": "报告章节",
+    "navSummary": "摘要",
+    "navTopIssues": "主要问题",
+    "navByMethod": "依方法",
+    "navAllCriteria": "全部准则",
+    "navSiteSignals": "网站信号",
+    "navFindings": "发现",
+    "navMark": "标记",
+    "navMethodology": "方法论",
+    "navLog": "记录",
+    "partialTitle": "部分结果。",
+    "partialBody": "此报告仅根据自动化及 AI 辅助检查：{total} 项准则中有 {resolved} 项由机器判定；{cannotTell} 项仍需人工审核（即将推出）。这并非完整的合规评估。",
+    "crawlLimitNote": "注意：已达爬取上限 — 此报告仅涵盖部分页面。",
+    "reviewedNote": "合规性于 {date} 评估。此报告为专业意见，并非认证审计或法律建议。",
+    "topIssuesHeading": "主要问题",
+    "topIssuesIntro": "优先修复这些 — 依用户影响 × 触达范围排序。完整证据在下方。",
+    "fixFirst": "优先修复此项",
+    "findingsHeading": "发现 ({count})",
+    "noViolations": "未侦测到自动化违规。"
+  },
+  "reportPage": {
+    "title": "评估报告",
+    "notFound": "找不到评估",
+    "notFoundBody": "此报告可能已删除，或链接有误。",
+    "backToWorkspace": "返回工作区",
+    "statusQueued": "此评估已排入队列，尚未开始。",
+    "statusRunning": "此评估正在执行。请稍后再回来查看。",
+    "statusFailed": "此评估无法完成。",
+    "breadcrumbWorkspace": "工作区",
+    "breadcrumbReport": "报告",
+    "singlePage": "单一页面",
+    "wholeSite": "整个网站",
+    "opensNewWindow": "{url}（在新窗口打开）"
+  },
+  "reviewPage": {
+    "title": "审核队列",
+    "description": "供合作伙伴审核团队使用的审核队列。",
+    "accessDenied": "拒绝访问",
+    "workforceOnly": "此区域仅供审核团队使用。"
+  },
+  "standards": {
+    "title": "WCAG 成功准则",
+    "description": "评估工具评分的所有成功准则 — WCAG 2.0、2.1、2.2 及 Section 508 — 依原则及指引分组，并附上规范及 Understanding 文件链接。",
+    "heading": "WCAG 成功准则",
+    "intro": "评估工具评分的每一项成功准则，依原则及指引分组。选择标准，然后展开指引。数字链接到 W3C 规范；「Understanding」链接到官方说明文件。",
+    "source": "资料来源：W3C 的 <wcag>Web Content Accessibility Guidelines (WCAG)</wcag>。了解工具如何据此评分，请见 <methodology>我们的方法论</methodology>。",
+    "understanding": "Understanding",
+    "opensNewWindow": "（在新窗口打开）",
+    "tabsLabel": "WCAG 标准"
   }
 }

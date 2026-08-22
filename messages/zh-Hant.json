@@ -820,5 +820,61 @@
     "next": "下一頁",
     "trendTitle": "合規趨勢",
     "scans": "{count} 次掃描"
+  },
+  "report": {
+    "reportTitle": "評估報告",
+    "downloadPdf": "下載 PDF",
+    "downloadAcr": "下載 ACR (草稿)",
+    "normalPrint": "一般列印",
+    "largePrint": "大字列印",
+    "navAria": "報告章節",
+    "navSummary": "摘要",
+    "navTopIssues": "主要問題",
+    "navByMethod": "依方法",
+    "navAllCriteria": "全部準則",
+    "navSiteSignals": "網站訊號",
+    "navFindings": "發現",
+    "navMark": "標記",
+    "navMethodology": "方法論",
+    "navLog": "記錄",
+    "partialTitle": "部分結果。",
+    "partialBody": "此報告僅根據自動化及 AI 輔助檢查：{total} 項準則中有 {resolved} 項由機器判定；{cannotTell} 項仍需人工審核（即將推出）。這並非完整的合規評估。",
+    "crawlLimitNote": "注意：已達爬取上限 — 此報告僅涵蓋部分頁面。",
+    "reviewedNote": "合規性於 {date} 評估。此報告為專業意見，並非認證稽核或法律建議。",
+    "topIssuesHeading": "主要問題",
+    "topIssuesIntro": "優先修復這些 — 依使用者影響 × 觸及範圍排序。完整證據在下方。",
+    "fixFirst": "優先修復此項",
+    "findingsHeading": "發現 ({count})",
+    "noViolations": "未偵測到自動化違規。"
+  },
+  "reportPage": {
+    "title": "評估報告",
+    "notFound": "找不到評估",
+    "notFoundBody": "此報告可能已刪除，或連結有誤。",
+    "backToWorkspace": "返回工作區",
+    "statusQueued": "此評估已排入佇列，尚未開始。",
+    "statusRunning": "此評估正在執行。請稍後再回來查看。",
+    "statusFailed": "此評估無法完成。",
+    "breadcrumbWorkspace": "工作區",
+    "breadcrumbReport": "報告",
+    "singlePage": "單一頁面",
+    "wholeSite": "整個網站",
+    "opensNewWindow": "{url}（在新視窗開啟）"
+  },
+  "reviewPage": {
+    "title": "審核佇列",
+    "description": "供合作夥伴審核團隊使用的審核佇列。",
+    "accessDenied": "拒絕存取",
+    "workforceOnly": "此區域僅供審核團隊使用。"
+  },
+  "standards": {
+    "title": "WCAG 成功準則",
+    "description": "評估工具評分的所有成功準則 — WCAG 2.0、2.1、2.2 及 Section 508 — 依原則及指引分組，並附上規範及 Understanding 文件連結。",
+    "heading": "WCAG 成功準則",
+    "intro": "評估工具評分的每一項成功準則，依原則及指引分組。選擇標準，然後展開指引。數字連結到 W3C 規範；「Understanding」連結到官方說明文件。",
+    "source": "資料來源：W3C 的 <wcag>Web Content Accessibility Guidelines (WCAG)</wcag>。了解工具如何據此評分，請見 <methodology>我們的方法論</methodology>。",
+    "understanding": "Understanding",
+    "opensNewWindow": "（在新視窗開啟）",
+    "tabsLabel": "WCAG 標準"
   }
 }
