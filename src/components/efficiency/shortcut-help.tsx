@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { GLOBAL_SHORTCUTS } from "@/lib/efficiency/keyboard";
 
 export function ShortcutHelp({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useTranslations("common");
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -22,12 +24,12 @@ export function ShortcutHelp({ open, onClose }: { open: boolean; onClose: () => 
     >
       <div className="px-5 py-4">
         <h2 id="shortcut-help-title" className="font-display text-lg font-semibold text-terminal-fg">
-          Keyboard shortcuts
+          {t("keyboardShortcuts")}
         </h2>
         <ul className="mt-3 space-y-2">
           {GLOBAL_SHORTCUTS.map((s) => (
             <li key={s.keys} className="flex items-center justify-between gap-3 font-sans text-sm">
-              <span className="text-terminal-muted">{s.action}</span>
+              <span className="text-terminal-muted">{t(s.action)}</span>
               <kbd className="rounded border border-terminal-border bg-terminal-bg px-2 py-0.5 text-xs text-terminal-fg">
                 {s.keys}
               </kbd>
@@ -41,7 +43,7 @@ export function ShortcutHelp({ open, onClose }: { open: boolean; onClose: () => 
           onClick={onClose}
           className="rounded bg-terminal-fg px-4 py-2 font-sans text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
         >
-          Close
+          {t("close")}
         </button>
       </div>
     </dialog>

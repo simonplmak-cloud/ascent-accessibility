@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 
 export interface MasterDetailItem {
   id: string;
@@ -19,6 +20,7 @@ export function MasterDetail({
   detail: (id: string) => ReactNode;
   onOpen?: (id: string) => void;
 }) {
+  const t = useTranslations("common");
   const [activeIndex, setActiveIndex] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -64,7 +66,7 @@ export function MasterDetail({
         ))}
       </div>
       {openId && (
-        <aside aria-label="Detail" className="w-full shrink-0 lg:w-96">
+        <aside aria-label={t("detail")} className="w-full shrink-0 lg:w-96">
           {detail(openId)}
         </aside>
       )}

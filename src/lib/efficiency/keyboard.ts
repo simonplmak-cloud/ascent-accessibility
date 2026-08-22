@@ -27,10 +27,13 @@ export function findCollisions(
     .map(([keys, actions]) => ({ keys, actions }));
 }
 
-/** Single source of truth for the global shortcut map. */
+/**
+ * Single source of truth for the global shortcut map. `action` is an i18n
+ * message key (namespace `common`) resolved by the ShortcutHelp component.
+ */
 export const GLOBAL_SHORTCUTS: readonly ShortcutDef[] = [
-  { keys: "mod+k", action: "Open command palette" },
-  { keys: "?", action: "Show shortcuts" },
-  { keys: "g t", action: "Go to training" },
-  { keys: "g a", action: "Go to auditor" },
+  { keys: "mod+k", action: "openCommandPalette" },
+  { keys: "?", action: "showShortcuts" },
+  { keys: "g t", action: "goToTraining" },
+  { keys: "g a", action: "goToAuditor" },
 ];

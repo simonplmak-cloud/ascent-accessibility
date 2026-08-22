@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { ViewState } from "@/lib/efficiency/saved-views";
 
 const STORAGE_KEY = "wcag-saved-views";
@@ -18,6 +19,7 @@ export function SavedViews({
   current: ViewState;
   onApply: (view: ViewState) => void;
 }) {
+  const t = useTranslations("common");
   const [views, setViews] = useState<SavedView[]>([]);
   const [name, setName] = useState("");
 
@@ -51,7 +53,7 @@ export function SavedViews({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="font-sans text-sm text-terminal-muted">Views:</span>
+      <span className="font-sans text-sm text-terminal-muted">{t("views")}</span>
       {views.map((view) => (
         <span
           key={view.name}
@@ -67,7 +69,7 @@ export function SavedViews({
           <button
             type="button"
             onClick={() => remove(view.name)}
-            aria-label={`Delete view ${view.name}`}
+            aria-label={t("deleteView", { name: view.name })}
             className="font-sans text-xs text-terminal-muted hover:text-terminal-critical"
           >
             ×
@@ -75,10 +77,10 @@ export function SavedViews({
         </span>
       ))}
       <input
-        aria-label="Save view name"
+        aria-label={t("saveViewName")}
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Save current view…"
+        placeholder={t("saveCurrentView")}
         className="rounded border border-terminal-border bg-terminal-surface px-2 py-0.5 font-sans text-sm text-terminal-fg placeholder:text-terminal-muted"
       />
       <button
@@ -87,7 +89,7 @@ export function SavedViews({
         disabled={!name.trim()}
         className="rounded border border-terminal-border px-2 py-0.5 font-sans text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
       >
-        Save
+        {t("save")}
       </button>
     </div>
   );

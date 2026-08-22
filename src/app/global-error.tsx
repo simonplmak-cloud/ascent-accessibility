@@ -2,6 +2,9 @@
 
 import "./globals.css";
 
+// Root error boundary: rendered outside the [locale] segment, so it has no
+// NextIntlClientProvider and no locale context. Kept in English as the
+// catastrophic, provider-less fallback.
 export default function GlobalError({
   reset,
 }: {

@@ -1,19 +1,34 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
+import { usePathname, useRouter } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
 import { useTheme } from "@/lib/use-theme";
 
 type TextSize = "normal" | "large" | "xlarge";
 
-const TEXT_SIZES: Array<{ value: TextSize; label: string }> = [
-  { value: "normal", label: "Normal" },
-  { value: "large", label: "Large" },
-  { value: "xlarge", label: "Extra large" },
+const TEXT_SIZES: Array<{ value: TextSize; labelKey: string }> = [
+  { value: "normal", labelKey: "sizeNormal" },
+  { value: "large", labelKey: "sizeLarge" },
+  { value: "xlarge", labelKey: "sizeXlarge" },
 ];
 
-// Consolidated display preferences (theme + text size) behind a single [Aa]
-// control, replacing the two inline header toggles.
+const LOCALE_SHORT: Record<string, string> = { en: "EN", "zh-Hant": "繁", "zh-Hans": "简" };
+const LOCALE_LABEL_KEY: Record<string, string> = {
+  en: "languageEnglish",
+  "zh-Hant": "languageZhHant",
+  "zh-Hans": "languageZhHans",
+};
+
+// Consolidated display + language preferences behind a single quiet control,
+// replacing the separate [Aa] dialog and the 3-button language switcher. The
+// trigger shows the current locale so the control is identifiable.
 export function PreferencesDialog() {
+  const t = useTranslations("common");
+  const locale = useLocale();
+  const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [size, setSize] = useState<TextSize>("normal");
   const { theme, setTheme } = useTheme();
@@ -40,17 +55,22 @@ export function PreferencesDialog() {
     else if (!open && dialog.open) dialog.close();
   }, [open]);
 
+  function switchLocale(next: string) {
+    router.replace(pathname, { locale: next });
+    setOpen(false);
+  }
+
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
-        aria-label="Display preferences"
-        title="Display preferences"
+        aria-label={t("displayAndLanguage")}
+        title={t("displayAndLanguage")}
         className="rounded border border-terminal-border px-2 py-1 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
       >
-        Aa
+        Aa <span className="text-terminal-muted">{LOCALE_SHORT[locale] ?? "EN"}</span>
       </button>
 
       <dialog
@@ -61,13 +81,34 @@ export function PreferencesDialog() {
       >
         <div className="border-b border-terminal-border px-5 py-4">
           <h2 id="prefs-title" className="font-display text-base font-semibold text-terminal-fg">
-            Display preferences
+            {t("displayAndLanguage")}
           </h2>
         </div>
 
         <div className="space-y-5 px-5 py-5">
           <fieldset>
-            <legend className="font-sans text-sm font-semibold text-terminal-fg">Text size</legend>
+            <legend className="font-sans text-sm font-semibold text-terminal-fg">{t("language")}</legend>
+            <div className="mt-2 space-y-2">
+              {routing.locales.map((loc) => (
+                <button
+                  key={loc}
+                  type="button"
+                  onClick={() => switchLocale(loc)}
+                  aria-pressed={loc === locale}
+                  className={`flex w-full items-center gap-2 rounded px-2 py-1 text-left font-sans text-sm ${
+                    loc === locale
+                      ? "bg-terminal-fg text-terminal-bg"
+                      : "text-terminal-fg hover:bg-terminal-bg"
+                  }`}
+                >
+                  {t(LOCALE_LABEL_KEY[loc] ?? "languageEnglish")}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="font-sans text-sm font-semibold text-terminal-fg">{t("textSize")}</legend>
             <div className="mt-2 space-y-2">
               {TEXT_SIZES.map((option) => (
                 <label key={option.value} className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
@@ -77,14 +118,14 @@ export function PreferencesDialog() {
                     checked={size === option.value}
                     onChange={() => setSize(option.value)}
                   />
-                  {option.label}
+                  {t(option.labelKey)}
                 </label>
               ))}
             </div>
           </fieldset>
 
           <fieldset>
-            <legend className="font-sans text-sm font-semibold text-terminal-fg">Theme</legend>
+            <legend className="font-sans text-sm font-semibold text-terminal-fg">{t("theme")}</legend>
             <div className="mt-2 space-y-2">
               {(["dark", "light"] as const).map((option) => (
                 <label key={option} className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
@@ -94,7 +135,7 @@ export function PreferencesDialog() {
                     checked={theme === option}
                     onChange={() => setTheme(option)}
                   />
-                  {option === "dark" ? "Dark" : "Light"}
+                  {option === "dark" ? t("themeDark") : t("themeLight")}
                 </label>
               ))}
             </div>
@@ -107,7 +148,7 @@ export function PreferencesDialog() {
             onClick={() => setOpen(false)}
             className="rounded bg-terminal-fg px-4 py-2 font-sans text-sm font-medium text-terminal-bg hover:bg-terminal-serious"
           >
-            Done
+            {t("done")}
           </button>
         </div>
       </dialog>

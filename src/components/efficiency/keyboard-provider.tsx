@@ -5,9 +5,11 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { useTranslations } from "next-intl";
 import { CommandPalette, type PaletteCommand } from "./command-palette";
 import { ShortcutHelp } from "./shortcut-help";
 
@@ -32,10 +34,19 @@ function isEditableTarget(target: EventTarget | null): boolean {
   return target.isContentEditable;
 }
 
-const GLOBAL_COMMANDS: PaletteCommand[] = [
+interface GlobalCommandDef {
+  id: string;
+  labelKey: string;
+  keywords: string;
+  shortcut?: string;
+  group: string;
+  run: () => void;
+}
+
+const GLOBAL_COMMAND_DEFS: GlobalCommandDef[] = [
   {
     id: "nav-scan",
-    label: "New scan",
+    labelKey: "newScan",
     keywords: "assess scan website",
     shortcut: "/",
     group: "Navigate",
@@ -45,7 +56,7 @@ const GLOBAL_COMMANDS: PaletteCommand[] = [
   },
   {
     id: "nav-latest-report",
-    label: "View latest report",
+    labelKey: "viewLatestReport",
     keywords: "report latest result findings conformance",
     group: "Navigate",
     run: () => {
@@ -69,7 +80,7 @@ const GLOBAL_COMMANDS: PaletteCommand[] = [
   },
   {
     id: "nav-training",
-    label: "Training",
+    labelKey: "training",
     keywords: "learn course certificate",
     group: "Navigate",
     run: () => {
@@ -78,7 +89,7 @@ const GLOBAL_COMMANDS: PaletteCommand[] = [
   },
   {
     id: "nav-auditor",
-    label: "Auditor workspace",
+    labelKey: "auditorWorkspace",
     keywords: "assessments history review",
     group: "Navigate",
     run: () => {
@@ -87,7 +98,7 @@ const GLOBAL_COMMANDS: PaletteCommand[] = [
   },
   {
     id: "nav-review",
-    label: "Review queue",
+    labelKey: "reviewQueue",
     keywords: "review workforce resolve",
     group: "Navigate",
     run: () => {
@@ -96,7 +107,7 @@ const GLOBAL_COMMANDS: PaletteCommand[] = [
   },
   {
     id: "nav-keys",
-    label: "API access",
+    labelKey: "apiAccess",
     keywords: "api keys",
     group: "Navigate",
     run: () => {
@@ -106,9 +117,27 @@ const GLOBAL_COMMANDS: PaletteCommand[] = [
 ];
 
 export function KeyboardProvider({ children }: { children: ReactNode }) {
+  const t = useTranslations("common");
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [commands, setCommands] = useState<PaletteCommand[]>(GLOBAL_COMMANDS);
+  const [commands, setCommands] = useState<PaletteCommand[]>([]);
+
+  const globalCommands = useMemo<PaletteCommand[]>(
+    () =>
+      GLOBAL_COMMAND_DEFS.map((d) => ({
+        id: d.id,
+        label: t(d.labelKey),
+        keywords: d.keywords,
+        shortcut: d.shortcut,
+        group: d.group,
+        run: d.run,
+      })),
+    [t],
+  );
+
+  useEffect(() => {
+    setCommands(globalCommands);
+  }, [globalCommands]);
 
   const registerCommands = useCallback((cmds: PaletteCommand[]) => {
     setCommands((prev) => {

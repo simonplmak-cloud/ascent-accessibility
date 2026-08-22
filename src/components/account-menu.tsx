@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { ACCOUNT_MENU } from "@/lib/navigation";
 
 // Signed-in account control: a button that opens a disclosure dropdown with the
@@ -15,6 +16,8 @@ export function AccountMenu({
   onSignOut: () => void;
   signingOut: boolean;
 }) {
+  const t = useTranslations("common");
+  const tnav = useTranslations("nav");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -42,7 +45,7 @@ export function AccountMenu({
         aria-controls="account-menu"
         className="max-w-[12rem] truncate rounded border border-terminal-border px-3 py-1 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
       >
-        {email ?? "Account"}
+        {email ?? t("account")}
       </button>
       {open && (
         <ul
@@ -56,7 +59,7 @@ export function AccountMenu({
                 onClick={() => setOpen(false)}
                 className="block rounded px-3 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-bg"
               >
-                {item.label}
+                {tnav(item.label)}
               </Link>
             </li>
           ))}
@@ -70,7 +73,7 @@ export function AccountMenu({
               disabled={signingOut}
               className="block w-full rounded px-3 py-2 text-left font-sans text-sm text-terminal-fg hover:bg-terminal-bg disabled:opacity-50"
             >
-              {signingOut ? "Signing out…" : "Sign out"}
+              {signingOut ? t("signingOut") : t("signOut")}
             </button>
           </li>
         </ul>

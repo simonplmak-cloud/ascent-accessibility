@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { loadStripe, type Appearance } from "@stripe/stripe-js";
 import {
   CheckoutElementsProvider,
@@ -56,12 +57,13 @@ const lightAppearance: Appearance = {
 };
 
 function CheckoutForm({ submitLabel }: { submitLabel: string }) {
+  const t = useTranslations("common");
   const checkoutState = useCheckoutElements();
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   if (checkoutState.type === "loading") {
-    return <p className="font-sans text-sm text-terminal-muted">Loading…</p>;
+    return <p className="font-sans text-sm text-terminal-muted">{t("loading")}</p>;
   }
   if (checkoutState.type === "error") {
     return (
@@ -92,7 +94,7 @@ function CheckoutForm({ submitLabel }: { submitLabel: string }) {
         disabled={submitting}
         className="w-full rounded bg-terminal-fg px-4 py-2 font-sans text-sm font-medium text-terminal-bg hover:bg-terminal-serious disabled:opacity-60"
       >
-        {submitting ? "Processing…" : submitLabel}
+        {submitting ? t("processing") : submitLabel}
       </button>
       {message && (
         <p role="alert" className="font-sans text-sm text-terminal-critical">

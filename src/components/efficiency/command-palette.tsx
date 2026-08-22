@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { rankCommands, type Command } from "@/lib/efficiency/palette";
 
 export interface PaletteCommand extends Command {
@@ -16,6 +17,7 @@ export function CommandPalette({
   open: boolean;
   onClose: () => void;
 }) {
+  const t = useTranslations("common");
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -51,7 +53,7 @@ export function CommandPalette({
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      aria-label="Command palette"
+      aria-label={t("commandPalette")}
       className="w-[min(36rem,calc(100vw-2rem))] rounded border border-terminal-border bg-terminal-surface p-0 text-terminal-fg backdrop:bg-black/50"
     >
       <input
@@ -74,12 +76,12 @@ export function CommandPalette({
             run(ranked[active]!);
           }
         }}
-        placeholder="Type a command…"
+        placeholder={t("typeCommand")}
         className="w-full border-b border-terminal-border bg-terminal-surface px-4 py-3 font-sans text-sm text-terminal-fg placeholder:text-terminal-muted focus:outline-none"
       />
-      <ul id="palette-list" role="listbox" aria-label="Commands" className="max-h-80 overflow-y-auto p-1">
+      <ul id="palette-list" role="listbox" aria-label={t("commands")} className="max-h-80 overflow-y-auto p-1">
         {ranked.length === 0 && (
-          <li className="px-3 py-2 font-sans text-sm text-terminal-muted">No commands found.</li>
+          <li className="px-3 py-2 font-sans text-sm text-terminal-muted">{t("noCommands")}</li>
         )}
         {ranked.map((cmd, i) => (
           <li key={cmd.id} role="option" aria-selected={i === active}>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 export interface BulkAction {
   id: string;
   label: string;
@@ -16,6 +18,7 @@ export function BulkActionBar({
   actions: BulkAction[];
   onUndo?: () => void;
 }) {
+  const t = useTranslations("common");
   if (count === 0) return null;
 
   return (
@@ -24,7 +27,7 @@ export function BulkActionBar({
       aria-live="polite"
       className="flex flex-wrap items-center gap-3 rounded border border-terminal-fg/40 bg-terminal-surface px-3 py-2"
     >
-      <span className="font-sans text-sm text-terminal-fg">{count} selected</span>
+      <span className="font-sans text-sm text-terminal-fg">{t("selectedCount", { count })}</span>
       <div className="flex flex-wrap gap-2">
         {actions.map((action) => (
           <button
@@ -46,7 +49,7 @@ export function BulkActionBar({
             onClick={onUndo}
             className="rounded border border-terminal-border px-3 py-1 font-sans text-sm text-terminal-muted hover:text-terminal-fg"
           >
-            Undo
+            {t("undo")}
           </button>
         )}
       </div>

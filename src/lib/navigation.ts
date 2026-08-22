@@ -73,8 +73,6 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       { href: "/guides", label: "guides" },
       { href: "/standards", label: "standards" },
       { href: "/methodology", label: "methodology" },
-      { href: "/remediation", label: "remediation" },
-      { href: "/regulations", label: "regulations" },
     ],
   },
   {
@@ -85,8 +83,6 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       { href: "/for-ngos", label: "forNgos" },
       { href: "/human-review", label: "humanReview" },
       { href: "/esg", label: "esgMapping" },
-      { href: "/validation", label: "validation" },
-      { href: "/roadmap", label: "roadmap" },
     ],
   },
   {

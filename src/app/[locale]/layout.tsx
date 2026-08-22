@@ -156,8 +156,8 @@ export default async function LocaleLayout({
             <main id="main">{children}</main>
             <SiteFooter />
           </KeyboardProvider>
+          <CookieBanner />
         </NextIntlClientProvider>
-        <CookieBanner />
       </body>
     </html>
   );
