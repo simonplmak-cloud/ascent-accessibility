@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { ACCOUNT_MENU, PRIMARY_NAV, type NavItem } from "@/lib/navigation";
 import { PreferencesDialog } from "@/components/preferences-dialog";
 import { AccountMenu } from "@/components/account-menu";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { ButtonLink } from "@/components/ui/button-link";
 
 export interface HeaderAuthState {
@@ -118,6 +119,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
 
           <div className="flex items-center gap-3">
             <PreferencesDialog />
+            <LanguageSwitcher />
             {authState.signedIn ? (
               <AccountMenu email={authState.email} onSignOut={signOut} signingOut={signingOut} />
             ) : (
@@ -133,6 +135,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
 
         <div className="flex items-center gap-2 md:hidden">
           <PreferencesDialog />
+          <LanguageSwitcher />
           <ButtonLink href="/assess" size="sm">
             {t("scanYourSite")}
           </ButtonLink>
