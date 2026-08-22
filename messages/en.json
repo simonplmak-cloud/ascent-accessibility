@@ -954,6 +954,8 @@
     "heading": "WCAG success criteria",
     "intro": "Every success criterion the assessment tool scores against, grouped by principle and guideline. Choose a standard, then expand a guideline. The number links to the W3C specification; \u201cUnderstanding\u201d links to the official explanatory document.",
     "source": "Source: <wcag>Web Content Accessibility Guidelines (WCAG)</wcag> by the W3C. Learn how the tool scores against these in <methodology>our methodology</methodology>.",
+    "citation": "Chinese titles for the success criteria, guidelines and principles are referenced from the W3C authorized translation of Web Content Accessibility Guidelines (WCAG) 2.1 (Zhejiang University).",
+    "citationLink": "W3C authorized translation",
     "understanding": "Understanding",
     "opensNewWindow": " (opens in a new window)",
     "tabsLabel": "WCAG standard"
@@ -1120,5 +1122,17 @@
     "selectedCount": "{count} selected",
     "undo": "Undo",
     "detail": "Detail"
+  },
+  "criterionPage": {
+    "normativeLabel": "Normative requirement",
+    "intentLabel": "Intent",
+    "benefitsLabel": "Benefits",
+    "examplesLabel": "Examples",
+    "howToTest": "How to test",
+    "howToFix": "How to fix",
+    "officialReference": "Official reference",
+    "disclaimer": "This page is a translation provided by Ascent Accessibility, not an official W3C translation. The authoritative version is the English W3C text.",
+    "unofficialNote": "This success criterion has no official W3C Chinese translation yet; this translation is unofficial.",
+    "backToStandards": "Back to standards"
   }
 }

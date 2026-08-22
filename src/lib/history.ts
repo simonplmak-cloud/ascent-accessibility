@@ -9,6 +9,7 @@ export interface HistoryItem {
   id: string;
   url: string;
   standard: string;
+  standardLabel?: string | null;
   status: HistoryStatus;
   conformance: ConformanceOutcome | null;
   pagesScanned: number;

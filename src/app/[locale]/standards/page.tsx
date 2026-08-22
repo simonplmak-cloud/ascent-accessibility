@@ -7,6 +7,7 @@ import { InlineLink } from "@/components/ui/inline-link";
 import { StandardsView, type StandardTree } from "@/components/standards/standards-view";
 import { DEFAULT_STANDARD_ID, listStandards, type Standard } from "@/lib/standards/catalog";
 import { scsForStandard } from "@/lib/standards/version";
+import { understandingHref } from "@/lib/standards/understanding";
 import {
   WCAG_GUIDELINES,
   guidelineName,
@@ -15,7 +16,6 @@ import {
   principleName,
   scTitle,
   specUrl,
-  understandingUrl,
   type WcagSc,
 } from "@/lib/standards/wcag-sc";
 
@@ -64,7 +64,7 @@ function buildTree(standard: Standard, locale: string): StandardTree {
             title: scTitle(sc.num, locale),
             level: sc.level,
             specUrl: specUrl(sc),
-            understandingUrl: understandingUrl(sc),
+            understandingUrl: understandingHref(sc.num, locale),
           })),
         })),
       };
@@ -110,6 +110,17 @@ export default async function StandardsPage({
           ),
           methodology: (chunks) => <InlineLink href="/methodology">{chunks}</InlineLink>,
         })}
+      </p>
+      <p className="mt-2 font-sans text-xs text-terminal-muted">
+        {t("citation")}{" "}
+        <a
+          href="https://www.w3.org/Translations/WCAG21-zh/"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-4 hover:text-terminal-fg"
+        >
+          {t("citationLink")}
+        </a>
       </p>
     </PageShell>
   );

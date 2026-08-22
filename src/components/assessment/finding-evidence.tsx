@@ -2,7 +2,8 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { getSc, scTitle, understandingUrl } from "@/lib/standards/wcag-sc";
+import { getSc, scTitle } from "@/lib/standards/wcag-sc";
+import { isInternalHref, understandingHref } from "@/lib/standards/understanding";
 import { linksForSc } from "@/lib/sc-links";
 import { impactColor } from "./severity";
 import { impactLabel } from "@/lib/labels";
@@ -38,15 +39,24 @@ export function FindingEvidence({
           {impactLabel(finding.impact, locale)}
         </span>
         {sc && scInfo && (
-          <a
-            href={understandingUrl(scInfo)}
-            target="_blank"
-            rel="noreferrer"
-            className="font-sans text-xs text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
-          >
-            WCAG {sc} · {scTitle(sc, locale)} ({t("levelLabel", { level: scInfo.level })})
-            <span className="sr-only">{t("opensNewWindow")}</span>
-          </a>
+          isInternalHref(understandingHref(sc, locale)) ? (
+            <Link
+              href={understandingHref(sc, locale)}
+              className="font-sans text-xs text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
+            >
+              WCAG {sc} · {scTitle(sc, locale)} ({t("levelLabel", { level: scInfo.level })})
+            </Link>
+          ) : (
+            <a
+              href={understandingHref(sc, locale)}
+              target="_blank"
+              rel="noreferrer"
+              className="font-sans text-xs text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
+            >
+              WCAG {sc} · {scTitle(sc, locale)} ({t("levelLabel", { level: scInfo.level })})
+              <span className="sr-only">{t("opensNewWindow")}</span>
+            </a>
+          )
         )}
         {!sc && (
           <span className="font-sans text-xs text-terminal-muted">{t("bestPractice")}</span>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { assessmentRepository } from "@/db/repository";
+import { standardName } from "@/lib/standards/standards-locales";
 import { Report } from "@/components/assessment/report";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import type { AssessmentResult, ComparisonData } from "@/components/assessment/types";
@@ -105,7 +106,7 @@ export default async function ShareableReportPage({
         </a>
       </h1>
       <p className="mt-2 font-sans text-sm text-terminal-muted">
-        {assessment.standard} · {assessment.depth === 0 ? t("singlePage") : t("wholeSite")}
+        {assessment.standardLabel ?? standardName(assessment.standard, locale)} · {assessment.depth === 0 ? t("singlePage") : t("wholeSite")}
       </p>
       <Report result={result} />
     </div>

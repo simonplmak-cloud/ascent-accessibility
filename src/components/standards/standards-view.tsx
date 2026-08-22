@@ -1,8 +1,11 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Tabs } from "@/components/ui/tabs";
 import { Disclosure } from "@/components/ui/disclosure";
+import { isInternalHref } from "@/lib/standards/understanding";
+import { standardName } from "@/lib/standards/standards-locales";
 
 export interface StandardSc {
   num: string;
@@ -59,15 +62,24 @@ function ScList({ scs }: { scs: StandardSc[] }) {
             <span className="sr-only">{t("opensNewWindow")}</span>
           </a>
           <span className="font-sans text-sm text-terminal-fg">{sc.title}</span>
-          <a
-            href={sc.understandingUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="font-sans text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
-          >
-            {t("understanding")}
-            <span className="sr-only">{t("opensNewWindow")}</span>
-          </a>
+          {isInternalHref(sc.understandingUrl) ? (
+            <Link
+              href={sc.understandingUrl}
+              className="font-sans text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
+            >
+              {t("understanding")}
+            </Link>
+          ) : (
+            <a
+              href={sc.understandingUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="font-sans text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
+            >
+              {t("understanding")}
+              <span className="sr-only">{t("opensNewWindow")}</span>
+            </a>
+          )}
         </li>
       ))}
     </ul>
@@ -108,12 +120,13 @@ export function StandardsView({
   defaultId?: string;
 }) {
   const t = useTranslations("standards");
+  const locale = useLocale();
   return (
     <div className="mt-10">
       <Tabs
         label={t("tabsLabel")}
         defaultId={defaultId}
-        tabs={standards.map((standard) => ({ id: standard.id, label: standard.name }))}
+        tabs={standards.map((standard) => ({ id: standard.id, label: standardName(standard.id, locale) }))}
       >
         {(activeId) => {
           const standard = standards.find((s) => s.id === activeId);

@@ -48,6 +48,7 @@ export interface Assessment {
   id: string;
   url: string;
   standard: string;
+  standardLabel: string | null;
   status: AssessmentStatus;
   partial: boolean;
   score: number | null;
@@ -80,6 +81,7 @@ export interface NewAssessment {
   pageCap?: number;
   ownerId?: string | null;
   locale?: string;
+  standardLabel?: string;
 }
 
 export interface ApiKey {
@@ -152,6 +154,7 @@ export const SCHEMA_STATEMENTS: string[] = [
   `DEFINE TABLE assessment SCHEMAFULL;
 DEFINE FIELD url ON assessment TYPE string;
 DEFINE FIELD standard ON assessment TYPE string;
+DEFINE FIELD standardLabel ON assessment TYPE option<string> DEFAULT NONE;
 DEFINE FIELD status ON assessment TYPE string DEFAULT "queued";
 DEFINE FIELD partial ON assessment TYPE bool DEFAULT false;
 DEFINE FIELD score ON assessment TYPE option<int>;

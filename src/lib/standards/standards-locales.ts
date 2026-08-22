@@ -257,3 +257,37 @@ export function standardsFor(locale?: string): StandardStrings | undefined {
   if (!locale || locale === "en") return undefined;
   return STANDARD_STRINGS[locale];
 }
+
+// Fully-Chinese standard display names with the English identifier in parentheses.
+// Used for the /standards tabs, the /assess dropdown, and the assessment
+// `standardLabel` record-keeping field.
+const STANDARD_NAMES: Record<string, Record<string, string>> = {
+  "zh-Hans": {
+    wcag22aa: "网页内容无障碍指南 2.2 AA（WCAG 2.2 AA）",
+    wcag22a: "网页内容无障碍指南 2.2 A（WCAG 2.2 A）",
+    wcag22aaa: "网页内容无障碍指南 2.2 AAA（WCAG 2.2 AAA）",
+    wcag21aa: "网页内容无障碍指南 2.1 AA（WCAG 2.1 AA）",
+    wcag21a: "网页内容无障碍指南 2.1 A（WCAG 2.1 A）",
+    wcag21aaa: "网页内容无障碍指南 2.1 AAA（WCAG 2.1 AAA）",
+    wcag20aa: "网页内容无障碍指南 2.0 AA（WCAG 2.0 AA）",
+    wcag20a: "网页内容无障碍指南 2.0 A（WCAG 2.0 A）",
+    wcag20aaa: "网页内容无障碍指南 2.0 AAA（WCAG 2.0 AAA）",
+    section508: "美国康复法案第508条（Section 508）",
+  },
+  "zh-Hant": {
+    wcag22aa: "網頁內容無障礙指南 2.2 AA（WCAG 2.2 AA）",
+    wcag22a: "網頁內容無障礙指南 2.2 A（WCAG 2.2 A）",
+    wcag22aaa: "網頁內容無障礙指南 2.2 AAA（WCAG 2.2 AAA）",
+    wcag21aa: "網頁內容無障礙指南 2.1 AA（WCAG 2.1 AA）",
+    wcag21a: "網頁內容無障礙指南 2.1 A（WCAG 2.1 A）",
+    wcag21aaa: "網頁內容無障礙指南 2.1 AAA（WCAG 2.1 AAA）",
+    wcag20aa: "網頁內容無障礙指南 2.0 AA（WCAG 2.0 AA）",
+    wcag20a: "網頁內容無障礙指南 2.0 A（WCAG 2.0 A）",
+    wcag20aaa: "網頁內容無障礙指南 2.0 AAA（WCAG 2.0 AAA）",
+    section508: "美國康復法案第508條（Section 508）",
+  },
+};
+
+export function standardName(id: string, locale?: string): string {
+  return STANDARD_NAMES[locale ?? ""]?.[id] ?? id;
+}

@@ -3,7 +3,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { curriculumFor } from "@/lib/training/curriculum";
-import { getSc, scTitle, understandingUrl } from "@/lib/standards/wcag-sc";
+import { getSc, scTitle } from "@/lib/standards/wcag-sc";
+import { isInternalHref, understandingHref } from "@/lib/standards/understanding";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import { getScRemediation } from "@/lib/standards/sc-remediation";
 import { CompleteLessonButton } from "@/components/training/complete-lesson-button";
@@ -64,14 +65,23 @@ export default async function LessonPage({
                   </div>
                 </dl>
                 <p className="mt-3">
-                  <a
-                    href={understandingUrl(info)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
-                  >
-                    {t("understandingSc", { sc })}
-                  </a>
+                  {isInternalHref(understandingHref(sc, locale)) ? (
+                    <Link
+                      href={understandingHref(sc, locale)}
+                      className="font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
+                    >
+                      {t("understandingSc", { sc })}
+                    </Link>
+                  ) : (
+                    <a
+                      href={understandingHref(sc, locale)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
+                    >
+                      {t("understandingSc", { sc })}
+                    </a>
+                  )}
                 </p>
               </section>
             );

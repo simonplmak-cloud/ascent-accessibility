@@ -953,8 +953,10 @@
     "description": "评估工具评分的所有成功准则 — WCAG 2.0、2.1、2.2 及 Section 508 — 依原则及指引分组，并附上规范及 Understanding 文件链接。",
     "heading": "WCAG 成功准则",
     "intro": "评估工具评分的每一项成功准则，依原则及指引分组。选择标准，然后展开指引。数字链接到 W3C 规范；「Understanding」链接到官方说明文件。",
-    "source": "资料来源：W3C 的 <wcag>Web Content Accessibility Guidelines (WCAG)</wcag>。了解工具如何据此评分，请见 <methodology>我们的方法论</methodology>。",
-    "understanding": "Understanding",
+    "source": "资料来源：<wcag>网页内容无障碍指南（Web Content Accessibility Guidelines, WCAG）</wcag>，由 W3C 发布。了解工具如何据此评分，请见 <methodology>我们的方法论</methodology>。",
+    "citation": "成功准则、指引及原则的中文译名引用自 W3C 授权翻译《Web内容无障碍指南 (WCAG) 2.1》（浙江大学）。",
+    "citationLink": "W3C 授权翻译",
+    "understanding": "理解（Understanding）",
     "opensNewWindow": "（在新窗口打开）",
     "tabsLabel": "WCAG 标准"
   },
@@ -1120,5 +1122,17 @@
     "selectedCount": "已选取 {count} 项",
     "undo": "撤销",
     "detail": "详细"
+  },
+  "criterionPage": {
+    "normativeLabel": "规范要求",
+    "intentLabel": "意图",
+    "benefitsLabel": "好处",
+    "examplesLabel": "示例",
+    "howToTest": "如何测试",
+    "howToFix": "如何修复",
+    "officialReference": "官方参考",
+    "disclaimer": "本页面为 Ascent Accessibility 提供的中文翻译，非 W3C 官方翻译；权威版本以 W3C 英文原文为准。",
+    "unofficialNote": "此成功准则尚无 W3C 官方中文翻译，此译文为非官方翻译。",
+    "backToStandards": "返回标准"
   }
 }

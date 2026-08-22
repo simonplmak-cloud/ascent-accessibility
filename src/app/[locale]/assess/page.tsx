@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { listStandards } from "@/lib/standards/catalog";
+import { standardName } from "@/lib/standards/standards-locales";
 import { AssessmentForm } from "@/components/assessment/assessment-form";
 
 export async function generateMetadata({
@@ -21,7 +22,7 @@ export default async function AssessPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("assessPage");
-  const standards = listStandards().map((s) => ({ id: s.id, name: s.name }));
+  const standards = listStandards().map((s) => ({ id: s.id, name: standardName(s.id, locale) }));
   return (
     <div className="mx-auto max-w-4xl px-4 py-16">
       <h1 className="font-display text-3xl font-bold text-terminal-fg">{t("heading")}</h1>

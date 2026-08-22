@@ -1,11 +1,13 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { standardName } from "@/lib/standards/standards-locales";
 import type { AssessmentResult } from "./types";
 
 export function Methodology({ result }: { result: AssessmentResult }) {
   const t = useTranslations("report");
+  const locale = useLocale();
   return (
     <section aria-labelledby="methodology-heading" className="mt-8">
       <h2 id="methodology-heading" className="font-display text-lg font-semibold text-terminal-fg">
@@ -13,7 +15,7 @@ export function Methodology({ result }: { result: AssessmentResult }) {
       </h2>
       <ul className="mt-2 list-disc space-y-1 pl-6 font-sans text-sm text-terminal-muted">
         <li>{t("engineLine")}</li>
-        <li>{t("standardLine", { standard: result.standard ?? "—" })}</li>
+        <li>{t("standardLine", { standard: standardName(result.standard ?? "wcag22aa", locale) })}</li>
         <li>{t("pagesScannedLine", { count: result.pagesScanned })}</li>
         <li>{t("renderedLine")}</li>
         <li>{t("findingsChainLine")}</li>

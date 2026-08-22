@@ -6,6 +6,7 @@ import { getClientIp } from "@/server/ip";
 import { apiKeyService, rateLimiter } from "@/server/bootstrap";
 import { assessmentRepository } from "@/db/repository";
 import { getStandard } from "@/lib/standards/catalog";
+import { standardName } from "@/lib/standards/standards-locales";
 import { resolveCrawlScope } from "@/lib/assessment/scope";
 import { getSessionUser } from "@/server/auth";
 import { withCorrelationId } from "@/lib/observability/logger";
@@ -101,6 +102,7 @@ export async function POST(req: Request) {
   const assessment = await assessmentRepository.create({
     url: ssrf.url.href,
     standard,
+    standardLabel: standardName(standard, locale),
     depth: crawlScope.depth,
     pageCap: crawlScope.pageCap,
     ownerId,

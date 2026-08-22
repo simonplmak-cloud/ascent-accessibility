@@ -13,6 +13,7 @@ export interface AssessmentSummary {
   id: string;
   url: string;
   standard: string;
+  standardLabel: string | null;
   status: Assessment["status"];
   score: number | null;
   passBand: PassBand | null;
@@ -26,13 +27,14 @@ export interface AssessmentSummary {
 }
 
 const SUMMARY_PROJECTION =
-  "id, url, standard, status, score, passBand, conformance, scsMet, scsApplicable, pagesScanned, partial, createdAt, updatedAt";
+  "id, url, standard, standardLabel, status, score, passBand, conformance, scsMet, scsApplicable, pagesScanned, partial, createdAt, updatedAt";
 
 function mapSummary(raw: Record<string, unknown>): AssessmentSummary {
   return {
     id: String(raw.id),
     url: String(raw.url),
     standard: String(raw.standard),
+    standardLabel: (raw.standardLabel as string | null) ?? null,
     status: raw.status as Assessment["status"],
     score: raw.score == null ? null : Number(raw.score),
     passBand: (raw.passBand as PassBand | null) ?? null,

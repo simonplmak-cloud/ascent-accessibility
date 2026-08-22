@@ -1,6 +1,7 @@
-import { getSc, understandingUrl } from "@/lib/standards/wcag-sc";
+import { getSc } from "@/lib/standards/wcag-sc";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import { getScRemediation } from "@/lib/standards/sc-remediation";
+import { understandingHref } from "@/lib/standards/understanding";
 import { LESSONS } from "@/lib/training/curriculum";
 
 export interface ScLinks {
@@ -27,7 +28,7 @@ export function linksForSc(scNum: string, locale?: string): ScLinks {
   const sc = getSc(scNum);
   const lessonId = LESSON_BY_SC.get(scNum) ?? null;
   return {
-    understanding: sc ? understandingUrl(sc) : null,
+    understanding: sc ? understandingHref(scNum, locale) : null,
     manualTest: getManualTest(scNum, locale),
     remediation: getScRemediation(scNum, locale),
     lessonHref: lessonId ? `/training/lessons/${lessonId}` : null,
