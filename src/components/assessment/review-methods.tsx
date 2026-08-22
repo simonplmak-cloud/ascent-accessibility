@@ -1,4 +1,7 @@
-import Link from "next/link";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Disclosure } from "@/components/ui/disclosure";
 import { aiResults, humanReviewPending, machineResults } from "@/lib/report-methods";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
@@ -20,6 +23,7 @@ export function ReviewMethods({
   conformance?: Conformance;
   ai?: ComparisonData["ai"];
 }) {
+  const t = useTranslations("report");
   if (!conformance?.rows?.length) return null;
 
   const machine = machineResults(conformance.rows);
@@ -29,11 +33,10 @@ export function ReviewMethods({
   return (
     <section aria-labelledby="review-methods-heading" className="mt-8">
       <h2 id="review-methods-heading" className="font-display text-lg font-semibold text-terminal-fg">
-        Results by review method
+        {t("methodsHeading")}
       </h2>
       <p className="mt-1 font-sans text-sm text-terminal-muted">
-        How each success criterion was decided — by the machine, by AI, or still needing human
-        review. An AI &ldquo;cannot tell&rdquo; is escalated to human review.
+        {t("methodsIntro")}
       </p>
 
       <div className="mt-4 space-y-2">
@@ -44,22 +47,22 @@ export function ReviewMethods({
           defaultOpen
           title={
             <>
-              Machine review (automated){" "}
+              {t("machineTitle")}{" "}
               <span className="font-normal text-terminal-muted">
-                ({machine.passed} passed · {machine.failed} failed)
+                {t("machineSummary", { passed: machine.passed, failed: machine.failed })}
               </span>
             </>
           }
         >
           <p className="font-sans text-xs text-terminal-muted">
-            Decided by the rule engine — deterministic, evidence-backed.
+            {t("machineBody")}
           </p>
           <ul className="mt-2 divide-y divide-terminal-border rounded border border-terminal-border">
             {machine.rows.map((row) => (
               <li key={row.num} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2">
                 <span className="font-sans text-sm text-terminal-fg">{row.num}</span>
                 <span className="font-sans text-sm text-terminal-muted">{row.title}</span>
-                <span className="ml-auto font-sans text-xs text-terminal-muted">Level {row.level}</span>
+                <span className="ml-auto font-sans text-xs text-terminal-muted">{t("levelLabel", { level: row.level })}</span>
                 <span className={`font-sans text-xs font-semibold ${verdictClass(row.machineResult ?? "")}`}>
                   {row.machineResult}
                 </span>
@@ -67,7 +70,7 @@ export function ReviewMethods({
             ))}
             {machine.rows.length === 0 && (
               <li className="px-3 py-2 font-sans text-sm text-terminal-muted">
-                No criteria were decided by the machine for this page.
+                {t("machineEmpty")}
               </li>
             )}
           </ul>
@@ -79,30 +82,29 @@ export function ReviewMethods({
           size="md"
           title={
             <>
-              AI-assisted review{" "}
+              {t("aiTitle")}{" "}
               <span className="font-normal text-terminal-muted">
-                ({aiRes.passed} passed · {aiRes.failed} failed · {aiRes.cannotTell} cannot tell)
+                {t("aiSummary", { passed: aiRes.passed, failed: aiRes.failed, cannotTell: aiRes.cannotTell })}
               </span>
             </>
           }
         >
           <p className="font-sans text-xs text-terminal-muted">
-            AI-assisted triage — not proof of conformance. Criteria below the confidence threshold
-            remain flagged for human review.
+            {t("aiBody")}
           </p>
           {aiRes.verdicts.length === 0 ? (
             <p className="mt-2 font-sans text-sm text-terminal-muted">
-              No machine-untestable criteria required AI review for this page.
+              {t("aiEmpty")}
             </p>
           ) : (
             <div className="mt-2 overflow-x-auto rounded border border-terminal-border">
               <table className="w-full border-collapse font-sans text-sm">
                 <thead>
                   <tr className="border-b border-terminal-border text-left text-terminal-muted">
-                    <th scope="col" className="px-3 py-2 font-medium">SC</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Verdict</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Confidence</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Reasoning</th>
+                    <th scope="col" className="px-3 py-2 font-medium">{t("thSc")}</th>
+                    <th scope="col" className="px-3 py-2 font-medium">{t("thVerdict")}</th>
+                    <th scope="col" className="px-3 py-2 font-medium">{t("thConfidence")}</th>
+                    <th scope="col" className="px-3 py-2 font-medium">{t("thReasoning")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -128,28 +130,27 @@ export function ReviewMethods({
           size="md"
           title={
             <>
-              Human review (pending — coming soon){" "}
-              <span className="font-normal text-terminal-muted">({human.count} criteria)</span>
+              {t("humanTitle")}{" "}
+              <span className="font-normal text-terminal-muted">{t("humanSummary", { count: human.count })}</span>
             </>
           }
         >
           <p className="font-sans text-xs text-terminal-muted">
-            These criteria cannot be verified automatically or by AI — they need human judgement.
-            Independent human review by people with lived experience of disability is coming soon.
+            {t("humanBody")}
           </p>
           <ul className="mt-2 space-y-3">
             {human.rows.map((row) => (
               <li key={row.num} className="rounded border border-terminal-border p-3">
                 <p className="font-sans text-sm text-terminal-fg">
                   <span className="font-semibold">{row.num} {row.title}</span>{" "}
-                  <span className="text-terminal-muted">(Level {row.level})</span>
+                  <span className="text-terminal-muted">{t("levelLabel", { level: row.level })}</span>
                 </p>
                 <p className="mt-1 font-sans text-sm text-terminal-muted">{getManualTest(row.num)}</p>
               </li>
             ))}
             {human.rows.length === 0 && (
               <li className="rounded border border-terminal-border p-3 font-sans text-sm text-terminal-muted">
-                Nothing needs human review for this page.
+                {t("humanEmpty")}
               </li>
             )}
           </ul>
@@ -158,7 +159,7 @@ export function ReviewMethods({
               href="/human-review"
               className="font-sans text-sm text-brandLink underline underline-offset-4 hover:text-brand"
             >
-              Human review — coming soon
+              {t("humanComingSoon")}
             </Link>
           </p>
         </Disclosure>

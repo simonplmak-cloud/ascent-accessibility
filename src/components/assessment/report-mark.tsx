@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
 // The shareable "Mark": a badge image plus copy-paste embed snippets (Markdown +
 // HTML) for ESG reports and other materials. The badge links to the public report,
 // so the claim is verifiable; it turns green only when human-verified.
 export function ReportMark({ assessmentId }: { assessmentId: string }) {
+  const t = useTranslations("report");
   const [copied, setCopied] = useState<string | null>(null);
   const base = typeof window !== "undefined" ? window.location.origin : "";
   const badgeUrl = `${base}/api/v1/assessments/${assessmentId}/badge.svg`;
@@ -30,15 +32,14 @@ export function ReportMark({ assessmentId }: { assessmentId: string }) {
   return (
     <section aria-labelledby="mark-heading" className="mt-8">
       <h2 id="mark-heading" className="font-display text-base font-semibold text-terminal-fg">
-        Share the mark
+        {t("markHeading")}
       </h2>
       <p className="mt-1 font-sans text-sm text-terminal-muted">
-        Add this mark to your ESG report or other materials. It links to your public report so the
-        claim is verifiable — and it turns green once the report is human-verified.
+        {t("markIntro")}
       </p>
       <p className="mt-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={badgeUrl} alt="Accessibility mark" className="inline-block" />
+        <img src={badgeUrl} alt={t("markAlt")} className="inline-block" />
       </p>
       <div className="mt-3 space-y-3">
         {snippets.map((snippet) => (
@@ -49,7 +50,7 @@ export function ReportMark({ assessmentId }: { assessmentId: string }) {
                 {snippet.code}
               </code>
               <Button variant="outline" size="sm" onClick={() => copy(snippet.code, snippet.label)}>
-                {copied === snippet.label ? "Copied" : "Copy"}
+                {copied === snippet.label ? t("copied") : t("copy")}
               </Button>
             </div>
           </div>

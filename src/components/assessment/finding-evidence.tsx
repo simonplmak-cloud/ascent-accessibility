@@ -1,4 +1,7 @@
-import Link from "next/link";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { getSc, understandingUrl } from "@/lib/standards/wcag-sc";
 import { linksForSc } from "@/lib/sc-links";
 import { impactColor } from "./severity";
@@ -20,6 +23,7 @@ export function FindingEvidence({
   finding: Finding;
   assessmentId: string;
 }) {
+  const t = useTranslations("report");
   const sc = finding.wcagSc?.[0];
   const scInfo = sc ? getSc(sc) : undefined;
   const links = sc ? linksForSc(sc) : null;
@@ -38,16 +42,16 @@ export function FindingEvidence({
             rel="noreferrer"
             className="font-sans text-xs text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
           >
-            WCAG {sc} · {scInfo.title} (Level {scInfo.level})
-            <span className="sr-only"> (opens in a new window)</span>
+            WCAG {sc} · {scInfo.title} ({t("levelLabel", { level: scInfo.level })})
+            <span className="sr-only">{t("opensNewWindow")}</span>
           </a>
         )}
         {!sc && (
-          <span className="font-sans text-xs text-terminal-muted">Best practice</span>
+          <span className="font-sans text-xs text-terminal-muted">{t("bestPractice")}</span>
         )}
         {finding.confidence && (
           <span className={`font-sans text-xs ${confidenceClass(finding.confidence)}`}>
-            {finding.confidence === "confirmed" ? "confirmed by 2+ tools" : "single source"}
+            {finding.confidence === "confirmed" ? t("confirmedBy2") : t("singleSource")}
           </span>
         )}
       </div>
@@ -57,7 +61,7 @@ export function FindingEvidence({
 
       {finding.sources && finding.sources.length > 0 && (
         <p className="mt-2 font-sans text-xs text-terminal-muted">
-          Detected by:{" "}
+          {t("detectedBy")}{" "}
           {[...new Set(finding.sources.map((s) => s.tool))].map((t) => t.toUpperCase()).join(", ")}
         </p>
       )}
@@ -82,7 +86,7 @@ export function FindingEvidence({
               {instance.evidenceId && (
                 <img
                   src={evidenceUrl(assessmentId, instance.evidenceId)}
-                  alt={`Screenshot evidence for ${finding.ruleId} on ${finding.pageUrl}`}
+                  alt={t("screenshotAlt", { ruleId: finding.ruleId, pageUrl: finding.pageUrl })}
                   className="mt-2 max-h-64 rounded border border-terminal-border"
                   loading="lazy"
                 />
@@ -93,13 +97,13 @@ export function FindingEvidence({
       )}
 
       <p className="mt-3 font-sans text-sm text-terminal-fg">
-        <span className="text-terminal-serious">Fix:</span> {finding.recommendation}
+        <span className="text-terminal-serious">{t("fixLabel")}</span> {finding.recommendation}
       </p>
 
       {links && (
         <div className="mt-3 space-y-1 border-t border-terminal-border pt-3 font-sans text-xs">
           <p className="text-terminal-muted">
-            <span className="text-terminal-fg">Verify manually:</span> {links.manualTest}
+            <span className="text-terminal-fg">{t("verifyManually")}</span> {links.manualTest}
           </p>
           {links.lessonHref && (
             <p>
@@ -107,7 +111,7 @@ export function FindingEvidence({
                 href={links.lessonHref}
                 className="text-terminal-fg underline underline-offset-2 hover:text-terminal-serious"
               >
-                Learn this criterion in the free course →
+                {t("learnLesson")}
               </Link>
             </p>
           )}

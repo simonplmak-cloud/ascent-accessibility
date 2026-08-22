@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { MasterDetail, type MasterDetailItem } from "@/components/efficiency/master-detail";
 import { StateBlock } from "@/components/ui/state-block";
 
@@ -25,6 +26,7 @@ const VERDICTS = ["Passed", "Failed", "NotPresent"] as const;
 const MAX_VISIBLE = 20;
 
 export function ReviewQueue() {
+  const t = useTranslations("reviewQueue");
   const [items, setItems] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<ConformanceRow[]>([]);
@@ -42,7 +44,7 @@ export function ReviewQueue() {
       const data = (await res.json()) as { assessments: QueueItem[] };
       setItems(data.assessments);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load queue");
+      setError(e instanceof Error ? e.message : t("loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -58,7 +60,7 @@ export function ReviewQueue() {
       await load();
     } else {
       const data = (await res.json().catch(() => ({}))) as { code?: string };
-      setError(data.code ?? "Claim failed");
+      setError(data.code ?? t("claimFailed"));
     }
   }
 
@@ -93,20 +95,20 @@ export function ReviewQueue() {
       await load();
     } else {
       const data = (await res.json().catch(() => ({}))) as { code?: string };
-      setError(data.code ?? "Submit failed");
+      setError(data.code ?? t("submitFailed"));
     }
   }
 
   const detail = (id: string) => (
     <div className="rounded border border-terminal-border bg-terminal-surface p-4">
-      <h2 className="font-display text-base font-semibold text-terminal-fg">Review</h2>
+      <h2 className="font-display text-base font-semibold text-terminal-fg">{t("reviewHeading")}</h2>
       {submitted === id ? (
         <p role="status" className="mt-3 font-sans text-sm text-terminal-pass">
-          Review submitted ✓
+          {t("reviewSubmitted")}
         </p>
       ) : rows.length === 0 ? (
         <p className="mt-3 font-sans text-sm text-terminal-muted">
-          No &ldquo;Cannot tell&rdquo; criteria to resolve.
+          {t("noCannotTell")}
         </p>
       ) : (
         <>
@@ -115,11 +117,11 @@ export function ReviewQueue() {
               <li key={row.num} className="rounded border border-terminal-border p-3">
                 <p className="font-sans text-sm text-terminal-fg">
                   {row.num} {row.title}{" "}
-                  <span className="text-terminal-muted">(Level {row.level})</span>
+                  <span className="text-terminal-muted">{t("levelLabel", { level: row.level })}</span>
                 </p>
                 <div className="mt-2 flex flex-col gap-2">
                   <select
-                    aria-label={`Verdict for ${row.num}`}
+                    aria-label={t("verdictFor", { num: row.num })}
                     value={resolutions[row.num] ?? "Passed"}
                     onChange={(e) => setResolutions((r) => ({ ...r, [row.num]: e.target.value }))}
                     className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-sans text-sm text-terminal-fg"
@@ -132,8 +134,8 @@ export function ReviewQueue() {
                   </select>
                   <input
                     type="text"
-                    aria-label={`Rationale for ${row.num}`}
-                    placeholder="Rationale (optional)"
+                    aria-label={t("rationaleFor", { num: row.num })}
+                    placeholder={t("rationalePlaceholder")}
                     value={notes[row.num] ?? ""}
                     onChange={(e) => setNotes((n) => ({ ...n, [row.num]: e.target.value }))}
                     className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-sans text-sm text-terminal-fg"
@@ -147,7 +149,7 @@ export function ReviewQueue() {
             onClick={() => void submit(id)}
             className="mt-4 rounded bg-terminal-fg px-4 py-2 font-sans text-sm text-terminal-bg hover:bg-terminal-serious"
           >
-            Submit review
+            {t("submitReview")}
           </button>
         </>
       )}
@@ -184,11 +186,11 @@ export function ReviewQueue() {
                 }}
                 className="rounded border border-terminal-border px-3 py-1 font-sans text-sm text-terminal-fg hover:border-terminal-serious"
               >
-                Claim
+                {t("claim")}
               </button>
             )}
             <span aria-hidden="true" className="font-sans text-xs text-terminal-muted">
-              Review →
+              {t("reviewArrow")}
             </span>
           </div>
         </div>
@@ -199,7 +201,7 @@ export function ReviewQueue() {
   return (
     <section aria-labelledby="review-queue-heading">
       <h1 id="review-queue-heading" className="font-display text-2xl font-bold text-terminal-fg">
-        Review queue
+        {t("title")}
       </h1>
       {error && (
         <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
@@ -207,18 +209,18 @@ export function ReviewQueue() {
         </p>
       )}
       {loading ? (
-        <p className="mt-4 font-sans text-sm text-terminal-muted">Loading…</p>
+        <p className="mt-4 font-sans text-sm text-terminal-muted">{t("loading")}</p>
       ) : items.length === 0 ? (
         <div className="mt-6">
           <StateBlock
-            title="No reviews pending"
-            body="When an assessment needs human judgement it will appear here for you to claim and resolve."
+            title={t("noPendingTitle")}
+            body={t("noPendingBody")}
           />
         </div>
       ) : (
         <div className="mt-6">
           <p className="mb-2 font-sans text-xs text-terminal-muted">
-            j/k to move · Enter to review · Esc to close
+            {t("keyboardHint")}
           </p>
           <MasterDetail items={masterItems} detail={detail} onOpen={(id) => void open(id)} />
           {items.length > MAX_VISIBLE && (
@@ -227,7 +229,7 @@ export function ReviewQueue() {
               onClick={() => setShowAll((value) => !value)}
               className="mt-3 font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
             >
-              {showAll ? "Show fewer" : `Show all ${items.length} assessments`}
+              {showAll ? t("showFewer") : t("showAll", { count: items.length })}
             </button>
           )}
         </div>
