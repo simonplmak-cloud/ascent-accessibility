@@ -257,6 +257,8 @@ export default async function Home() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="font-sans text-sm text-terminal-muted">
             <Link href="/methodology" className="text-brandLink underline underline-offset-4 hover:text-brand">Methodology</Link>{" · "}
+            <Link href="/guides" className="text-brandLink underline underline-offset-4 hover:text-brand">Guides</Link>{" · "}
+            <Link href="/glossary" className="text-brandLink underline underline-offset-4 hover:text-brand">Glossary</Link>{" · "}
             <Link href="/validation" className="text-brandLink underline underline-offset-4 hover:text-brand">Engine validation</Link>{" · "}
             <Link href="/accessibility-statement" className="text-brandLink underline underline-offset-4 hover:text-brand">Accessibility</Link>{" · "}
             <Link href="/human-review" className="text-brandLink underline underline-offset-4 hover:text-brand">Human review</Link>{" · "}

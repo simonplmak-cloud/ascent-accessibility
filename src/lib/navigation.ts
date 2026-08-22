@@ -67,6 +67,7 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
     links: [
       { href: "/what-is-accessibility", label: "What is accessibility?" },
       { href: "/glossary", label: "Glossary" },
+      { href: "/guides", label: "Guides" },
       { href: "/standards", label: "Standards" },
       { href: "/methodology", label: "Methodology" },
       { href: "/remediation", label: "Remediation" },

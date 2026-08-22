@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { InlineLink } from "@/components/ui/inline-link";
+import { FaqJsonLd } from "@/components/faq-json-ld";
 
 export const metadata: Metadata = {
   title: "Frequently asked questions",
@@ -47,6 +48,7 @@ const faqs = [
 export default function FaqPage() {
   return (
     <PageShell>
+      <FaqJsonLd faqs={faqs} />
       <PageHeading>Frequently asked questions</PageHeading>
 
       <div className="mt-8 space-y-6">
