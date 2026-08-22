@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const securityHeaders = [
@@ -18,7 +19,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://accounts.google.com",
       "img-src 'self' data: blob: https://*.stripe.com https://*.stripecdn.com",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.stripe.com https://accounts.google.com",
+      "connect-src 'self' https://*.stripe.com https://accounts.google.com https://*.ingest.de.sentry.io",
       "frame-src 'self' https://js.stripe.com https://*.stripe.com https://accounts.google.com",
       "object-src 'none'",
       "base-uri 'self'",
@@ -41,4 +42,10 @@ const nextConfig = {
 };
 
 const withNextIntl = createNextIntlPlugin();
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  widenClientFileUpload: true,
+  silent: true,
+});
