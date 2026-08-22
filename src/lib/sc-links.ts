@@ -23,13 +23,13 @@ for (const lesson of Object.values(LESSONS)) {
 // Resolve the learn/fix links for a finding's SC: the W3C Understanding document,
 // the manual test, the remediation guidance, and (when taught) the training
 // lesson. `lessonHref` is null when the SC has no mapped lesson — the UI omits it.
-export function linksForSc(scNum: string): ScLinks {
+export function linksForSc(scNum: string, locale?: string): ScLinks {
   const sc = getSc(scNum);
   const lessonId = LESSON_BY_SC.get(scNum) ?? null;
   return {
     understanding: sc ? understandingUrl(sc) : null,
-    manualTest: getManualTest(scNum),
-    remediation: getScRemediation(scNum),
+    manualTest: getManualTest(scNum, locale),
+    remediation: getScRemediation(scNum, locale),
     lessonHref: lessonId ? `/training/lessons/${lessonId}` : null,
   };
 }

@@ -148,7 +148,7 @@ export function ReviewMethods({
                   <span className="font-semibold">{row.num} {scTitle(row.num, locale)}</span>{" "}
                   <span className="text-terminal-muted">{t("levelLabel", { level: row.level })}</span>
                 </p>
-                <p className="mt-1 font-sans text-sm text-terminal-muted">{getManualTest(row.num)}</p>
+                <p className="mt-1 font-sans text-sm text-terminal-muted">{getManualTest(row.num, locale)}</p>
               </li>
             ))}
             {human.rows.length === 0 && (

@@ -56,11 +56,11 @@ export default async function LessonPage({
                 <dl className="mt-4 space-y-3 font-sans text-sm">
                   <div>
                     <dt className="text-terminal-muted">{t("howToVerify")}</dt>
-                    <dd className="mt-1 text-terminal-fg">{getManualTest(sc)}</dd>
+                    <dd className="mt-1 text-terminal-fg">{getManualTest(sc, locale)}</dd>
                   </div>
                   <div>
                     <dt className="text-terminal-muted">{t("howToFix")}</dt>
-                    <dd className="mt-1 text-terminal-fg">{getScRemediation(sc)}</dd>
+                    <dd className="mt-1 text-terminal-fg">{getScRemediation(sc, locale)}</dd>
                   </div>
                 </dl>
                 <p className="mt-3">

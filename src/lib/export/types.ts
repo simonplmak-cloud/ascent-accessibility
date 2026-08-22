@@ -56,6 +56,7 @@ export interface ReportData {
   findings: ReportFinding[];
   generatedAt?: string;
   comparison?: ReportComparison;
+  locale?: string;
 }
 
 export interface ExportResult {

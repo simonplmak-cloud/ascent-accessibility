@@ -28,7 +28,7 @@ export function FindingEvidence({
   const locale = useLocale();
   const sc = finding.wcagSc?.[0];
   const scInfo = sc ? getSc(sc) : undefined;
-  const links = sc ? linksForSc(sc) : null;
+  const links = sc ? linksForSc(sc, locale) : null;
   const instances = finding.instances ?? [];
 
   return (

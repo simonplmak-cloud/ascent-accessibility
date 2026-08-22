@@ -41,6 +41,7 @@ export async function GET(
       pagesScanned: assessment.pagesScanned,
       generatedAt: assessment.updatedAt,
       comparison: comparison ?? undefined,
+      locale: assessment.locale ?? undefined,
       findings: findings.map((f) => ({
         ruleId: f.ruleId,
         impact: f.impact,

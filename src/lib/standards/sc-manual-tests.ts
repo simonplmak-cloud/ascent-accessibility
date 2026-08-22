@@ -57,9 +57,17 @@ const MANUAL_TESTS: Record<string, string> = {
   "4.1.3": "Trigger status changes and confirm they are announced to screen readers via a live region.",
 };
 
-export function getManualTest(scNum: string): string {
+import { localizedManualTest } from "./guidance-locales";
+
+export function getManualTest(scNum: string, locale?: string): string {
+  const localized = localizedManualTest(scNum, locale);
+  if (localized) return localized;
   return (
     MANUAL_TESTS[scNum] ??
-    "Manually review this criterion against the WCAG 2.2 success criterion."
+    (locale === "zh-Hant"
+      ? "請依據 WCAG 2.2 成功準則人工審核此準則。"
+      : locale === "zh-Hans"
+        ? "请依据 WCAG 2.2 成功准则人工审核此准则。"
+        : "Manually review this criterion against the WCAG 2.2 success criterion.")
   );
 }

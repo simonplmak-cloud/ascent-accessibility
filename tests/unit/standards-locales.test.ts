@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { WCAG_SCS, principleName, guidelineName, scTitle } from "@/lib/standards/wcag-sc";
 import { STANDARD_STRINGS } from "@/lib/standards/standards-locales";
 import { outcomeLabel, impactLabel, verdictLabel } from "@/lib/labels";
+import { getManualTest } from "@/lib/standards/sc-manual-tests";
+import { getScRemediation } from "@/lib/standards/sc-remediation";
+import { localizedManualTest, localizedRemediation } from "@/lib/standards/guidance-locales";
 
 describe("standards-locales", () => {
   it("matches the W3C-authorized zh-Hans SC titles (golden sample)", () => {
@@ -57,5 +60,20 @@ describe("labels", () => {
     expect(verdictLabel("CannotTell", "zh-Hans")).toBe("无法判断");
     expect(verdictLabel("Passed", "zh-Hant")).toBe("通過");
     expect(impactLabel("critical")).toBe("critical");
+  });
+});
+
+describe("guidance-locales", () => {
+  it("localizes manual tests and remediation in both zh locales", () => {
+    expect(getManualTest("1.1.1", "zh-Hans")).toContain("文字替代");
+    expect(getManualTest("1.1.1", "zh-Hant")).toContain("文字替代");
+    expect(getScRemediation("1.4.3", "zh-Hans")).toContain("对比度");
+    expect(getScRemediation("1.4.3", "zh-Hant")).toContain("對比度");
+  });
+
+  it("falls back to English for an unknown locale", () => {
+    expect(getManualTest("1.1.1")).toContain("text alternative");
+    expect(localizedManualTest("1.1.1", "de")).toBeUndefined();
+    expect(localizedRemediation("1.1.1", "de")).toBeUndefined();
   });
 });

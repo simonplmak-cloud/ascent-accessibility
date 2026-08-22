@@ -337,7 +337,7 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
                   <View key={row.num} style={styles.tableRow}>
                     <Text style={[styles.tableCell, { flex: 0.8 }]}>{row.num}</Text>
                     <Text style={[styles.tableCell, { flex: 1.8 }]}>{row.title}</Text>
-                    <Text style={[styles.tableCell, { flex: 1.4 }]}>{getManualTest(row.num)}</Text>
+                    <Text style={[styles.tableCell, { flex: 1.4 }]}>{getManualTest(row.num, report.locale)}</Text>
                   </View>
                 ))}
               </View>

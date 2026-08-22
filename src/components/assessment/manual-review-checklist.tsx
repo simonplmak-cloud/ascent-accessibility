@@ -1,12 +1,13 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import type { Conformance } from "./types";
 
 export function ManualReviewChecklist({ conformance }: { conformance: Conformance }) {
   const t = useTranslations("common");
+  const locale = useLocale();
   const rows = conformance?.rows?.filter((row) => row.result === "CannotTell") ?? [];
   if (rows.length === 0) return null;
 
@@ -25,7 +26,7 @@ export function ManualReviewChecklist({ conformance }: { conformance: Conformanc
               </span>{" "}
               <span className="text-terminal-muted">{t("levelLabel", { level: row.level })}</span>
             </p>
-            <p className="mt-1 font-sans text-sm text-terminal-muted">{getManualTest(row.num)}</p>
+            <p className="mt-1 font-sans text-sm text-terminal-muted">{getManualTest(row.num, locale)}</p>
           </li>
         ))}
       </ul>

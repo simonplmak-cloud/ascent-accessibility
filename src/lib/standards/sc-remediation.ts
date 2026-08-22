@@ -1,4 +1,5 @@
 import { getManualTest } from "./sc-manual-tests";
+import { localizedRemediation } from "./guidance-locales";
 
 // Per-SC remediation guidance (how to fix). Covers the A/AA criteria in full;
 // the fallback reuses the manual-test checklist as the "what to check" text so
@@ -62,9 +63,17 @@ const REMEDIATION: Record<string, string> = {
   "4.1.3": "Announce status changes via live regions.",
 };
 
-export function getScRemediation(scNum: string): string {
+export function getScRemediation(scNum: string, locale?: string): string {
+  const localized = localizedRemediation(scNum, locale);
+  if (localized) return localized;
+  const thenFix =
+    locale === "zh-Hant"
+      ? "然後實施相應的修復並重新執行評估。"
+      : locale === "zh-Hans"
+        ? "然后实施相应的修复并重新运行评估。"
+        : "Then implement the corresponding fix and re-run the assessment.";
   return (
     REMEDIATION[scNum] ??
-    `${getManualTest(scNum)} Then implement the corresponding fix and re-run the assessment.`
+    `${getManualTest(scNum, locale)} ${thenFix}`
   );
 }

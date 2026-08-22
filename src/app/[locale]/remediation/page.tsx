@@ -45,7 +45,7 @@ export default async function RemediationPage({
                   <span className="text-terminal-muted">{t("levelLabel", { level: sc.level })}</span>
                 </p>
                 <p className="mt-1 font-sans text-sm text-terminal-muted">
-                  {getScRemediation(sc.num)}
+                  {getScRemediation(sc.num, locale)}
                 </p>
               </li>
             ))}
