@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 
 export interface ApiKeySummary {
@@ -15,6 +16,7 @@ export interface ApiKeySummary {
 type AuthState = "loading" | "signed-out" | "unverified" | "ready";
 
 export function ApiKeysClient() {
+  const t = useTranslations("apiKeys");
   const [keys, setKeys] = useState<ApiKeySummary[]>([]);
   const [auth, setAuth] = useState<AuthState>("loading");
   const [name, setName] = useState("");
@@ -40,7 +42,7 @@ export function ApiKeysClient() {
       setKeys(data);
       setAuth("ready");
     } catch {
-      setError("Could not load API keys.");
+      setError(t("loadFailed"));
       setAuth("ready");
     }
   }
@@ -65,7 +67,7 @@ export function ApiKeysClient() {
       setName("");
       await load();
     } catch {
-      setError("Could not create a key.");
+      setError(t("createFailed"));
     }
   }
 
@@ -76,10 +78,10 @@ export function ApiKeysClient() {
     try {
       const res = await fetch(`/api/v1/api-keys/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("revoke failed");
-      setNotice("Key revoked.");
+      setNotice(t("keyRevoked"));
       await load();
     } catch {
-      setError("Could not revoke that key.");
+      setError(t("revokeFailed"));
     } finally {
       setBusyIds((prev) => {
         const next = new Set(prev);
@@ -92,8 +94,8 @@ export function ApiKeysClient() {
   if (auth === "loading") {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
-        <h1 className="font-display text-2xl font-bold text-terminal-fg">API access</h1>
-        <p className="mt-4 font-sans text-sm text-terminal-muted">Loading…</p>
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">{t("title")}</h1>
+        <p className="mt-4 font-sans text-sm text-terminal-muted">{t("loading")}</p>
       </div>
     );
   }
@@ -101,15 +103,13 @@ export function ApiKeysClient() {
   if (auth === "signed-out") {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
-        <h1 className="font-display text-2xl font-bold text-terminal-fg">API access</h1>
-        <p className="mt-4 font-sans leading-7 text-terminal-muted">
-          Sign in to manage API keys for programmatic assessments.
-        </p>
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">{t("title")}</h1>
+        <p className="mt-4 font-sans leading-7 text-terminal-muted">{t("signedOut")}</p>
         <Link
           href="/sign-in"
           className="mt-6 inline-block rounded bg-terminal-fg px-4 py-2 font-sans text-sm text-terminal-bg hover:bg-terminal-serious"
         >
-          Sign in
+          {t("signIn")}
         </Link>
       </div>
     );
@@ -118,26 +118,20 @@ export function ApiKeysClient() {
   if (auth === "unverified") {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16">
-        <h1 className="font-display text-2xl font-bold text-terminal-fg">API access</h1>
-        <p className="mt-4 font-sans leading-7 text-terminal-muted">
-          Please verify your email before creating API keys.
-        </p>
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">{t("title")}</h1>
+        <p className="mt-4 font-sans leading-7 text-terminal-muted">{t("unverified")}</p>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="font-display text-2xl font-bold text-terminal-fg">API access</h1>
-      <p className="mt-1 font-sans text-sm text-terminal-muted">
-        Generate and manage API keys to run assessments programmatically.
-      </p>
+      <h1 className="font-display text-2xl font-bold text-terminal-fg">{t("title")}</h1>
+      <p className="mt-1 font-sans text-sm text-terminal-muted">{t("intro")}</p>
 
       {issuedKey && (
         <div role="status" className="mt-6 rounded border border-terminal-pass p-4">
-          <p className="font-sans text-sm text-terminal-fg">
-            Copy this key now — it won&apos;t be shown again.
-          </p>
+          <p className="font-sans text-sm text-terminal-fg">{t("copyNow")}</p>
           <code className="mt-2 block break-all rounded bg-terminal-surface p-3 font-sans text-sm text-terminal-pass">
             {issuedKey}
           </code>
@@ -158,7 +152,7 @@ export function ApiKeysClient() {
       <form onSubmit={createKey} className="mt-6 space-y-4 rounded border border-terminal-border p-4">
         <div>
           <label htmlFor="key-name" className="block font-sans text-sm text-terminal-fg">
-            Key name
+            {t("keyNameLabel")}
           </label>
           <input
             id="key-name"
@@ -171,7 +165,7 @@ export function ApiKeysClient() {
         </div>
         <div>
           <label htmlFor="key-rate" className="block font-sans text-sm text-terminal-fg">
-            Rate limit (requests/min)
+            {t("rateLabel")}
           </label>
           <input
             id="key-rate"
@@ -183,24 +177,24 @@ export function ApiKeysClient() {
           />
         </div>
         <Button type="submit" className="self-start">
-          Create key
+          {t("createKey")}
         </Button>
       </form>
 
       <div className="mt-8">
-        <h2 className="font-display text-lg font-semibold text-terminal-fg">Your keys</h2>
+        <h2 className="font-display text-lg font-semibold text-terminal-fg">{t("yourKeys")}</h2>
         {keys.length === 0 ? (
-          <p className="mt-4 font-sans text-sm text-terminal-muted">No API keys yet.</p>
+          <p className="mt-4 font-sans text-sm text-terminal-muted">{t("noKeys")}</p>
         ) : (
           <div className="mt-4 overflow-x-auto rounded border border-terminal-border">
             <table className="w-full border-collapse font-sans text-sm">
               <thead>
                 <tr className="border-b border-terminal-border text-left text-terminal-muted">
-                  <th scope="col" className="px-3 py-2 font-medium">Name</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Key</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Rate limit</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Status</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Actions</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thName")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thKey")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thRate")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thStatus")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thActions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -220,10 +214,10 @@ export function ApiKeysClient() {
                           variant="ghost"
                           onClick={() => revoke(key.id)}
                           disabled={busyIds.has(key.id)}
-                          aria-label={`Revoke API key ${key.name}`}
+                          aria-label={t("revokeAria", { name: key.name })}
                           className="text-terminal-critical"
                         >
-                          Revoke
+                          {t("revoke")}
                         </Button>
                       )}
                     </td>

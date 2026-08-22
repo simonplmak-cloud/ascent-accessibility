@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { GoogleSignInButton } from "@/components/auth/google-button";
 import { OAuthLinkButton } from "@/components/auth/oauth-buttons";
 
 export function AuthForm() {
+  const t = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -23,12 +25,12 @@ export function AuthForm() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        setError(data?.error ?? "Something went wrong. Please try again.");
+        setError(data?.error ?? t("errGeneric"));
         return;
       }
       setSent(true);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("errGeneric"));
     } finally {
       setLoading(false);
     }
@@ -36,21 +38,18 @@ export function AuthForm() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
-      <h1 className="font-display text-3xl font-bold text-terminal-fg">Sign in</h1>
-      <p className="mt-2 font-sans leading-7 text-terminal-muted">
-        Enter your email and we&apos;ll send you a magic link to sign in — no password, no account
-        setup.
-      </p>
+      <h1 className="font-display text-3xl font-bold text-terminal-fg">{t("title")}</h1>
+      <p className="mt-2 font-sans leading-7 text-terminal-muted">{t("intro")}</p>
 
       {sent ? (
         <p role="status" className="mt-8 font-sans leading-7 text-terminal-pass">
-          Check your inbox — we sent a sign-in link to {email}. You can close this page.
+          {t("sent", { email })}
         </p>
       ) : (
         <form onSubmit={onSubmit} className="mt-8 space-y-5" noValidate={false}>
           <div>
             <label htmlFor="email" className="block font-sans text-sm text-terminal-fg">
-              Email
+              {t("emailLabel")}
             </label>
             <input
               id="email"
@@ -71,27 +70,24 @@ export function AuthForm() {
           )}
 
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Sending…" : "Email me a login link"}
+            {loading ? t("sending") : t("submit")}
           </Button>
         </form>
       )}
 
       <div className="my-6 flex items-center gap-3">
         <span className="h-px flex-1 bg-terminal-border" />
-        <span className="font-sans text-xs text-terminal-muted">or</span>
+        <span className="font-sans text-xs text-terminal-muted">{t("or")}</span>
         <span className="h-px flex-1 bg-terminal-border" />
       </div>
 
       <div className="flex flex-col gap-2">
-        <OAuthLinkButton provider="github" label="Sign in with GitHub" />
+        <OAuthLinkButton provider="github" label={t("github")} />
         <GoogleSignInButton />
-        <OAuthLinkButton provider="microsoft" label="Sign in with Microsoft" />
+        <OAuthLinkButton provider="microsoft" label={t("microsoft")} />
       </div>
 
-      <p className="mt-6 font-sans text-xs text-terminal-muted">
-        Signing in requires cookies. If you are asked to sign in again right away, your browser is
-        blocking cookies — please allow cookies for this site and try again.
-      </p>
+      <p className="mt-6 font-sans text-xs text-terminal-muted">{t("cookies")}</p>
     </div>
   );
 }

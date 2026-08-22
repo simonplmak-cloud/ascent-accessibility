@@ -13,6 +13,21 @@ export interface ReportFinding {
   sources?: string[];
 }
 
+export interface ReportComparisonRow {
+  num: string;
+  title: string;
+  level: string;
+  result: string;
+  machineResult?: string;
+}
+
+export interface ReportComparisonAiVerdict {
+  sc: string;
+  verdict: string;
+  confidence: number;
+  reasoning: string;
+}
+
 export interface ReportComparison {
   audit?: { score: number };
   conformance?: {
@@ -23,6 +38,11 @@ export interface ReportComparison {
     cannotTell: number;
     coverage: number;
     levelAttained: string;
+    rows?: ReportComparisonRow[];
+  };
+  ai?: {
+    model: string;
+    verdicts: ReportComparisonAiVerdict[];
   };
 }
 

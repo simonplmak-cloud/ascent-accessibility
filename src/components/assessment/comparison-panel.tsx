@@ -11,7 +11,6 @@ export function ComparisonPanel({ result }: { result: AssessmentResult }) {
   if (!comparison) return null;
 
   const audit = comparison.audit;
-  const ai = comparison.ai;
 
   const appendix = (
     [
@@ -25,7 +24,7 @@ export function ComparisonPanel({ result }: { result: AssessmentResult }) {
   return (
     <section aria-labelledby="comparison-heading" className="mt-8">
       <h2 id="comparison-heading" className="font-display text-lg font-semibold text-terminal-fg">
-        Ascent Accessibility analysis
+        Site signals
       </h2>
       <div className="mt-4 overflow-x-auto rounded border border-terminal-border">
         <table className="w-full border-collapse font-sans text-sm">
@@ -78,46 +77,6 @@ export function ComparisonPanel({ result }: { result: AssessmentResult }) {
               </tbody>
             </table>
           </div>
-        </section>
-      )}
-
-      {ai && (
-        <section aria-labelledby="ai-review-heading" className="mt-6">
-          <h3 id="ai-review-heading" className="font-sans text-sm font-semibold text-terminal-muted">
-            AI-assisted review ({ai.model})
-          </h3>
-          <p className="mt-1 font-sans text-xs text-terminal-muted">
-            AI-assisted triage — not proof of conformance. Criteria below the confidence threshold
-            remain flagged for independent human review.
-          </p>
-          {ai.verdicts.length === 0 ? (
-            <p className="mt-2 font-sans text-xs text-terminal-muted">
-              No machine-untestable items required AI review.
-            </p>
-          ) : (
-            <div className="mt-2 overflow-x-auto rounded border border-terminal-border">
-              <table className="w-full border-collapse font-sans text-sm">
-                <thead>
-                  <tr className="border-b border-terminal-border text-left text-terminal-muted">
-                    <th scope="col" className="px-3 py-2 font-medium">SC</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Verdict</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Confidence</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Reasoning</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ai.verdicts.map((v) => (
-                    <tr key={v.sc} className="border-b border-terminal-border last:border-b-0">
-                      <td className="px-3 py-2 text-terminal-fg">{v.sc}</td>
-                      <td className="px-3 py-2 text-terminal-fg">{v.verdict}</td>
-                      <td className="px-3 py-2 text-terminal-fg">{Math.round(v.confidence * 100)}%</td>
-                      <td className="px-3 py-2 text-terminal-muted">{v.reasoning}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </section>
       )}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Report } from "./report";
 import { LogPanel } from "./log-panel";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ export function AssessmentForm({
   standards: StandardOption[];
   fixedScope?: "page" | "site";
 }) {
+  const t = useTranslations("assess");
   const [url, setUrl] = useState("");
   const [standard, setStandard] = useState("wcag22aa");
   const [scope, setScope] = useState<"page" | "site">(fixedScope ?? "page");
@@ -70,7 +72,7 @@ export function AssessmentForm({
       const createData = await createRes.json();
 
       if (!createRes.ok) {
-        setError(messageForCode(createData.code));
+        setError(messageForCode(createData.code, t));
         setLoading(false);
         stopTimer();
         return;
@@ -78,7 +80,7 @@ export function AssessmentForm({
 
       await stream(createData.id);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("errGeneric"));
       setLoading(false);
       stopTimer();
     }
@@ -86,7 +88,7 @@ export function AssessmentForm({
 
   async function stream(id: string) {
     const timeout = setTimeout(() => {
-      setError("The assessment is still running. Reload this page to check its status.");
+      setError(t("errStillRunning"));
       setLoading(false);
       stopTimer();
     }, STREAM_TIMEOUT_MS);
@@ -123,7 +125,7 @@ export function AssessmentForm({
             stopTimer();
             return;
           } else if (event.type === "notfound") {
-            setError("Assessment not found.");
+            setError(t("errNotFound"));
             setLoading(false);
             stopTimer();
             return;
@@ -133,7 +135,7 @@ export function AssessmentForm({
       }
     } catch {
       if (!cancelled) {
-        setError("Something went wrong. Please try again.");
+        setError(t("errGeneric"));
       }
       setLoading(false);
     } finally {
@@ -148,7 +150,7 @@ export function AssessmentForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="url" className="block font-sans text-sm text-terminal-fg">
-            Website URL
+            {t("urlLabel")}
           </label>
           <input
             id="url"
@@ -162,7 +164,7 @@ export function AssessmentForm({
         </div>
         <div>
           <label htmlFor="standard" className="block font-sans text-sm text-terminal-fg">
-            Standard
+            {t("standardLabel")}
           </label>
           <select
             id="standard"
@@ -178,7 +180,7 @@ export function AssessmentForm({
           </select>
         </div>
         <fieldset className="space-y-2">
-          <legend className="block font-sans text-sm text-terminal-fg">Scan scope</legend>
+          <legend className="block font-sans text-sm text-terminal-fg">{t("scopeLabel")}</legend>
           {fixedScope === undefined && (
             <>
               <label className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
@@ -189,7 +191,7 @@ export function AssessmentForm({
                   checked={scope === "site"}
                   onChange={() => setScope("site")}
                 />
-                Whole website
+                {t("wholeSite")}
               </label>
               <label className="flex items-center gap-2 font-sans text-sm text-terminal-fg">
                 <input
@@ -199,23 +201,23 @@ export function AssessmentForm({
                   checked={scope === "page"}
                   onChange={() => setScope("page")}
                 />
-                Single page
+                {t("singlePage")}
               </label>
             </>
           )}
           {fixedScope === "page" && (
             <p className="font-sans text-sm text-terminal-muted">
-              Single page — free.
+              {t("singlePageFree")}
             </p>
           )}
           {fixedScope === "site" && (
             <p className="font-sans text-sm text-terminal-muted">
-              Whole website — free.
+              {t("wholeSiteFree")}
             </p>
           )}
         </fieldset>
         <Button type="submit" disabled={loading} className="self-start">
-          {loading ? "Scanning…" : "Run scan"}
+          {loading ? t("scanning") : t("runScan")}
         </Button>
       </form>
 
@@ -230,15 +232,15 @@ export function AssessmentForm({
           <div className="rounded border border-terminal-border bg-terminal-surface/40 p-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p aria-live="polite" className="font-sans text-sm text-terminal-fg">
-                <span className="font-semibold">{stageFromLog(log)}</span>
+                <span className="font-semibold">{stageFromLog(log, t)}</span>
                 <span className="text-terminal-muted"> · {formatElapsed(elapsedSeconds)}</span>
               </p>
               <Button variant="outline" size="sm" onClick={cancelScan}>
-                Cancel
+                {t("cancel")}
               </Button>
             </div>
             <p className="mt-1 font-sans text-xs text-terminal-muted">
-              Crawling and scanning can take several minutes for larger sites. Leave this tab open.
+              {t("progressNote")}
             </p>
           </div>
           <div className="mt-2">
@@ -249,22 +251,20 @@ export function AssessmentForm({
 
       {cancelled && !result && !loading && (
         <p role="status" className="mt-4 font-sans text-sm text-terminal-muted">
-          Stopped watching this scan — it may still complete in the background. Check your auditor
-          workspace for the result.
+          {t("cancelledNote")}
         </p>
       )}
 
       {result?.status === "failed" && (
         <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
-          The assessment could not be completed. Please verify the URL is reachable and try
-          again.
+          {t("failedNote")}
         </p>
       )}
 
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         {result?.status === "completed" && (
           <p>
-            Assessment complete. {result.findings?.length ?? 0} findings.
+            {t("completeNote", { count: result.findings?.length ?? 0 })}
           </p>
         )}
       </div>
@@ -274,20 +274,23 @@ export function AssessmentForm({
   );
 }
 
-function stageFromLog(entries: LogEntry[]): string {
-  if (entries.length === 0) return "Queued";
+function stageFromLog(
+  entries: LogEntry[],
+  t: ReturnType<typeof useTranslations<"assess">>,
+): string {
+  if (entries.length === 0) return t("stageQueued");
   const last = entries[entries.length - 1]?.message.toLowerCase() ?? "";
-  if (last.includes("crawl") || last.includes("sitemap") || last.includes("fetch")) return "Crawling";
+  if (last.includes("crawl") || last.includes("sitemap") || last.includes("fetch")) return t("stageCrawling");
   if (last.includes("ai") || last.includes("vision") || last.includes("triage") || last.includes("review")) {
-    return "AI review";
+    return t("stageAiReview");
   }
   if (last.includes("score") || last.includes("conformance") || last.includes("report") || last.includes("finalis")) {
-    return "Scoring";
+    return t("stageScoring");
   }
   if (last.includes("scan") || last.includes("rule") || last.includes("engine") || last.includes("page")) {
-    return "Scanning";
+    return t("stageScanning");
   }
-  return "Working";
+  return t("stageWorking");
 }
 
 function formatElapsed(totalSeconds: number): string {
@@ -296,17 +299,20 @@ function formatElapsed(totalSeconds: number): string {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-function messageForCode(code: string): string {
+function messageForCode(
+  code: string,
+  t: ReturnType<typeof useTranslations<"assess">>,
+): string {
   switch (code) {
     case "SSRF_BLOCKED":
-      return "That URL is not publicly accessible.";
+      return t("errSsr");
     case "RATE_LIMITED":
-      return "Too many requests. Please wait a moment and try again.";
+      return t("errRateLimited");
     case "UNAUTHORIZED":
-      return "Please sign in to run an assessment.";
+      return t("errUnauthorized");
     case "VERIFY_EMAIL":
-      return "Please verify your email before running assessments.";
+      return t("errVerifyEmail");
     default:
-      return "Please enter a valid website URL.";
+      return t("errInvalidUrl");
   }
 }

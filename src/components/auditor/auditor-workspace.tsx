@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AssessmentTable } from "@/components/auditor/assessment-table";
 import { ScoreComparison } from "@/components/auditor/score-comparison";
 import { StateBlock } from "@/components/ui/state-block";
@@ -8,6 +9,7 @@ import { ButtonLink } from "@/components/ui/button-link";
 import type { HistoryItem } from "@/lib/history";
 
 export function AuditorWorkspace() {
+  const t = useTranslations("auditor");
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
@@ -21,7 +23,7 @@ export function AuditorWorkspace() {
       const data = (await res.json()) as { assessments: HistoryItem[] };
       setItems(data.assessments ?? []);
     } catch {
-      setError("Could not load history.");
+      setError(t("loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -42,10 +44,10 @@ export function AuditorWorkspace() {
         body: JSON.stringify({ url: item.url, standard: item.standard }),
       });
       if (!res.ok) throw new Error("re-run failed");
-      setNotice(`Re-run queued for ${item.url}`);
+      setNotice(t("rerunQueued", { url: item.url }));
       await load();
     } catch {
-      setError("Could not re-run that assessment.");
+      setError(t("rerunFailed"));
     } finally {
       setBusyIds((prev) => {
         const next = new Set(prev);
@@ -62,10 +64,10 @@ export function AuditorWorkspace() {
     try {
       const res = await fetch(`/api/v1/assessments/${item.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("delete failed");
-      setNotice("Assessment deleted.");
+      setNotice(t("deleted"));
       await load();
     } catch {
-      setError("Could not delete that assessment.");
+      setError(t("deleteFailed"));
     } finally {
       setBusyIds((prev) => {
         const next = new Set(prev);
@@ -78,8 +80,8 @@ export function AuditorWorkspace() {
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <h1 className="font-display text-2xl font-bold text-terminal-fg">Assessments</h1>
-        <p className="mt-1 font-sans text-sm text-terminal-muted">Loading…</p>
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">{t("assessments")}</h1>
+        <p className="mt-1 font-sans text-sm text-terminal-muted">{t("loading")}</p>
       </div>
     );
   }
@@ -88,9 +90,9 @@ export function AuditorWorkspace() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="font-display text-2xl font-bold text-terminal-fg">Assessments</h1>
+      <h1 className="font-display text-2xl font-bold text-terminal-fg">{t("assessments")}</h1>
       <p className="mt-1 font-sans text-sm text-terminal-muted">
-        {items.length} total · {completed} completed
+        {t("totalCount", { total: items.length, completed })}
       </p>
 
       {notice && (
@@ -107,9 +109,9 @@ export function AuditorWorkspace() {
       {items.length === 0 ? (
         <div className="mt-6">
           <StateBlock
-            title="No assessments yet"
-            body="Run your first scan and the result will appear here with a score, findings, and a shareable report."
-            action={<ButtonLink href="/assess">Scan your site</ButtonLink>}
+            title={t("emptyTitle")}
+            body={t("emptyBody")}
+            action={<ButtonLink href="/assess">{t("scanYourSite")}</ButtonLink>}
           />
         </div>
       ) : (

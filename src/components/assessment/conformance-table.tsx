@@ -58,7 +58,7 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
   return (
     <section aria-labelledby="conformance-heading" className="mt-8">
       <h2 id="conformance-heading" className="font-display text-lg font-semibold text-terminal-fg">
-        WCAG conformance
+        All criteria — combined result
       </h2>
       <p className="mt-1 font-sans text-sm text-terminal-muted">
         {conformance.passed} passed · {conformance.failed} failed ·{" "}

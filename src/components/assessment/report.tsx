@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ScoreSummary } from "./score-summary";
 import { ConformanceTable } from "./conformance-table";
-import { ManualReviewChecklist } from "./manual-review-checklist";
+import { ReviewMethods } from "./review-methods";
 import { ComparisonPanel } from "./comparison-panel";
 import { FindingEvidence } from "./finding-evidence";
 import { Methodology } from "./methodology";
@@ -21,8 +21,6 @@ export function Report({ result }: { result: AssessmentResult }) {
 
   const hasConformance = Boolean(result.comparison?.conformance);
   const hasAnalysis = Boolean(result.comparison);
-  const cannotTellCount =
-    result.comparison?.conformance?.rows?.filter((row) => row.result === "CannotTell").length ?? 0;
 
   // Partial completion (Phase 2): the report is partial unless human review is done.
   // Human review is coming soon, so today every report is partial — mark it honestly.
@@ -37,9 +35,9 @@ export function Report({ result }: { result: AssessmentResult }) {
   const navSections = [
     { id: "summary", label: "Summary" },
     ...(orderedFindings.length > 0 ? [{ id: "top-issues", label: "Top issues" }] : []),
-    ...(hasConformance ? [{ id: "conformance", label: "Conformance" }] : []),
-    ...(cannotTellCount > 0 ? [{ id: "manual-review", label: "Manual review" }] : []),
-    ...(hasAnalysis ? [{ id: "analysis", label: "Analysis" }] : []),
+    ...(hasConformance ? [{ id: "methods", label: "By method" }] : []),
+    ...(hasConformance ? [{ id: "conformance", label: "All criteria" }] : []),
+    ...(hasAnalysis ? [{ id: "analysis", label: "Site signals" }] : []),
     { id: "findings", label: "Findings" },
     { id: "mark", label: "Mark" },
     { id: "methodology", label: "Methodology" },
@@ -126,15 +124,18 @@ export function Report({ result }: { result: AssessmentResult }) {
         </p>
       )}
 
+      {hasConformance && (
+        <div id="methods" className="scroll-mt-24">
+          <ReviewMethods
+            conformance={result.comparison?.conformance}
+            ai={result.comparison?.ai}
+          />
+        </div>
+      )}
+
       <div id="conformance" className="scroll-mt-24">
         {result.comparison?.conformance && (
           <ConformanceTable conformance={result.comparison.conformance} />
-        )}
-      </div>
-
-      <div id="manual-review" className="scroll-mt-24">
-        {result.comparison?.conformance && (
-          <ManualReviewChecklist conformance={result.comparison.conformance} />
         )}
       </div>
 

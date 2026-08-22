@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -18,6 +19,7 @@ interface AiProvider {
 }
 
 export function ProfileForm() {
+  const t = useTranslations("account");
   const [providers, setProviders] = useState<AiProvider[]>([]);
   const [provider, setProvider] = useState("openrouter");
   const [baseUrl, setBaseUrl] = useState("");
@@ -70,9 +72,9 @@ export function ProfileForm() {
     if (res.ok) {
       setMasked(data.masked);
       setKey("");
-      setMessage("Key saved.");
+      setMessage(t("keySaved"));
     } else {
-      setError(data?.code ?? "Failed to save key.");
+      setError(data?.code ?? t("saveKeyFailed"));
     }
   }
 
@@ -82,7 +84,7 @@ export function ProfileForm() {
     await fetch("/api/account/ai-key", { method: "DELETE" });
     setMasked(null);
     setKey("");
-    setMessage("Key removed.");
+    setMessage(t("keyRemoved"));
   }
 
   async function saveModels() {
@@ -95,9 +97,9 @@ export function ProfileForm() {
     });
     const data = await res.json().catch(() => null);
     if (res.ok) {
-      setMessage("Model preferences saved.");
+      setMessage(t("modelsSaved"));
     } else {
-      setError(data?.code ?? "Failed to save models.");
+      setError(data?.code ?? t("saveModelsFailed"));
     }
   }
 
@@ -107,21 +109,18 @@ export function ProfileForm() {
   return (
     <div className="space-y-6">
       <Card className="space-y-4 p-6">
-        <h2 className="font-sans text-lg font-bold text-terminal-fg">AI review key (BYOK)</h2>
-        <p className="font-sans text-sm text-terminal-muted">
-          Bring your own key for any supported provider. Stored encrypted; AI review runs only on
-          your key — the platform never pays for your tokens.
-        </p>
+        <h2 className="font-sans text-lg font-bold text-terminal-fg">{t("byokTitle")}</h2>
+        <p className="font-sans text-sm text-terminal-muted">{t("byokBody")}</p>
 
         {masked && (
           <p className="font-sans text-sm text-terminal-pass">
-            Current key: <span className="text-terminal-fg">{masked}</span> ({provider})
+            {t("currentKey", { masked, provider })}
           </p>
         )}
 
         <div>
           <label htmlFor="provider" className="block font-sans text-sm text-terminal-fg">
-            Provider
+            {t("providerLabel")}
           </label>
           <select
             id="provider"
@@ -140,7 +139,7 @@ export function ProfileForm() {
         {provider === "custom" && (
           <div>
             <label htmlFor="baseUrl" className="block font-sans text-sm text-terminal-fg">
-              Base URL (https)
+              {t("baseUrlLabel")}
             </label>
             <input
               id="baseUrl"
@@ -155,7 +154,7 @@ export function ProfileForm() {
 
         <div>
           <label htmlFor="apiKey" className="block font-sans text-sm text-terminal-fg">
-            API key
+            {t("apiKeyLabel")}
           </label>
           <input
             id="apiKey"
@@ -170,22 +169,22 @@ export function ProfileForm() {
 
         <div className="flex gap-3">
           <Button onClick={saveKey} disabled={!key}>
-            Save key
+            {t("saveKey")}
           </Button>
           {masked && (
             <Button variant="outline" onClick={removeKey}>
-              Remove key
+              {t("removeKey")}
             </Button>
           )}
         </div>
       </Card>
 
       <Card className="space-y-4 p-6">
-        <h2 className="font-sans text-lg font-bold text-terminal-fg">Models</h2>
+        <h2 className="font-sans text-lg font-bold text-terminal-fg">{t("modelsTitle")}</h2>
 
         <div>
           <label htmlFor="visionModel" className="block font-sans text-sm text-terminal-fg">
-            Vision model
+            {t("visionModelLabel")}
           </label>
           <select
             id="visionModel"
@@ -193,7 +192,7 @@ export function ProfileForm() {
             onChange={(e) => setVisionModel(e.target.value)}
             className={inputClass}
           >
-            <option value="">Default (Qwen)</option>
+            <option value="">{t("defaultQwen")}</option>
             {(current?.visionModels ?? []).map((m) => (
               <option key={m.id} value={m.id}>
                 {m.label}
@@ -204,7 +203,7 @@ export function ProfileForm() {
 
         <div>
           <label htmlFor="audioModel" className="block font-sans text-sm text-terminal-fg">
-            Voice / audio model
+            {t("audioModelLabel")}
           </label>
           <select
             id="audioModel"
@@ -212,7 +211,7 @@ export function ProfileForm() {
             onChange={(e) => setAudioModel(e.target.value)}
             className={inputClass}
           >
-            <option value="">Default</option>
+            <option value="">{t("defaultOption")}</option>
             {(current?.audioModels ?? []).map((m) => (
               <option key={m.id} value={m.id}>
                 {m.label}
@@ -220,13 +219,11 @@ export function ProfileForm() {
             ))}
           </select>
           {current && current.audioModels.length === 0 && (
-            <p className="mt-1 font-sans text-xs text-terminal-muted">
-              This provider has no audio model — media success criteria stay &ldquo;Cannot tell&rdquo;.
-            </p>
+            <p className="mt-1 font-sans text-xs text-terminal-muted">{t("noAudio")}</p>
           )}
         </div>
 
-        <Button onClick={saveModels}>Save models</Button>
+        <Button onClick={saveModels}>{t("saveModels")}</Button>
       </Card>
 
       {message && (

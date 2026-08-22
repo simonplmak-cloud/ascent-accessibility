@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { BulkActionBar } from "@/components/efficiency/bulk-action-bar";
 import { SavedViews } from "@/components/efficiency/saved-views";
@@ -16,12 +17,20 @@ import {
   type SortDirection,
 } from "@/lib/history";
 
-const STATUS_LABELS: Record<HistoryItem["status"], string> = {
-  queued: "QUEUED",
-  running: "RUNNING",
-  completed: "COMPLETED",
-  failed: "FAILED",
-};
+type T = ReturnType<typeof useTranslations<"auditor">>;
+
+function statusLabel(status: HistoryItem["status"], t: T): string {
+  switch (status) {
+    case "queued":
+      return t("labelQueued");
+    case "running":
+      return t("labelRunning");
+    case "completed":
+      return t("labelCompleted");
+    default:
+      return t("labelFailed");
+  }
+}
 
 const PAGE_SIZE = 20;
 
@@ -59,6 +68,7 @@ interface AssessmentTableProps {
 }
 
 export function AssessmentTable({ items, busyIds, onReRun, onDelete }: AssessmentTableProps) {
+  const t = useTranslations("auditor");
   const [status, setStatus] = useState<HistoryStatusFilter>("all");
   const [sortKey, setSortKey] = useState<HistorySortKey>("createdAt");
   const [sortDir, setSortDir] = useState<SortDirection>("desc");
@@ -139,7 +149,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
   }
 
   function bulkDelete() {
-    if (!window.confirm(`Delete ${selectedItems.length} assessment(s)? This cannot be undone.`)) return;
+    if (!window.confirm(t("deleteManyConfirm", { count: selectedItems.length }))) return;
     for (const item of selectedItems) onDelete(item);
     setSelected(new Set());
   }
@@ -148,20 +158,20 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
     <section aria-labelledby="history-heading">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="history-heading" className="font-display text-lg font-semibold text-terminal-fg">
-          Assessment history
+          {t("historyTitle")}
         </h2>
         <label className="flex items-center gap-2 font-sans text-sm text-terminal-muted">
-          Filter
+          {t("filter")}
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as HistoryStatusFilter)}
             className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-sans text-sm text-terminal-fg"
           >
-            <option value="all">All statuses</option>
-            <option value="queued">Queued</option>
-            <option value="running">Running</option>
-            <option value="completed">Completed</option>
-            <option value="failed">Failed</option>
+            <option value="all">{t("allStatuses")}</option>
+            <option value="queued">{t("statusQueued")}</option>
+            <option value="running">{t("statusRunning")}</option>
+            <option value="completed">{t("statusCompleted")}</option>
+            <option value="failed">{t("statusFailed")}</option>
           </select>
         </label>
       </div>
@@ -174,8 +184,8 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
         <BulkActionBar
           count={selectedItems.length}
           actions={[
-            { id: "re-run", label: "Re-run selected", run: bulkReRun },
-            { id: "delete", label: "Delete selected", run: bulkDelete, destructive: true },
+            { id: "re-run", label: t("reRunSelected"), run: bulkReRun },
+            { id: "delete", label: t("deleteSelected"), run: bulkDelete, destructive: true },
           ]}
         />
       </div>
@@ -187,7 +197,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
               <th scope="col" className="w-8 px-3 py-2">
                 <input
                   type="checkbox"
-                  aria-label="Select all"
+                  aria-label={t("selectAll")}
                   checked={allVisibleSelected}
                   onChange={toggleSelectAll}
                   className="align-middle"
@@ -199,22 +209,22 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
                 className="px-3 py-2 font-medium"
               >
                 <button type="button" onClick={() => toggleSort("conformance")} className="hover:text-terminal-fg">
-                  Conformance <span aria-hidden="true">{indicator("conformance")}</span>
+                  {t("thConformance")} <span aria-hidden="true">{indicator("conformance")}</span>
                 </button>
               </th>
-              <th scope="col" className="px-3 py-2 font-medium">URL</th>
-              <th scope="col" className="px-3 py-2 font-medium">Standard</th>
-              <th scope="col" className="px-3 py-2 font-medium">Status</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thUrl")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thStandard")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thStatus")}</th>
               <th
                 scope="col"
                 aria-sort={sortKey === "createdAt" ? (sortDir === "desc" ? "descending" : "ascending") : "none"}
                 className="px-3 py-2 font-medium"
               >
                 <button type="button" onClick={() => toggleSort("createdAt")} className="hover:text-terminal-fg">
-                  Date <span aria-hidden="true">{indicator("createdAt")}</span>
+                  {t("thDate")} <span aria-hidden="true">{indicator("createdAt")}</span>
                 </button>
               </th>
-              <th scope="col" className="px-3 py-2 font-medium">Actions</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thActions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -229,7 +239,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
                   <td className="px-3 py-2">
                     <input
                       type="checkbox"
-                      aria-label={`Select ${item.url}`}
+                      aria-label={t("selectItem", { url: item.url })}
                       checked={isSelected}
                       onChange={() => toggleSelect(item.id)}
                       className="align-middle"
@@ -241,36 +251,36 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
                   </td>
                   <td className="px-3 py-2 text-terminal-muted">{item.standard}</td>
                   <td className="px-3 py-2">
-                    <span className={statusClass(item.status)}>{STATUS_LABELS[item.status]}</span>
+                    <span className={statusClass(item.status)}>{statusLabel(item.status, t)}</span>
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 text-terminal-muted">{formatDate(item.createdAt)}</td>
                   <td className="whitespace-nowrap px-3 py-2">
                     <div className="flex items-center gap-2">
                       <Link
                         href={`/auditor/report/${item.id}`}
-                        aria-label={`Open report for ${item.url}`}
+                        aria-label={t("openReport", { url: item.url })}
                         className="text-terminal-fg underline-offset-4 hover:underline"
                       >
-                        Open
+                        {t("open")}
                       </Link>
                       <Button
                         variant="ghost"
                         onClick={() => onReRun(item)}
                         disabled={busy}
-                        aria-label={`Re-run assessment for ${item.url}`}
+                        aria-label={t("rerunAria", { url: item.url })}
                       >
-                        Re-run
+                        {t("reRun")}
                       </Button>
                       <Button
                         variant="ghost"
                         onClick={() => {
-                          if (window.confirm(`Delete the assessment for ${item.url}?`)) onDelete(item);
+                          if (window.confirm(t("deleteConfirm", { url: item.url }))) onDelete(item);
                         }}
                         disabled={busy}
-                        aria-label={`Delete assessment for ${item.url}`}
+                        aria-label={t("deleteAria", { url: item.url })}
                         className="text-terminal-critical"
                       >
-                        Delete
+                        {t("delete")}
                       </Button>
                     </div>
                   </td>
@@ -280,7 +290,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
             {visible.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-3 py-6 text-center text-terminal-muted">
-                  No assessments match this filter.
+                  {t("noMatch")}
                 </td>
               </tr>
             )}
@@ -291,8 +301,11 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
       {totalPages > 1 && (
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <p className="font-sans text-sm text-terminal-muted">
-            Showing {visible.length === 0 ? 0 : currentPage * PAGE_SIZE + 1}–
-            {Math.min((currentPage + 1) * PAGE_SIZE, visible.length)} of {visible.length}
+            {t("showing", {
+              start: visible.length === 0 ? 0 : currentPage * PAGE_SIZE + 1,
+              end: Math.min((currentPage + 1) * PAGE_SIZE, visible.length),
+              total: visible.length,
+            })}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -301,10 +314,10 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={currentPage === 0}
             >
-              Previous
+              {t("previous")}
             </Button>
             <span className="font-sans text-sm text-terminal-muted">
-              Page {currentPage + 1} of {totalPages}
+              {t("pageOf", { page: currentPage + 1, total: totalPages })}
             </span>
             <Button
               variant="outline"
@@ -312,7 +325,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={currentPage >= totalPages - 1}
             >
-              Next
+              {t("next")}
             </Button>
           </div>
         </div>

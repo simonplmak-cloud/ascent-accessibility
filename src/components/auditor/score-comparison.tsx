@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { groupByUrl, outcomeLabel, outcomeRank, type HistoryItem } from "@/lib/history";
 
 function formatShort(iso: string): string {
@@ -22,13 +23,14 @@ function deltaIndicator(current: HistoryItem, previous?: HistoryItem): string | 
 }
 
 export function ScoreComparison({ items }: { items: HistoryItem[] }) {
+  const t = useTranslations("auditor");
   const groups = groupByUrl(items);
   if (groups.length === 0) return null;
 
   return (
     <section aria-labelledby="comparison-heading" className="mt-8">
       <h2 id="comparison-heading" className="font-display text-lg font-semibold text-terminal-fg">
-        Conformance trend
+        {t("trendTitle")}
       </h2>
       <div className="mt-4 grid gap-4">
         {groups.map((group) => (
@@ -37,7 +39,7 @@ export function ScoreComparison({ items }: { items: HistoryItem[] }) {
               {group.url}
             </div>
             <div className="mt-1 font-sans text-xs text-terminal-muted">
-              {group.scans.length} scans
+              {t("scans", { count: group.scans.length })}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {group.scans.map((scan, i) => {

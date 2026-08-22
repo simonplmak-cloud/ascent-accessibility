@@ -1,17 +1,31 @@
-import type { ComparisonData, Conformance, ConformanceRow } from "@/components/assessment/types";
+// Transparent three-way results (machine / AI / human review) + a combined result.
+// Pure, deterministic derivations from the conformance rows + AI verdicts — the
+// same logic drives both the web UI report and the PDF report.
 
-// Transparency: split the combined conformance result into the three review
-// methods — machine (rule engine), AI-assisted, and human review — plus a
-// combined summary. All pure and deterministic (mission-critical reliability).
-
-export interface MethodGroup {
-  passed: number;
-  failed: number;
-  rows: ConformanceRow[];
+export interface MethodRow {
+  num: string;
+  title: string;
+  level: string;
+  result: string;
+  machineResult?: string;
 }
 
-// Machine review: SCs the rule engine decided on its own (no AI needed).
-export function machineResults(rows: ConformanceRow[]): MethodGroup {
+export interface AiVerdict {
+  sc: string;
+  verdict: string;
+  confidence: number;
+  reasoning: string;
+}
+
+// Machine review: SCs the rule engine decided (a substantive pass/fail verdict).
+// "NotPresent" (no relevant content) and "Unresolved" (couldn't decide) are not
+// substantive machine verdicts — the former is counted in the combined summary,
+// the latter is where AI/human review take over.
+export function machineResults(rows: MethodRow[]): {
+  passed: number;
+  failed: number;
+  rows: MethodRow[];
+} {
   const decided = rows.filter(
     (r) => r.machineResult === "Passed" || r.machineResult === "Failed",
   );
@@ -22,19 +36,14 @@ export function machineResults(rows: ConformanceRow[]): MethodGroup {
   };
 }
 
-type AiVerdicts = NonNullable<ComparisonData["ai"]>["verdicts"];
-
-export interface AiReviewGroup {
+// AI-assisted review: what the AI concluded per SC it attempted (pass/fail/
+// cannot-tell + confidence + reasoning). AI "cannot tell" escalates to human review.
+export function aiResults(verdicts: AiVerdict[]): {
   passed: number;
   failed: number;
   cannotTell: number;
-  verdicts: AiVerdicts;
-}
-
-// AI-assisted review: the SCs the AI attempted, with its verdict + confidence.
-export function aiResults(ai: ComparisonData["ai"]): AiReviewGroup | null {
-  if (!ai) return null;
-  const verdicts = ai.verdicts ?? [];
+  verdicts: AiVerdict[];
+} {
   return {
     passed: verdicts.filter((v) => v.verdict === "Passed").length,
     failed: verdicts.filter((v) => v.verdict === "Failed").length,
@@ -43,23 +52,34 @@ export function aiResults(ai: ComparisonData["ai"]): AiReviewGroup | null {
   };
 }
 
-// Human review: SCs that still need human judgement (final result = CannotTell).
-export function humanReviewPending(rows: ConformanceRow[]): { count: number; rows: ConformanceRow[] } {
+// Human review (pending): SCs that still need human judgement (result CannotTell).
+export function humanReviewPending(rows: MethodRow[]): {
+  count: number;
+  rows: MethodRow[];
+} {
   const pending = rows.filter((r) => r.result === "CannotTell");
   return { count: pending.length, rows: pending };
 }
 
 // Combined result: the merged outcome across all methods.
-export function combinedSummary(conformance: Conformance) {
-  return {
-    outcome: conformance.outcome,
-    passed: conformance.passed,
-    failed: conformance.failed,
-    cannotTell: conformance.cannotTell,
-    notPresent: conformance.notPresent,
-    coverage: conformance.coverage,
-    levelAttained: conformance.levelAttained,
-    scsMet: conformance.scsMet,
-    scsApplicable: conformance.scsApplicable,
-  };
+export function combinedSummary(conformance: {
+  total: number;
+  passed: number;
+  failed: number;
+  notPresent: number;
+  cannotTell: number;
+  coverage: number;
+  levelAttained: string;
+  outcome: string;
+}): {
+  total: number;
+  passed: number;
+  failed: number;
+  notPresent: number;
+  cannotTell: number;
+  coverage: number;
+  levelAttained: string;
+  outcome: string;
+} {
+  return { ...conformance };
 }

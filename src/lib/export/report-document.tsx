@@ -10,6 +10,8 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import { BRANDING } from "@/lib/branding";
+import { aiResults, humanReviewPending, machineResults } from "@/lib/report-methods";
+import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import {
   affectedSuccessCriteria,
   generatedDate,
@@ -145,6 +147,12 @@ export function AccessibilityReportDocument({ report, logo }: { report: ReportDa
   const conformance = report.comparison?.conformance;
   const comparison = report.comparison;
   const totalFindings = report.findings.length;
+
+  // Three-way review-method breakdown (machine / AI / human), mirrored in the web UI.
+  const methodRows = conformance?.rows ?? [];
+  const machine = machineResults(methodRows);
+  const aiRes = aiResults(comparison?.ai?.verdicts ?? []);
+  const human = humanReviewPending(methodRows);
 
   const toc = [
     { href: "#executive-summary", label: "1. Executive summary" },

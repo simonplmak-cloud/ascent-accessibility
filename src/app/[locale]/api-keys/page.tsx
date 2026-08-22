@@ -1,11 +1,23 @@
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ApiKeysClient } from "@/components/api-keys/api-keys-client";
 
-export const metadata: Metadata = {
-  title: "API access",
-  description: "Generate and manage API keys for programmatic assessments.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "apiKeys" });
+  return { title: t("title"), description: t("description") };
+}
 
-export default function ApiKeysPage() {
+export default async function ApiKeysPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   return <ApiKeysClient />;
 }
