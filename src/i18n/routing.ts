@@ -7,6 +7,9 @@ export const routing = defineRouting({
   locales: ["en", "zh-Hant", "zh-Hans"],
   defaultLocale: "en",
   localePrefix: "as-needed",
+  localeCookie: {
+    secure: process.env.NODE_ENV === "production",
+  },
 });
 
 export type Locale = (typeof routing.locales)[number];
