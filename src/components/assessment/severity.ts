@@ -3,14 +3,6 @@ import type { Finding } from "./types";
 export const SEVERITY_ORDER = ["critical", "serious", "moderate", "minor"] as const;
 export type Severity = (typeof SEVERITY_ORDER)[number];
 
-const RANK: Record<string, number> = { critical: 0, serious: 1, moderate: 2, minor: 3 };
-
-export function sortFindings(findings: Finding[]): Finding[] {
-  return [...findings].sort(
-    (a, b) => (RANK[a.impact] ?? 99) - (RANK[b.impact] ?? 99),
-  );
-}
-
 export function severityCounts(findings: Finding[]): Record<Severity, number> {
   const counts: Record<Severity, number> = {
     critical: 0,

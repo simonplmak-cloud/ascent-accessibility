@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { priorityFindings, topFindings } from "@/lib/report-priority";
+import { priorityFindings } from "@/lib/report-priority";
 import type { Finding } from "@/components/assessment/types";
 
 function finding(overrides: Partial<Finding>): Finding {
@@ -52,20 +52,5 @@ describe("priorityFindings", () => {
     const copy = [...input];
     priorityFindings(input);
     expect(input).toEqual(copy);
-  });
-});
-
-describe("topFindings", () => {
-  it("returns the top N by priority", () => {
-    const many = Array.from({ length: 8 }, (_, i) =>
-      finding({ ruleId: `r${i}`, impact: i === 0 ? "critical" : "minor", elementCount: 1 }),
-    );
-    const top = topFindings(many, 5);
-    expect(top).toHaveLength(5);
-    expect(top[0]?.impact).toBe("critical");
-  });
-
-  it("returns everything when fewer than N findings", () => {
-    expect(topFindings([finding({ ruleId: "only" })], 5)).toHaveLength(1);
   });
 });

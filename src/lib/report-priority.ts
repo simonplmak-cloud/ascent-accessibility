@@ -30,8 +30,3 @@ export function priorityFindings(findings: Finding[]): Finding[] {
     return 0;
   });
 }
-
-// The "Top issues" slice shown above the full findings list.
-export function topFindings(findings: Finding[], count = 5): Finding[] {
-  return priorityFindings(findings).slice(0, count);
-}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { impactColor, severityCounts, sortFindings } from "@/components/assessment/severity";
+import { impactColor, severityCounts } from "@/components/assessment/severity";
 import type { Finding } from "@/components/assessment/types";
 
 function finding(impact: string): Finding {
@@ -14,16 +14,6 @@ function finding(impact: string): Finding {
 }
 
 describe("severity", () => {
-  it("sorts findings by severity descending", () => {
-    const findings = [finding("minor"), finding("critical"), finding("serious"), finding("moderate")];
-    expect(sortFindings(findings).map((f) => f.impact)).toEqual([
-      "critical",
-      "serious",
-      "moderate",
-      "minor",
-    ]);
-  });
-
   it("counts findings by severity", () => {
     const findings = [finding("critical"), finding("critical"), finding("serious"), finding("minor")];
     expect(severityCounts(findings)).toEqual({

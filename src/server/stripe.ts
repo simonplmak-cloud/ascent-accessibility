@@ -1,14 +1,6 @@
 import Stripe from "stripe";
 import { getSiteUrl } from "@/lib/site-url";
 
-// Graceful client — returns null when STRIPE_SECRET_KEY is absent so callers can
-// degrade instead of throwing.
-export function getStripe(): Stripe | null {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) return null;
-  return new Stripe(key);
-}
-
 // Throwing client for flows that must fail loudly (and for DI in tests).
 export function createStripe(key = process.env.STRIPE_SECRET_KEY ?? ""): Stripe {
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set");

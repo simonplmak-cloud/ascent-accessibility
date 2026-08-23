@@ -77,4 +77,3 @@ function synthesizedDefault(sc: string): ScAiConfig {
 export const configStore: ConfigStore = createConfigStore(() => aiConfigRepository.list());
 
 export const getAiConfig = (sc: string): Promise<ScAiConfig> => configStore.get(sc);
-export const getAiConfigs = (): Promise<Map<string, ScAiConfig>> => configStore.getAll();

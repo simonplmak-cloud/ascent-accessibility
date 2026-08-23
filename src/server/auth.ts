@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { query } from "@/db";
-import { subscriptionRepository } from "@/db/repository";
 import { SESSION_COOKIE, verifySession, type SessionUser } from "@/lib/auth/session";
 
 export async function getSessionUser(): Promise<SessionUser | null> {
@@ -47,21 +46,4 @@ export async function getRole(): Promise<string | null> {
 
 export async function isReviewer(): Promise<boolean> {
   return (await getRole()) === "reviewer";
-}
-
-export async function isSubscriber(): Promise<boolean> {
-  const userId = await getUserId();
-  if (!userId) return false;
-  try {
-    const subscription = await subscriptionRepository.getByUserId(userId);
-    return subscription?.status === "active";
-  } catch {
-    return false;
-  }
-}
-
-// Owner of an assessment: the signed-in account id. No anonymous scanning.
-export async function getOwnerId(): Promise<string | null> {
-  const user = await getSessionUser();
-  return user?.id ?? null;
 }
