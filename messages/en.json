@@ -521,7 +521,7 @@
     "targetTitle": "Our target",
     "targetBody": "We aim for WCAG 2.2 AAA — a stricter standard than the AA level the assessment tool defaults to. The interface uses a high-contrast monospace theme, a single ordered heading outline, standard landmarks, a skip link, visible focus, labeled form fields, and live announcements for dynamic changes. You can adjust text size from the header.",
     "limitsTitle": "Known limitations",
-    "limitsBody": "The embedded payment form is provided by Stripe, whose accessibility is outside our direct control. If you encounter a barrier on any part of the site, please tell us — we treat accessibility reports as a priority.",
+    "limitsBody": "The embedded payment form is provided by Stripe, whose accessibility is outside our direct control. Our navigation links use a 24px minimum target size with generous spacing (an AA-compliant choice, rather than the full 44px AAA target). If you encounter a barrier on any part of the site, please tell us — we treat accessibility reports as a priority.",
     "reportTitle": "Report a problem",
     "reportBody": "Email <mail>contact@ascent-partners.com</mail> and describe what you were trying to do and what happened. We aim to respond within a few business days.",
     "contactLink": "Contact us"

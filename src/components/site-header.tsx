@@ -53,7 +53,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
       return (
         <Link
           href={item.href!}
-          className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
+          className="inline-flex min-h-6 items-center font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
         >
           {t(item.label)}
         </Link>
@@ -67,7 +67,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
           onClick={() => setDropdown(dropdown === item.label ? null : item.label)}
           aria-expanded={dropdown === item.label}
           aria-controls={id}
-          className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
+          className="inline-flex min-h-6 items-center font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
         >
           {t(item.label)} <span aria-hidden="true">▾</span>
         </button>

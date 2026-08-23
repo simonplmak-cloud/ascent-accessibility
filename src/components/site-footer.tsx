@@ -20,7 +20,7 @@ export function SiteFooter() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="font-sans text-sm text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
+                      className="inline-flex min-h-6 items-center font-sans text-sm text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
                     >
                       {t(link.label)}
                     </Link>
@@ -40,7 +40,7 @@ export function SiteFooter() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="font-sans text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
+                className="inline-flex min-h-6 items-center font-sans text-xs text-terminal-muted underline-offset-4 hover:text-terminal-fg hover:underline"
               >
                 {t(link.label)}
               </Link>
