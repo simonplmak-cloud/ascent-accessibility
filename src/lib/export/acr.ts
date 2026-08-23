@@ -1,7 +1,7 @@
 import type { ConformanceRow } from "@/components/assessment/types";
 
 // Builds a printable Accessibility Conformance Report (ACR) in VPAT structure,
-// generated from the per-criterion conformance data. Clearly labelled DRAFT —
+// generated from the per-criterion conformance data. Clearly labeled DRAFT —
 // automated scan, partial coverage, not independently verified. It is honest
 // about coverage so a user without human review still has something to show.
 

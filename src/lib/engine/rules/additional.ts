@@ -240,7 +240,7 @@ export const additionalRules: Rule[] = [
   {
     id: "use-of-color",
     description: "Ensures information is not conveyed by color alone",
-    help: "Colour must not be the only means of conveying information",
+    help: "Color must not be the only means of conveying information",
     impact: "serious",
     tags: ["wcag2a", "wcag141"],
     wcagSc: ["1.4.1"],
@@ -256,7 +256,7 @@ export const additionalRules: Rule[] = [
         id: "no-color-only-instructions",
         evaluate: (f) =>
           (f.hits as string[]).length > 0
-            ? { result: "incomplete", failureSummary: `instruction references colour (${(f.hits as string[]).join(", ")}) — verify it is not the only cue` }
+            ? { result: "incomplete", failureSummary: `instruction references color (${(f.hits as string[]).join(", ")}) — verify it is not the only cue` }
             : { result: "pass" },
       },
     ],

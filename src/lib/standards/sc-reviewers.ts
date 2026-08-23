@@ -51,7 +51,7 @@ const PROFILES_EN: Record<ReviewerProfile, string> = {
 };
 
 const PROFILES_ZH_HANT: Record<ReviewerProfile, string> = {
-  blindness: "具失明親身經歷（螢幕閱讀器）的認證審核員",
+  blindness: "具失明親身經歷（屏幕閱讀器）的認證審核員",
   lowVision: "具低視力親身經歷的認證審核員",
   motor: "具行動受限（純鍵盤）親身經歷的認證審核員",
   cognitive: "具認知或學習障礙親身經歷的認證審核員",

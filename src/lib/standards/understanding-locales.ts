@@ -622,7 +622,7 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   "1.1.1": {
     normative: "為所有呈現給使用者的非文字內容都提供相同目的的替代文字，以下情況例外：控件或輸入、時基媒體、測試或練習、感官體驗、驗證碼，以及純裝飾、格式或不可見內容。",
     intent: "讓看不見圖片的人也能獲得圖片傳達的資訊，而不是只聽到「圖片」或檔名。",
-    benefits: ["螢幕閱讀器使用者能夠理解圖表、圖示和照片的含義。"],
+    benefits: ["屏幕閱讀器使用者能夠理解圖表、圖示和照片的含義。"],
     examples: ["資訊圖應附帶描述其內容的替代文字；純裝飾圖片則使用空 alt 隱藏。"],
     source: "unofficial",
   },
@@ -691,7 +691,7 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   },
   "1.3.1": {
     normative: "透過呈現傳達的資訊、結構和關係，可以程式化確定或在文字中得到。",
-    intent: "讓螢幕閱讀器能識別標題、清單、表格和表單欄位之間的結構關係。",
+    intent: "讓屏幕閱讀器能識別標題、清單、表格和表單欄位之間的結構關係。",
     benefits: ["輔助技術能正確宣告頁面的結構與語意。"],
     examples: ["用真實 <h1>/<h2> 而非加粗文字表示標題；用 <label> 關聯表單欄位。"],
     source: "unofficial",
@@ -699,7 +699,7 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   "1.3.2": {
     normative: "當呈現出來的內容其順序影響其含義，可以程式化確定其正確的閱讀順序。",
     intent: "讓線性化後的閱讀順序與視覺順序一致，避免內容被讀亂。",
-    benefits: ["螢幕閱讀器按有意義順序朗讀，而非按 DOM 亂序。"],
+    benefits: ["屏幕閱讀器按有意義順序朗讀，而非按 DOM 亂序。"],
     examples: ["兩欄版面在閱讀時不應交錯成無意義的順序。"],
     source: "unofficial",
   },
@@ -713,7 +713,7 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   "1.3.4": {
     normative: "不應該將內容的視圖和操作限定為單一的顯示方向，例如直向或橫向，除非使用特定的顯示方向是必要的。",
     intent: "內容在橫向和直向下都應可用。",
-    benefits: ["固定螢幕方向的使用者仍能正常使用。"],
+    benefits: ["固定屏幕方向的使用者仍能正常使用。"],
     examples: ["網頁不應強制要求使用者旋轉裝置才能閱讀。"],
     source: "unofficial",
   },
@@ -740,7 +740,7 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   },
   "1.4.2": {
     normative: "如果網頁音訊自動播放超過3秒鐘，提供一個機制用以暫停或停止音訊，或者控制獨立於全域系統音量的音訊音量。",
-    intent: "避免自動播放的音訊干擾使用者，尤其是使用螢幕閱讀器的使用者。",
+    intent: "避免自動播放的音訊干擾使用者，尤其是使用屏幕閱讀器的使用者。",
     benefits: ["使用者可以關閉或暫停背景音訊。"],
     examples: ["自動播放的背景音樂應提供明顯的暫停/停止按鈕。"],
     source: "unofficial",
@@ -762,7 +762,7 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   "1.4.5": {
     normative: "如果正在使用的技術可以達到視覺效果，應使用文字傳達資訊而不用文字圖像，以下部分除外：文字圖像可根據使用者要求進行視覺定製；文字的特殊呈現對要傳達的資訊是必需的。",
     intent: "能用真實文字就用真實文字，避免用圖片承載文字。",
-    benefits: ["文字可縮放、可被螢幕閱讀器讀取、可隨主題變色。"],
+    benefits: ["文字可縮放、可被屏幕閱讀器讀取、可隨主題變色。"],
     examples: ["標題應使用文字而非做成圖片。"],
     source: "unofficial",
   },
@@ -796,7 +796,7 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   },
   "1.4.10": {
     normative: "內容可以在不丟失資訊或功能，且在下面兩種規格裡無需滑動捲動條的情況下呈現：寬度相當於320個CSS像素時垂直捲動內容；高度相當於256個CSS像素時水平捲動內容。",
-    intent: "內容在窄螢幕或放大後能重排，無需橫向捲動。",
+    intent: "內容在窄屏幕或放大後能重排，無需橫向捲動。",
     benefits: ["行動裝置使用者和放大使用者無需雙向捲動即可閱讀。"],
     examples: ["頁面在 320px 寬度下應重排為單欄。"],
     source: "unofficial",
@@ -915,7 +915,7 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   },
   "2.4.1": {
     normative: "提供一種機制以跳過在多個網頁中重複出現的內容模組。",
-    intent: "讓鍵盤和螢幕閱讀器使用者能跳過重複的導覽。",
+    intent: "讓鍵盤和屏幕閱讀器使用者能跳過重複的導覽。",
     benefits: ["使用者無需反覆 Tab 穿過相同導覽即可到達主要內容。"],
     examples: ["頁面頂部應提供跳轉到主要內容的連結。"],
     source: "unofficial",
@@ -937,7 +937,7 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   "2.4.4": {
     normative: "每個連結目的的確定可透過：單獨的連結文字，或者是連結文字聯繫其程式化確定的連接上下文，除非連結的目的也會困惑普通使用者。",
     intent: "讓連結文字本身說明其去向。",
-    benefits: ["螢幕閱讀器使用者逐個讀取連結時能理解其目的。"],
+    benefits: ["屏幕閱讀器使用者逐個讀取連結時能理解其目的。"],
     examples: ["避免使用多個含義不明的「點擊這裡」連結。"],
     source: "unofficial",
   },
@@ -972,7 +972,7 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   "2.4.9": {
     normative: "提供一個機制允許只從連結文字來識別每個連接目的，除非連結目的也會困惑使用者。",
     intent: "連結文字脫離上下文也能說明去向（AAA 級）。",
-    benefits: ["螢幕閱讀器使用者僅憑連結文字即可理解。"],
+    benefits: ["屏幕閱讀器使用者僅憑連結文字即可理解。"],
     examples: ["每個連結文字都足夠具體以表明目的。"],
     source: "unofficial",
   },
@@ -1063,14 +1063,14 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   "3.1.1": {
     normative: "每個網頁的預設人類語言可以程式化確定。",
     intent: "讓輔助技術能識別頁面的語言並正確朗讀。",
-    benefits: ["螢幕閱讀器能以正確的語言和口音朗讀頁面。"],
+    benefits: ["屏幕閱讀器能以正確的語言和口音朗讀頁面。"],
     examples: ["<html> 元素應設定正確的 lang 屬性。"],
     source: "unofficial",
   },
   "3.1.2": {
     normative: "內容裡每個段落或短語的人類語言可以程式化確定，除了文字中專有名詞、術語、不確定語言的詞彙、已經融入到本地語言的詞語或短語。",
     intent: "讓頁面內不同語言的段落被正確識別。",
-    benefits: ["螢幕閱讀器能在語言切換處正確發音。"],
+    benefits: ["屏幕閱讀器能在語言切換處正確發音。"],
     examples: ["英文段落嵌入中文頁面時應標記 lang=\"en\"。"],
     source: "unofficial",
   },
@@ -1217,7 +1217,7 @@ export const UNDERSTANDING_ZH_HANT: Record<string, UnderstandingSc> = {
   "4.1.2": {
     normative: "對於所有使用者介面組件，名稱和角色可以程式化確定；狀態、屬性和值可以程式化設定；這些變化的通知可以提供給使用者代理，包括輔助技術。",
     intent: "讓每個控件暴露其名稱、角色和值給輔助技術。",
-    benefits: ["螢幕閱讀器能正確宣告控件及其狀態。"],
+    benefits: ["屏幕閱讀器能正確宣告控件及其狀態。"],
     examples: ["自訂控件應使用正確的角色和無障礙名稱。"],
     source: "unofficial",
   },

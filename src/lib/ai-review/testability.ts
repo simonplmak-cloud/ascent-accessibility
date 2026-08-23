@@ -27,7 +27,7 @@ const TESTABILITY: Record<string, Testability> = {
   "3.3.3": { screenshot: false, dom: true, keyboard: false, at: false }, // needs an error state
   // MIXED SCs with an ai-detectable instruction (from nature.ts MIXED).
   "1.1.1": { screenshot: false, dom: true, keyboard: false, at: false }, // "alt is meaningful" needs the alt text
-  "1.4.1": { screenshot: true, dom: false, keyboard: false, at: false }, // non-colour cues are visible
+  "1.4.1": { screenshot: true, dom: false, keyboard: false, at: false }, // non-color cues are visible
   "2.4.4": { screenshot: true, dom: false, keyboard: false, at: false }, // link purpose in context
   "2.4.6": { screenshot: true, dom: false, keyboard: false, at: false }, // descriptive headings/labels
 };

@@ -144,10 +144,10 @@ export const LESSONS: Record<string, Lesson> = {
   },
   "everyday-contrast": {
     id: "everyday-contrast",
-    title: "Colour & Contrast",
+    title: "Color & Contrast",
     type: "sc-reference",
     scs: ["1.4.1", "1.4.3", "1.4.11"],
-    body: "Low vision affects far more people than total blindness. Body text needs at least 4.5:1 (3:1 for large text), and colour must never be the only signal — pair red with an icon or text. Check real rendered colours, not just the stylesheet values.",
+    body: "Low vision affects far more people than total blindness. Body text needs at least 4.5:1 (3:1 for large text), and color must never be the only signal — pair red with an icon or text. Check real rendered colors, not just the stylesheet values.",
     references: [
       { label: "web.dev Color and contrast", href: "https://web.dev/learn/accessibility/color-contrast" },
       { label: "WebAIM Contrast Checker", href: "https://webaim.org/resources/contrastchecker/" },
@@ -296,7 +296,7 @@ export const LESSONS: Record<string, Lesson> = {
     id: "aria-restrained",
     title: "ARIA, Used with Restraint",
     type: "concept",
-    body: "ARIA communicates semantics; it does not supply keyboard behaviour. Use native HTML first; reach for ARIA only for things HTML cannot express (dialogs, live regions, custom widgets) — and when you add role, you own the keyboard interaction.",
+    body: "ARIA communicates semantics; it does not supply keyboard behavior. Use native HTML first; reach for ARIA only for things HTML cannot express (dialogs, live regions, custom widgets) — and when you add role, you own the keyboard interaction.",
     references: [
       { label: "MDN WAI-ARIA basics", href: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Accessibility/WAI-ARIA_basics" },
       { label: "W3C ARIA Authoring Practices", href: "https://www.w3.org/WAI/ARIA/apg/" },
@@ -517,7 +517,7 @@ export const QUIZZES: Record<string, Quiz> = {
           "Nothing — the red border is sufficient",
         ],
         answerIndex: 1,
-        explanation: "3.3.1 requires errors to be identified and described in text; colour alone is not enough.",
+        explanation: "3.3.1 requires errors to be identified and described in text; color alone is not enough.",
         sc: "3.3.1",
       },
       {
@@ -540,7 +540,7 @@ export const QUIZZES: Record<string, Quiz> = {
         prompt: "A custom toggle is a <div role=\"switch\" aria-checked=\"true\"> with no keyboard handling. What's wrong?",
         options: [
           "Nothing — ARIA makes it accessible",
-          "ARIA supplies the role but not the keyboard behaviour; it still needs focus and Space/Enter handling",
+          "ARIA supplies the role but not the keyboard behavior; it still needs focus and Space/Enter handling",
           "Only a <button> can be a toggle",
         ],
         answerIndex: 1,
@@ -867,7 +867,7 @@ export const LESSON_META: Record<string, LessonMeta> = {
   "sc-2.4.4": {
     outcome: "Write link text that is clear in context.",
     durationMinutes: 10,
-    check: { id: "c21", prompt: "A link labelled 'Click here' points to a policy page. This fails:", options: ["2.4.4", "1.4.3", "2.5.8"], answerIndex: 0, explanation: "2.4.4 requires link purpose be clear from the link text (plus context)." },
+    check: { id: "c21", prompt: "A link labeled 'Click here' points to a policy page. This fails:", options: ["2.4.4", "1.4.3", "2.5.8"], answerIndex: 0, explanation: "2.4.4 requires link purpose be clear from the link text (plus context)." },
   },
   "sc-2.4.7": {
     outcome: "Keep a visible focus indicator on every control.",
@@ -882,7 +882,7 @@ export const LESSON_META: Record<string, LessonMeta> = {
   "sc-3.3.1": {
     outcome: "Identify and describe input errors in text.",
     durationMinutes: 10,
-    check: { id: "c23", prompt: "A form shows only a red border on an invalid field. This fails:", options: ["3.3.1", "2.4.4", "1.4.10"], answerIndex: 0, explanation: "3.3.1 requires errors be identified and described in text — colour alone is not enough." },
+    check: { id: "c23", prompt: "A form shows only a red border on an invalid field. This fails:", options: ["3.3.1", "2.4.4", "1.4.10"], answerIndex: 0, explanation: "3.3.1 requires errors be identified and described in text — color alone is not enough." },
   },
   "sc-4.1.2": {
     outcome: "Ensure every control exposes name, role, and value.",
@@ -892,7 +892,7 @@ export const LESSON_META: Record<string, LessonMeta> = {
   "aria-restrained": {
     outcome: "Use ARIA only when native HTML cannot express the semantics.",
     durationMinutes: 8,
-    check: { id: "c26", prompt: "When should you reach for ARIA?", options: ["Always, for robustness", "Only when native HTML cannot express it", "Never"], answerIndex: 1, explanation: "Native HTML first; ARIA communicates semantics but not keyboard behaviour." },
+    check: { id: "c26", prompt: "When should you reach for ARIA?", options: ["Always, for robustness", "Only when native HTML cannot express it", "Never"], answerIndex: 1, explanation: "Native HTML first; ARIA communicates semantics but not keyboard behavior." },
   },
   // ---- Unit 4 · Audit ----
   "audit-overview": {

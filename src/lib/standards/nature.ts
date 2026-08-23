@@ -64,8 +64,8 @@ const MIXED: Record<string, Instruction[]> = {
     { id: "1.3.1.2", sc: "1.3.1", title: "relationships announced correctly", nature: "manual-only" },
   ],
   "1.4.1": [
-    { id: "1.4.1.1", sc: "1.4.1", title: "colour not the only means of conveying info", nature: "machine-testable", method: { ruleId: "use-of-color" } },
-    { id: "1.4.1.2", sc: "1.4.1", title: "visual confirmation of non-colour cues", nature: "ai-detectable", method: { aiModality: "vision" } },
+    { id: "1.4.1.1", sc: "1.4.1", title: "color not the only means of conveying info", nature: "machine-testable", method: { ruleId: "use-of-color" } },
+    { id: "1.4.1.2", sc: "1.4.1", title: "visual confirmation of non-color cues", nature: "ai-detectable", method: { aiModality: "vision" } },
   ],
   "2.4.4": [
     { id: "2.4.4.1", sc: "2.4.4", title: "link has an accessible name", nature: "machine-testable", method: { ruleId: "link-name" } },

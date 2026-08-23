@@ -21,22 +21,22 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
         description: "精通標準 — 讀懂任何 WCAG 2.2 準則，並深入探討造成大多數真實失敗的準則。",
       },
       audit: {
-        title: "稽核",
-        description: "證明合規 — 自動化、手動及螢幕閱讀器測試，最終完成專題稽核。",
+        title: "審計",
+        description: "證明合規 — 自動化、手動及屏幕閱讀器測試，最終完成專題審計。",
       },
     },
     lessons: {
       "what-is-accessibility": {
         title: "什麼是網頁無障礙",
-        body: "網頁無障礙意味著身心障礙人士可以感知、理解、瀏覽、互動並貢獻於網頁。它是易用性的一個子集，與包容性設計不同：無障礙旨在消除障礙，而包容性設計則從一開始就力求不排除任何人。",
+        body: "網頁無障礙意味著殘疾人士人士可以感知、理解、瀏覽、互動並貢獻於網頁。它是易用性的一個子集，與包容性設計不同：無障礙旨在消除障礙，而包容性設計則從一開始就力求不排除任何人。",
       },
       "how-people-use-the-web": {
         title: "人們如何使用網頁",
-        body: "人們使用輔助科技與適應性策略：螢幕閱讀器、放大、純鍵盤瀏覽、語音控制及開關裝置。每一種都揭示不同的障礙 — 同一個頁面對某個人可能無法使用，對另一個人卻沒有問題。",
+        body: "人們使用輔助科技與適應性策略：屏幕閱讀器、放大、純鍵盤瀏覽、語音控制及開關裝置。每一種都揭示不同的障礙 — 同一個頁面對某個人可能無法使用，對另一個人卻沒有問題。",
       },
       "disability-barriers": {
         title: "障礙類型與阻礙",
-        body: "身心障礙是人與環境之間的不匹配，而非個人的缺陷。障礙分為視覺、聽覺、動作及認知類別 — 且可能是永久、暫時或情境性的。為某一類人設計往往能惠及許多人。",
+        body: "殘疾人士是人與環境之間的不匹配，而非個人的缺陷。障礙分為視覺、聽覺、動作及認知類別 — 且可能是永久、暫時或情境性的。為某一類人設計往往能惠及許多人。",
       },
       "business-legal-case": {
         title: "商業與法律論據",
@@ -52,7 +52,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
       },
       "everyday-structure": {
         title: "語意與結構",
-        body: "螢幕閱讀器使用者透過標題、地標與清單來瀏覽 — 而不是用看的。使用真實的標題階層（一個 h1、有序的層級）、地標（header/nav/main/footer）及語意清單。一個看起來有結構、實際上卻是滿滿 div 的頁面，對螢幕閱讀器而言就是一堵牆。",
+        body: "屏幕閱讀器使用者透過標題、地標與清單來瀏覽 — 而不是用看的。使用真實的標題階層（一個 h1、有序的層級）、地標（header/nav/main/footer）及語意清單。一個看起來有結構、實際上卻是滿滿 div 的頁面，對屏幕閱讀器而言就是一堵牆。",
       },
       "everyday-alt-text": {
         title: "文字替代",
@@ -68,7 +68,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
       },
       "everyday-links": {
         title: "連結與導覽",
-        body: "螢幕閱讀器使用者會逐個連結切換，在沒有上下文的狀況下聽取文字。「點此」與「閱讀更多」毫無意義 — 連結文字本身必須說明它通往何處。提供跳過連結以略過重複的導覽。",
+        body: "屏幕閱讀器使用者會逐個連結切換，在沒有上下文的狀況下聽取文字。「點此」與「閱讀更多」毫無意義 — 連結文字本身必須說明它通往何處。提供跳過連結以略過重複的導覽。",
       },
       "everyday-forms": {
         title: "表單與錯誤",
@@ -88,7 +88,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
       },
       "sc-1.1.1": {
         title: "1.1.1 非文字內容",
-        body: "替代文字決策樹：資訊性 → 描述；裝飾性 → 空白 alt；功能性 → 描述動作；複雜 → 長描述。失敗：圖片被宣告為「無」或「檔名」。測試：用螢幕閱讀器逐項切換，詢問每張圖片傳達了什麼。",
+        body: "替代文字決策樹：資訊性 → 描述；裝飾性 → 空白 alt；功能性 → 描述動作；複雜 → 長描述。失敗：圖片被宣告為「無」或「檔名」。測試：用屏幕閱讀器逐項切換，詢問每張圖片傳達了什麼。",
       },
       "sc-1.3.1": {
         title: "1.3.1 資訊和關係",
@@ -120,7 +120,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
       },
       "sc-3.3.1": {
         title: "3.3.1 錯誤識別",
-        body: "當輸入無效時，必須以文字向使用者識別並描述錯誤，並指出有問題的欄位。失敗：表單變紅卻沒有任何訊息。測試：提交無效表單，確認螢幕閱讀器宣告哪裡出錯。",
+        body: "當輸入無效時，必須以文字向使用者識別並描述錯誤，並指出有問題的欄位。失敗：表單變紅卻沒有任何訊息。測試：提交無效表單，確認屏幕閱讀器宣告哪裡出錯。",
       },
       "sc-4.1.2": {
         title: "4.1.2 名稱，角色，值",
@@ -132,7 +132,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
       },
       "audit-overview": {
         title: "評估概觀",
-        body: "自動化工具能協助，但沒有任何工具能單獨判定合規 — 需要人工判斷。稽核結合自動化掃描、手動檢查與輔助科技測試，並以可重現的證據記錄。",
+        body: "自動化工具能協助，但沒有任何工具能單獨判定合規 — 需要人工判斷。審計結合自動化掃描、手動檢查與輔助科技測試，並以可重現的證據記錄。",
       },
       "audit-easy-checks": {
         title: "簡易檢查（首次檢視）",
@@ -144,19 +144,19 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
       },
       "audit-manual": {
         title: "手動測試",
-        body: "自動化無法判斷的部分：純鍵盤操作、焦點順序、渲染像素的對比、標題階層及錯誤處理。這是任何可信稽核的核心。",
+        body: "自動化無法判斷的部分：純鍵盤操作、焦點順序、渲染像素的對比、標題階層及錯誤處理。這是任何可信審計的核心。",
       },
       "audit-screen-reader": {
-        title: "螢幕閱讀器測試",
-        body: "使用真實的螢幕閱讀器測試（NVDA + Chrome、VoiceOver + Safari）：閱讀順序、標題、地標、連結、表單及動態更新。這能捕捉程式碼檢查無法發現的問題。",
+        title: "屏幕閱讀器測試",
+        body: "使用真實的屏幕閱讀器測試（NVDA + Chrome、VoiceOver + Safari）：閱讀順序、標題、地標、連結、表單及動態更新。這能捕捉程式碼檢查無法發現的問題。",
       },
       "audit-wcag-em": {
         title: "WCAG-EM 與 VPAT/ACR",
         body: "WCAG-EM 是評估方法論：定義範圍 → 探索產品 → 選取代表性樣本 → 評估樣本 → 報告。VPAT 是空白範本；為特定產品填寫完成的 VPAT 即為無障礙合規報告（ACR）。",
       },
       "capstone-audit": {
-        title: "專題：稽核一個網站",
-        body: "整合所學：執行一次真實稽核。挑選一個小網站，遵循 WCAG-EM 五步驟（定義範圍、探索、選取代表性樣本、依 WCAG 2.2 AA 評估、報告），並記錄你的證據。使用「執行掃描」工具取得自動化基準，再以鍵盤與螢幕閱讀器驗證。",
+        title: "專題：審計一個網站",
+        body: "整合所學：執行一次真實審計。挑選一個小網站，遵循 WCAG-EM 五步驟（定義範圍、探索、選取代表性樣本、依 WCAG 2.2 AA 評估、報告），並記錄你的證據。使用「執行掃描」工具取得自動化基準，再以鍵盤與屏幕閱讀器驗證。",
       },
     },
     quizzes: {
@@ -164,13 +164,13 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
         title: "倡導測驗",
         questions: {
           a1: {
-            prompt: "一位設計師說：「盲人使用者是我們唯一的無障礙受眾，所以只要頁面在螢幕閱讀器下正常運作，我們就完成了。」這有什麼問題？",
+            prompt: "一位設計師說：「盲人使用者是我們唯一的無障礙受眾，所以只要頁面在屏幕閱讀器下正常運作，我們就完成了。」這有什麼問題？",
             options: [
-              "沒問題 — 螢幕閱讀器支援涵蓋所有身心障礙",
+              "沒問題 — 屏幕閱讀器支援涵蓋所有殘疾人士",
               "它忽略了低視力、動作、聽覺與認知障礙，而這些更為普遍",
-              "螢幕閱讀器已不再廣泛使用",
+              "屏幕閱讀器已不再廣泛使用",
             ],
-            explanation: "盲人使用者只是身心障礙人口中的少數；低視力、動作、聽覺與認知障礙各自需要對應的修復。",
+            explanation: "盲人使用者只是殘疾人士人口中的少數；低視力、動作、聽覺與認知障礙各自需要對應的修復。",
           },
           a2: {
             prompt: "相較於 WCAG 1.0，WCAG 2.0 引入了哪項改變？",
@@ -203,7 +203,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
           e2: {
             prompt: "一個表單輸入使用 placeholder=\"Email address\" 且沒有 <label>。為什麼這是問題？",
             options: [
-              "所有螢幕閱讀器都會把佔位文字宣告為標籤",
+              "所有屏幕閱讀器都會把佔位文字宣告為標籤",
               "佔位文字在聚焦時消失，且輔助科技常會略過它",
               "這不是問題",
             ],
@@ -288,7 +288,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
         },
       },
       "audit-quiz": {
-        title: "稽核測驗",
+        title: "審計測驗",
         questions: {
           au1: {
             prompt: "自動化掃描回報 0 個違規。正確的結論為何？",
@@ -324,14 +324,14 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
         outcome: "說出人們瀏覽網頁所使用的輔助科技。",
         check: {
           prompt: "哪種輔助科技最能幫助低視力者閱讀文字？",
-          options: ["螢幕閱讀器", "螢幕放大鏡", "語音控制"],
-          explanation: "放大鏡為低視力使用者放大內容；螢幕閱讀器則為盲人使用者宣告內容。",
+          options: ["屏幕閱讀器", "屏幕放大鏡", "語音控制"],
+          explanation: "放大鏡為低視力使用者放大內容；屏幕閱讀器則為盲人使用者宣告內容。",
         },
       },
       "disability-barriers": {
-        outcome: "認知到身心障礙是人與環境的不匹配。",
+        outcome: "認知到殘疾人士是人與環境的不匹配。",
         check: {
-          prompt: "下列何者是暫時性身心障礙的最佳範例？",
+          prompt: "下列何者是暫時性殘疾人士的最佳範例？",
           options: ["失明", "限制滑鼠使用的骨折手臂", "閱讀障礙"],
           explanation: "骨折的手臂是暫時且情境性的 — 為此設計能惠及所有人。",
         },
@@ -345,7 +345,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
         },
       },
       "inclusive-design-etiquette": {
-        outcome: "使用尊重、以人為本的語言談論身心障礙。",
+        outcome: "使用尊重、以人為本的語言談論殘疾人士。",
         check: {
           prompt: "以人為先與以身份為先的語言最適合描述為：",
           options: ["一條嚴格規則", "情境偏好 — 使用當事人自己的用語", "只有以身份為先才正確"],
@@ -373,7 +373,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
         check: {
           prompt: "純裝飾性的圖片應有：",
           options: ["alt=\"decorative\"", "alt=\"\"", "長描述"],
-          explanation: "空白 alt 會將圖片隱藏於螢幕閱讀器 — 這是裝飾的正確處理方式。",
+          explanation: "空白 alt 會將圖片隱藏於屏幕閱讀器 — 這是裝飾的正確處理方式。",
         },
       },
       "everyday-contrast": {
@@ -553,15 +553,15 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
         },
       },
       "audit-screen-reader": {
-        outcome: "以真實螢幕閱讀器測試頁面。",
+        outcome: "以真實屏幕閱讀器測試頁面。",
         check: {
-          prompt: "常見的螢幕閱讀器測試組合是：",
+          prompt: "常見的屏幕閱讀器測試組合是：",
           options: ["NVDA + Chrome（Windows）", "axe + Lighthouse", "VoiceOver + axe"],
           explanation: "Windows 的 NVDA + Chrome（及 macOS 的 VoiceOver + Safari）是標準組合。",
         },
       },
       "audit-wcag-em": {
-        outcome: "使用 WCAG-EM 五步驟組織稽核。",
+        outcome: "使用 WCAG-EM 五步驟組織審計。",
         check: {
           prompt: "正確的 WCAG-EM 順序是：",
           options: ["探索 → 範圍 → 評估 → 報告", "範圍 → 探索 → 樣本 → 評估 → 報告", "報告 → 評估 → 樣本"],
@@ -569,7 +569,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
         },
       },
       "capstone-audit": {
-        outcome: "完成 WCAG-EM 稽核並產出合規報告。",
+        outcome: "完成 WCAG-EM 審計並產出合規報告。",
         check: {
           prompt: "專題的交付成果是：",
           options: ["通過的測驗分數", "基於證據的合規報告", "程式碼範例"],
@@ -601,7 +601,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
     lessons: {
       "what-is-accessibility": {
         title: "什么是网页无障碍",
-        body: "网页无障碍意味着身心障碍人士可以感知、理解、浏览、互动并贡献于网页。它是易用性的一个子集，与包容性设计不同：无障碍旨在消除障碍，而包容性设计则从一开始就力求不排除任何人。",
+        body: "网页无障碍意味着残疾人人士可以感知、理解、浏览、互动并贡献于网页。它是易用性的一个子集，与包容性设计不同：无障碍旨在消除障碍，而包容性设计则从一开始就力求不排除任何人。",
       },
       "how-people-use-the-web": {
         title: "人们如何使用网页",
@@ -609,7 +609,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
       },
       "disability-barriers": {
         title: "障碍类型与阻碍",
-        body: "身心障碍是人与环境之间的不匹配，而非个人的缺陷。障碍分为视觉、听觉、动作及认知类别 — 且可能是永久、暂时或情境性的。为某一类人设计往往能惠及许多人。",
+        body: "残疾人是人与环境之间的不匹配，而非个人的缺陷。障碍分为视觉、听觉、动作及认知类别 — 且可能是永久、暂时或情境性的。为某一类人设计往往能惠及许多人。",
       },
       "business-legal-case": {
         title: "商业与法律论据",
@@ -739,11 +739,11 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
           a1: {
             prompt: "一位设计师说：「盲人用户是我们唯一的无障碍受众，所以只要页面在屏幕阅读器下正常运作，我们就完成了。」这有什么问题？",
             options: [
-              "没问题 — 屏幕阅读器支持涵盖所有身心障碍",
+              "没问题 — 屏幕阅读器支持涵盖所有残疾人",
               "它忽略了低视力、动作、听觉与认知障碍，而这些更为普遍",
               "屏幕阅读器已不再广泛使用",
             ],
-            explanation: "盲人用户只是身心障碍人口中的少数；低视力、动作、听觉与认知障碍各自需要对应的修复。",
+            explanation: "盲人用户只是残疾人人口中的少数；低视力、动作、听觉与认知障碍各自需要对应的修复。",
           },
           a2: {
             prompt: "相较于 WCAG 1.0，WCAG 2.0 引入了哪项改变？",
@@ -878,9 +878,9 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
         },
       },
       "disability-barriers": {
-        outcome: "认知到身心障碍是人与环境的不匹配。",
+        outcome: "认知到残疾人是人与环境的不匹配。",
         check: {
-          prompt: "下列何者是暂时性身心障碍的最佳示例？",
+          prompt: "下列何者是暂时性残疾人的最佳示例？",
           options: ["失明", "限制鼠标使用的骨折手臂", "阅读障碍"],
           explanation: "骨折的手臂是暂时且情境性的 — 为此设计能惠及所有人。",
         },
@@ -894,7 +894,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
         },
       },
       "inclusive-design-etiquette": {
-        outcome: "使用尊重、以人为本的语言谈论身心障碍。",
+        outcome: "使用尊重、以人为本的语言谈论残疾人。",
         check: {
           prompt: "以人为先与以身份为先的语言最适合描述为：",
           options: ["一条严格规则", "情境偏好 — 使用当事人自己的用语", "只有以身份为先才正确"],
@@ -1122,7 +1122,7 @@ export const LOCALE_OVERLAYS: Record<string, LocaleOverlay> = {
         check: {
           prompt: "专题的交付成果是：",
           options: ["通过的测验分数", "基于证据的合规报告", "代码示例"],
-          explanation: "专题是一份基于证据的 WCAG-EM 报告 — 真实的评量。",
+          explanation: "专题是一份基于证据的 WCAG-EM 报告 — 真实的评估。",
         },
       },
     },

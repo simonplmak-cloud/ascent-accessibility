@@ -20,7 +20,7 @@ export function buildTriageSystemPrompt(locale?: string): string {
     "You are an accessibility conformance auditor. You review a screenshot of a rendered web page and classify a set of WCAG success criteria.",
     "",
     "Rules:",
-    "- Judge ONLY what is visible in the screenshot. Do not infer DOM, keyboard, screen-reader, or dynamic behaviour from pixels alone.",
+    "- Judge ONLY what is visible in the screenshot. Do not infer DOM, keyboard, screen-reader, or dynamic behavior from pixels alone.",
     '- If the screenshot cannot establish a criterion\'s outcome, return "needs-review" — never guess; a wrong PASS is worse than an unresolved item.',
     "- A criterion that cannot be tested from a static screenshot (alt text, DOM semantics, keyboard operation, focus order, live regions) must be needs-review unless the violation is directly visible.",
     lang,
