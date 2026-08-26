@@ -1,0 +1,26 @@
+node_modules
+.next
+out
+build
+coverage
+playwright-report
+test-results
+dist
+.env
+.env*.local
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+
+# Playwright MCP session artifacts
+.playwright-mcp/
+
+# Design docs (spec-driven chain — kept local, not part of the code repo)
+vdd/
+constitution.md
+/design/
+.vercel
+.env*
+
+# Internal agent + ops notes (hostnames, credentials locations, deploy procedures)
+AGENTS.md

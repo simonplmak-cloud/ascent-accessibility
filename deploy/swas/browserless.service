@@ -1,0 +1,24 @@
+[Unit]
+Description=browserless headless Chromium (always-warm browser for the worker)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+# Token comes from the shared env file (BROWSERLESS_TOKEN); keep it in sync
+# with the worker by sourcing the same file. Values must be UNQUOTED
+# (systemd EnvironmentFile does not strip quotes).
+EnvironmentFile=/opt/wcag-score/.env
+ExecStart=/usr/bin/docker run --rm --name browserless \
+  -p 127.0.0.1:3000:3000 \
+  -e HOST=0.0.0.0 \
+  -e TOKEN=${BROWSERLESS_TOKEN} \
+  -e CONCURRENT=5 \
+  -e TIMEOUT=600000 \
+  -e MAX_MEMORY_PERCENT=85 \
+  ghcr.io/browserless/chromium
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,88 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { ACCOUNT_MENU } from "@/lib/site/navigation";
+
+// Signed-in account control: a button that opens a disclosure dropdown with the
+// auditor workspace, API access, account, and sign-out.
+export function AccountMenu({
+  email,
+  onSignOut,
+  signingOut,
+}: {
+  email: string | null;
+  onSignOut: () => void;
+  signingOut: boolean;
+}) {
+  const t = useTranslations("common");
+  const tnav = useTranslations("nav");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
+    }
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls={open ? "account-menu" : undefined}
+        className="max-w-[12rem] min-h-11 truncate rounded border border-terminal-border px-3 py-1 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
+      >
+        {email ?? t("account")}
+      </button>
+      {open && (
+        <ul
+          id="account-menu"
+          className="absolute right-0 top-full z-10 mt-1 w-48 rounded border border-terminal-border bg-terminal-surface p-1"
+        >
+          {ACCOUNT_MENU.map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="block rounded px-3 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-bg"
+              >
+                {tnav(item.label)}
+              </Link>
+            </li>
+          ))}
+          <li>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                onSignOut();
+              }}
+              disabled={signingOut}
+              className="block w-full rounded px-3 py-2 text-left font-sans text-sm text-terminal-fg hover:bg-terminal-bg disabled:opacity-50"
+            >
+              {signingOut ? t("signingOut") : t("signOut")}
+            </button>
+          </li>
+        </ul>
+      )}
+    </div>
+  );
+}

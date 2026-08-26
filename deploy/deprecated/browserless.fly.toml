@@ -1,0 +1,29 @@
+# Browserless — always-warm headless Chromium for the assessment worker.
+# A separate app so browser lifecycle is independent of the worker (worker
+# deploys/restarts never cold-start the browsers). Reached only on Fly's
+# private network from the worker: ws://wcag-score-browserless.internal:3000
+
+app = "wcag-score-browserless"
+primary_region = "sin"
+
+[build]
+  image = "ghcr.io/browserless/chromium"
+
+[env]
+  HOST = "0.0.0.0"             # IPv4 — for Fly's public proxy (worker connects via wss://…fly.dev)
+  CONCURRENT = "5"            # max concurrent sessions (worker uses ~2-4)
+  TIMEOUT = "600000"          # 10 min — whole-site scans hold a session for minutes
+  PREBOOT_CHROME = "true"     # launch Chrome at startup so the first connect is instant
+  MAX_MEMORY_PERCENT = "85"   # bound browser memory to avoid OOM kills
+  PORT = "3000"
+
+[machine]
+  size = "shared-cpu-2x"
+  memory = "4096"
+
+[http_service]
+  internal_port = 3000
+  force_https = false
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1

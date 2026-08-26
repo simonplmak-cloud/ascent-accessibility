@@ -1,0 +1,113 @@
+import type { CannotTellReason } from "@/lib/standards/review-reason";
+
+export interface FindingSource {
+  tool: "engine" | "ai";
+  ruleId: string;
+  impact: string;
+  message: string;
+}
+
+export interface FindingInstance {
+  target: string;
+  html: string;
+  failureSummary: string;
+  evidenceId: string | null;
+}
+
+export interface Finding {
+  ruleId: string;
+  impact: string;
+  description: string;
+  pageUrl: string;
+  elementCount: number;
+  recommendation: string;
+  help?: string;
+  helpUrl?: string;
+  wcagSc?: string[];
+  wcagLevel?: string | null;
+  scTitle?: string;
+  confidence?: "confirmed" | "single-source";
+  sources?: FindingSource[];
+  instances?: FindingInstance[];
+}
+
+export interface LogEntry {
+  timestamp: string;
+  level: "info" | "warn" | "error";
+  message: string;
+}
+
+export interface ConformanceRow {
+  num: string;
+  title: string;
+  level: string;
+  result: "Passed" | "Failed" | "CannotTell" | "NotPresent";
+  machineResult?: "Passed" | "Failed" | "Unresolved" | "NotPresent";
+  reviewReason?: CannotTellReason;
+}
+
+export interface Conformance {
+  total: number;
+  passed: number;
+  failed: number;
+  notPresent: number;
+  cannotTell: number;
+  coverage: number;
+  levelAttained: string;
+  outcome: string;
+  scsMet: number;
+  scsApplicable: number;
+  rows: ConformanceRow[];
+}
+
+export interface ComparisonData {
+  audit?: {
+    score: number;
+    failedAudits: Array<{ id: string; weight: number }>;
+    signals?: {
+      accessibility?: number;
+      performance?: number;
+      seo?: number;
+      bestPractices?: number;
+      pwa?: number;
+    };
+    auditVersion?: string;
+  };
+  conformance?: Conformance;
+  ai?: {
+    model: string;
+    verdicts: Array<{
+      sc: string;
+      verdict: "Passed" | "Failed" | "CannotTell";
+      confidence: number;
+      reasoning: string;
+      evidenceId?: string | null;
+    }>;
+    budget: { calls: number; images: number };
+  };
+}
+
+export interface AssessmentResult {
+  id: string;
+  status: string;
+  partial: boolean;
+  url?: string;
+  standard?: string;
+  score: number | null;
+  passBand: string | null;
+  conformance?: string | null;
+  scsMet?: number | null;
+  scsApplicable?: number | null;
+  reviewStatus?: string | null;
+  snapshotAt?: string | null;
+  detectedLanguages?: string[];
+  pagesScanned: number;
+  log: LogEntry[];
+  findings: Finding[];
+  comparison?: ComparisonData;
+}
+
+export interface StandardOption {
+  id: string;
+  name: string;
+}

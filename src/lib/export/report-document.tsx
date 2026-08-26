@@ -1,0 +1,743 @@
+import type { ReactNode } from "react";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  Image,
+  StyleSheet,
+  Link,
+  renderToBuffer,
+} from "@react-pdf/renderer";
+import { BRANDING } from "@/lib/site/branding";
+import { aiResults, cannotTellReason, humanReviewPending, machineResults } from "@/lib/report/report-methods";
+import { getManualTest } from "@/lib/standards/sc-manual-tests";
+import { principleName, scTitle } from "@/lib/standards/wcag-sc";
+import { impactLabel, outcomeLabel, verdictLabel } from "@/lib/site/labels";
+import { buildReportSummary } from "@/lib/report/report-summary";
+import { vpatLevelOf, testedByOf, type VpatLevel, type TestedBy } from "./acr";
+import type { ReportStrings } from "./i18n";
+import {
+  affectedSuccessCriteria,
+  generatedDate,
+  groupFindingsBySeverity,
+  outcomeColor,
+  severityColor,
+  severityCounts,
+  severityRank,
+  topIssues,
+  SEVERITY_ORDER,
+  type SeverityCounts,
+} from "./report-data";
+import type { ReportData } from "./types";
+
+const VPAT_LABEL_KEY: Record<VpatLevel, string> = {
+  supports: "supports",
+  "does-not-support": "doesNotSupport",
+  "not-applicable": "notApplicable",
+  "needs-human-review": "needsHumanReview",
+  "not-evaluated": "notEvaluated",
+};
+
+const TESTED_BY_KEY: Record<TestedBy, string> = {
+  machine: "machine",
+  ai: "ai",
+  human: "human",
+  dash: "dash",
+};
+
+const PAGE_STATUS_KEY: Record<string, string> = {
+  scanned: "pageStatusScanned",
+  failed: "pageStatusFailed",
+  skipped: "pageStatusSkipped",
+};
+
+const SIGNAL_KEY: Record<string, string> = {
+  performance: "signalPerformance",
+  seo: "signalSeo",
+  bestPractices: "signalBestPractices",
+  pwa: "signalPwa",
+};
+
+const styles = StyleSheet.create({
+  page: {
+    paddingTop: 40,
+    paddingBottom: 40,
+    paddingHorizontal: 44,
+    fontSize: 10,
+    color: "#1f2328",
+  },
+  // Cover
+  cover: { alignItems: "center", textAlign: "center", paddingTop: 40 },
+  logo: { height: 48, objectFit: "contain" },
+  org: { fontSize: 18, fontWeight: 700, marginTop: 16 },
+  sub: { fontSize: 10, color: "#59636e", marginTop: 4 },
+  coverTitle: { fontSize: 22, fontWeight: 700, marginTop: 32, marginBottom: 20 },
+  coverMeta: { fontSize: 11, marginTop: 8 },
+  verdict: { fontSize: 14, fontWeight: 700, marginTop: 8 },
+  disclaimer: { fontSize: 8, color: "#59636e", marginTop: 20, maxWidth: 320 },
+  // Headings
+  h1: { fontSize: 18, fontWeight: 700, marginBottom: 12 },
+  h2: { fontSize: 14, fontWeight: 700, marginTop: 20, marginBottom: 8, color: "#1f2328" },
+  h3: { fontSize: 11, fontWeight: 700, marginTop: 12, marginBottom: 4 },
+  section: { marginBottom: 8 },
+  muted: { color: "#59636e" },
+  empty: { color: "#59636e", fontStyle: "italic" },
+  // TOC
+  tocItem: { fontSize: 12, marginBottom: 8 },
+  // Tables
+  tableRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
+  tableHead: { backgroundColor: "#f6f8fa", fontWeight: 700 },
+  tableCell: { padding: 4, fontSize: 9 },
+  // Severity tag
+  sevTag: { fontSize: 8, color: "#ffffff", padding: 2, borderRadius: 2, fontWeight: 700, textTransform: "uppercase" },
+  // Legend
+  legend: { flexDirection: "row", flexWrap: "wrap", marginTop: 6 },
+  legendItem: { fontSize: 8, marginRight: 10 },
+  // Footer
+  pageNumber: { position: "absolute", bottom: 20, left: 0, right: 0, textAlign: "center", fontSize: 8, color: "#59636e" },
+  // Colophon
+  colophon: { marginTop: 24, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 10, fontSize: 8, color: "#59636e", flexDirection: "row", justifyContent: "space-between" },
+  // Evidence
+  codeBlock: { fontFamily: "Courier", fontSize: 8, backgroundColor: "#f6f8fa", padding: 4, marginTop: 2 },
+  evidenceImage: { marginTop: 4, maxHeight: 260, objectFit: "contain" },
+});
+
+function SeverityBars({ counts, locale }: { counts: SeverityCounts; locale: string }) {
+  const max = Math.max(1, ...SEVERITY_ORDER.map((s) => counts[s]));
+  return (
+    <View>
+      {SEVERITY_ORDER.map((sev) => {
+        const count = counts[sev];
+        const pct = count === 0 ? 0 : Math.max(3, (count / max) * 100);
+        const color = severityColor(sev);
+        return (
+          <View key={sev} style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+            <Text style={{ width: 70, fontSize: 9 }}>{impactLabel(sev, locale)}</Text>
+            <View style={{ flex: 1, height: 12, backgroundColor: "#e5e7eb", borderRadius: 3 }}>
+              <View style={{ width: `${pct}%`, height: 12, backgroundColor: color, borderRadius: 3 }} />
+            </View>
+            <Text style={{ width: 34, textAlign: "right", fontSize: 9, color, fontWeight: 700 }}>
+              {String(count)}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+function ConformanceBar({ c }: { c: { passed: number; failed: number; notPresent: number; cannotTell: number } }) {
+  const total = c.passed + c.failed + c.notPresent + c.cannotTell;
+  if (total <= 0) return <Text style={styles.empty}>—</Text>;
+
+  const segments = [
+    { label: "Passed", value: c.passed, color: "#1a7f37" },
+    { label: "Failed", value: c.failed, color: "#d1242f" },
+    { label: "Not present", value: c.notPresent, color: "#d0d7de" },
+    { label: "Cannot tell", value: c.cannotTell, color: "#9a6700" },
+  ].filter((s) => s.value > 0);
+
+  return (
+    <View>
+      <View style={{ flexDirection: "row", height: 18 }}>
+        {segments.map((s, i) => (
+          <View key={i} style={{ flex: s.value, backgroundColor: s.color }} />
+        ))}
+      </View>
+      <View style={styles.legend}>
+        {segments.map((s) => (
+          <Text key={s.label} style={[styles.legendItem, { color: s.color === "#d0d7de" ? "#59636e" : s.color }]}>
+            {s.label} ({s.value})
+          </Text>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function Row({ label, children }: { label?: string; children: ReactNode }) {
+  return (
+    <View style={{ flexDirection: "row", marginTop: 2 }}>
+      {label ? <Text style={{ width: 110, color: "#59636e" }}>{label}</Text> : null}
+      <Text style={{ flex: 1 }}>{children}</Text>
+    </View>
+  );
+}
+
+const LOG_LIMIT = 200;
+
+export function AccessibilityReportDocument({
+  report,
+  logo,
+  strings,
+}: {
+  report: ReportData;
+  logo: Buffer | null;
+  strings: ReportStrings;
+}) {
+  const { t, tAcr, tBeta, locale } = strings;
+  const counts = severityCounts(report.findings);
+  const bandColor = outcomeColor(report.outcome);
+  const grouped = groupFindingsBySeverity(report.findings);
+  const top = topIssues(report.findings, 5);
+  const affected = affectedSuccessCriteria(report.findings);
+  const conformance = report.comparison?.conformance;
+  const comparison = report.comparison;
+  const totalFindings = report.findings.length;
+
+  const methodRows = conformance?.rows ?? [];
+  const machine = machineResults(methodRows);
+  const aiRes = aiResults(comparison?.ai?.verdicts ?? []);
+  const human = humanReviewPending(methodRows);
+
+  const pages = report.pages ?? [];
+  const sitemapUrls = report.sitemapUrls ?? [];
+  const findingsByPage = new Map<string, typeof report.findings>();
+  for (const f of report.findings) {
+    const list = findingsByPage.get(f.pageUrl) ?? [];
+    list.push(f);
+    findingsByPage.set(f.pageUrl, list);
+  }
+
+  const toc = [
+    { href: "#executive-summary", label: t("sectionExecSummary") },
+    { href: "#methodology", label: t("sectionMethodology") },
+    { href: "#conformance", label: t("sectionConformance") },
+    { href: "#methods", label: t("sectionMethods") },
+    { href: "#severity", label: t("sectionSeverity") },
+    { href: "#pages", label: t("sectionPages") },
+    { href: "#findings", label: t("sectionFindings") },
+    { href: "#recommendations", label: t("sectionRecommendations") },
+    ...(comparison ? [{ href: "#comparison", label: t("sectionComparison") }] : []),
+    { href: "#log", label: t("scanLog") },
+    ...(conformance?.rows?.length ? [{ href: "#acr", label: tAcr("title") }] : []),
+  ];
+
+  const summaryText = buildReportSummary(
+    report as unknown as Parameters<typeof buildReportSummary>[0],
+    locale,
+  );
+
+  return (
+    <Document title={`${t("coverTitle")} — ${report.url}`}>
+      {/* Cover */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.cover}>
+          {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop */}
+          {logo ? <Image src={logo} style={styles.logo} /> : <Text style={styles.org}>{BRANDING.name}</Text>}
+          <Text style={styles.org}>{BRANDING.name}</Text>
+          <Text style={styles.sub}>{BRANDING.tagline}</Text>
+          <Text style={styles.coverTitle}>{t("coverTitle")}</Text>
+          <View style={styles.coverMeta}>
+            <Row label={t("coverUrl")}>{report.url}</Row>
+            <Row label={t("coverStandard")}>{report.standard}</Row>
+            <Row label={t("coverPagesScanned")}>{String(report.pagesScanned)}</Row>
+            {report.detectedLanguages && report.detectedLanguages.length > 0 && (
+              <Row label={t("detectedLanguages")}>{report.detectedLanguages.join(" · ")}</Row>
+            )}
+            <Row label={t("coverGenerated")}>{generatedDate(report.generatedAt)}</Row>
+          </View>
+          <Text style={[styles.verdict, { color: bandColor }]}>
+            {outcomeLabel(report.outcome, locale)} — {t("scsMeet", { met: report.scsMet, applicable: report.scsApplicable })}
+          </Text>
+          <Text style={{ marginTop: 8, fontSize: 9, fontWeight: 700, color: "#8a3b00" }}>{tBeta("badge")}</Text>
+          <Text style={styles.disclaimer}>{t("coverDisclaimer")}</Text>
+        </View>
+      </Page>
+
+      {/* Table of contents */}
+      <Page size="A4" style={styles.page}>
+        <Text style={styles.h1}>{t("tocHeading")}</Text>
+        {toc.map((entry) => (
+          <Link key={entry.href} src={entry.href} style={styles.tocItem}>
+            <Text style={{ color: "#0969da", fontSize: 12, marginBottom: 8 }}>{entry.label}</Text>
+          </Link>
+        ))}
+        <Text style={styles.pageNumber} fixed render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
+            `Page ${pageNumber} of ${totalPages}`
+          } />
+      </Page>
+
+      {/* Main content */}
+      <Page size="A4" style={styles.page} wrap>
+        <View id="executive-summary" style={styles.section}>
+          <Text style={styles.h2}>{t("sectionExecSummary")}</Text>
+          <Text>{summaryText}</Text>
+          <Text style={{ marginTop: 4 }}>
+            {t("summaryResult")}: <Text style={{ color: bandColor, fontWeight: 700 }}>{outcomeLabel(report.outcome, locale)}</Text> — {t("scsMeet", { met: report.scsMet, applicable: report.scsApplicable })}, {t("pagesScannedLine", { count: report.pagesScanned })}.
+          </Text>
+          <Text style={{ marginTop: 4 }}>
+            {t("summaryFindingCounts", {
+              count: totalFindings,
+              critical: counts.critical,
+              serious: counts.serious,
+              moderate: counts.moderate,
+              minor: counts.minor,
+            })}
+          </Text>
+          {top.length ? (
+            <View style={{ marginTop: 8 }}>
+              <Text style={styles.h3}>{t("topIssuesHeading")}</Text>
+              {top.map((f, i) => (
+                <Text key={i} style={{ marginTop: 2 }}>
+                  <Text style={{ color: severityColor(f.impact), fontWeight: 700 }}>{impactLabel(f.impact, locale)}</Text> — {f.description}
+                </Text>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.empty}>{t("noViolations")}</Text>
+          )}
+        </View>
+
+        <View id="methodology" style={styles.section}>
+          <Text style={styles.h2}>{t("sectionMethodology")}</Text>
+          <Text>{t("engineLine")}</Text>
+          <Text style={{ marginTop: 4 }}>{t("renderedLine")}</Text>
+          <Text style={{ marginTop: 4 }}>{t("findingsChainLine")}</Text>
+          <Text style={{ marginTop: 4 }}>{t("reproducibleLine")}</Text>
+          <Text style={{ marginTop: 4 }}>
+            {t("preliminaryNote")}
+          </Text>
+        </View>
+
+        <View id="conformance" style={styles.section}>
+          <Text style={styles.h2}>{t("sectionConformance")}</Text>
+          {conformance ? (
+            <View>
+              <Text>
+                {t("conformanceSummary", {
+                  passed: conformance.passed,
+                  failed: conformance.failed,
+                  notPresent: conformance.notPresent,
+                  cannotTell: conformance.cannotTell,
+                  coverage: conformance.coverage,
+                  level: conformance.levelAttained,
+                })}
+              </Text>
+              <View style={{ marginTop: 8 }}>
+                <ConformanceBar c={conformance} />
+              </View>
+
+              {conformance.rows.length ? (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={styles.h3}>{t("conformanceHeading")}</Text>
+                  <Text style={styles.muted}>{t("testedByNote")}</Text>
+                  <View style={{ marginTop: 6 }}>
+                    {groupConformanceRows(conformance.rows).map(([principle, rows]) => (
+                      <View key={principle} style={{ marginTop: 8 }}>
+                        <Text style={styles.h3}>
+                          {t("principleLabel", { principle })} — {principleName(Number(principle), locale)} ({rows.length})
+                        </Text>
+                        <View style={styles.tableRow}>
+                          <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>{t("thSc")}</Text>
+                          <Text style={[styles.tableCell, styles.tableHead, { flex: 1.8 }]}>{t("thTitle")}</Text>
+                          <Text style={[styles.tableCell, styles.tableHead, { flex: 0.5 }]}>{t("thLevel")}</Text>
+                          <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>{t("thResult")}</Text>
+                          <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>{t("thTestedBy")}</Text>
+                        </View>
+                        {rows.map((row) => {
+                          const tested = testedByOf(row);
+                          return (
+                            <View key={row.num} style={styles.tableRow}>
+                              <Text style={[styles.tableCell, { flex: 0.8 }]}>{row.num}</Text>
+                              <Text style={[styles.tableCell, { flex: 1.8 }]}>{scTitle(row.num, locale)}</Text>
+                              <Text style={[styles.tableCell, { flex: 0.5 }]}>{row.level}</Text>
+                              <Text style={[styles.tableCell, { flex: 1 }]}>{verdictLabel(row.result, locale)}</Text>
+                              <Text style={[styles.tableCell, { flex: 1 }]}>{testedByLabel(tested, t)}</Text>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+
+              {affected.length ? (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={styles.h3}>{t("affectedScHeading")}</Text>
+                  <View style={styles.tableRow}>
+                    <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>{t("thSc")}</Text>
+                    <Text style={[styles.tableCell, styles.tableHead, { flex: 1.6 }]}>{t("thTitle")}</Text>
+                    <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>{t("thResult")}</Text>
+                    <Text style={[styles.tableCell, styles.tableHead, { flex: 0.6 }]}>{t("thElements")}</Text>
+                  </View>
+                  {affected.map((r) => (
+                    <View key={r.sc} style={styles.tableRow}>
+                      <Text style={[styles.tableCell, { flex: 1 }]}>{r.sc}</Text>
+                      <Text style={[styles.tableCell, { flex: 1.6 }]}>{scTitle(r.sc, locale)}</Text>
+                      <Text style={[styles.tableCell, { flex: 1, color: severityColor(r.severity) }]}>{impactLabel(r.severity, locale)}</Text>
+                      <Text style={[styles.tableCell, { flex: 0.6 }]}>{String(r.elements)}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+          ) : (
+            <Text style={styles.empty}>{t("noConformanceData")}</Text>
+          )}
+        </View>
+
+        {methodRows.length > 0 ? (
+          <View id="methods" style={styles.section}>
+            <Text style={styles.h2}>{t("sectionMethods")}</Text>
+            <Text style={styles.muted}>{t("methodsIntro")}</Text>
+
+            <Text style={styles.h3}>{t("machineTitle")} — {t("machineSummary", { passed: machine.passed, failed: machine.failed })}</Text>
+            {machine.rows.length === 0 ? (
+              <Text style={styles.empty}>{t("machineEmpty")}</Text>
+            ) : (
+              <View>
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>{t("thSc")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.8 }]}>{t("thTitle")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.6 }]}>{t("thLevel")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>{t("thResult")}</Text>
+                </View>
+                {machine.rows.map((row) => (
+                  <View key={row.num} style={styles.tableRow}>
+                    <Text style={[styles.tableCell, { flex: 0.8 }]}>{row.num}</Text>
+                    <Text style={[styles.tableCell, { flex: 1.8 }]}>{scTitle(row.num, locale)}</Text>
+                    <Text style={[styles.tableCell, { flex: 0.6 }]}>{row.level}</Text>
+                    <Text style={[styles.tableCell, { flex: 1 }]}>{verdictLabel(row.machineResult ?? "", locale)}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <Text style={styles.h3}>{t("aiTitle")} — {t("aiSummary", { passed: aiRes.passed, failed: aiRes.failed, cannotTell: aiRes.cannotTell })}</Text>
+            {aiRes.verdicts.length === 0 ? (
+              <Text style={styles.empty}>{t("aiEmpty")}</Text>
+            ) : (
+              <View>
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>{t("thSc")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>{t("thVerdict")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>{t("thConfidence")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.6 }]}>{t("thReasoning")}</Text>
+                </View>
+                {aiRes.verdicts.map((v) => (
+                  <View key={v.sc} style={styles.tableRow}>
+                    <Text style={[styles.tableCell, { flex: 0.8 }]}>{v.sc}</Text>
+                    <Text style={[styles.tableCell, { flex: 0.8 }]}>{verdictLabel(v.verdict, locale)}</Text>
+                    <Text style={[styles.tableCell, { flex: 0.8 }]}>{Math.round(v.confidence * 100)}%</Text>
+                    <Text style={[styles.tableCell, { flex: 1.6 }]}>{v.reasoning}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            <Text style={[styles.muted, { marginTop: 2 }]}>{t("aiAssistedNote")}</Text>
+
+            <Text style={styles.h3}>{t("humanTitle")} — {t("humanSummary", { count: human.count })}</Text>
+            {human.rows.length === 0 ? (
+              <Text style={styles.empty}>{t("humanEmpty")}</Text>
+            ) : (
+              <View>
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>{t("thSc")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.8 }]}>{t("thTitle")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.4 }]}>{t("thReasoning")}</Text>
+                </View>
+                {human.rows.map((row) => (
+                  <View key={row.num} style={styles.tableRow}>
+                    <Text style={[styles.tableCell, { flex: 0.8 }]}>{row.num}</Text>
+                    <Text style={[styles.tableCell, { flex: 1.8 }]}>{scTitle(row.num, locale)}</Text>
+                    <Text style={[styles.tableCell, { flex: 1.4 }]}>
+                      {cannotTellReasonLabel(cannotTellReason(row.num, aiRes.verdicts), t)}{" "}
+                      {getManualTest(row.num, locale)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        ) : null}
+
+        <View id="severity" style={styles.section}>
+          <Text style={styles.h2}>{t("sectionSeverity")}</Text>
+          <SeverityBars counts={counts} locale={locale} />
+        </View>
+
+        <View id="pages" style={styles.section}>
+          <Text style={styles.h2}>{t("sectionPages")}</Text>
+          <Text style={styles.muted}>{t("pagesIntro")}</Text>
+          <View style={{ marginTop: 6 }}>
+            {sitemapUrls.length > 0 ? (
+              <Text>{t("pagesSitemapFound", { count: sitemapUrls.length })}</Text>
+            ) : (
+              <Text>{t("pagesNoSitemap")}</Text>
+            )}
+            {sitemapUrls.length > 0 && (
+              <View style={{ marginTop: 4 }}>
+                {sitemapUrls.map((u) => (
+                  <Text key={u} style={styles.muted}>• {u}</Text>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {pages.length > 0 && (
+            <View style={{ marginTop: 10 }}>
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableCell, styles.tableHead, { flex: 1.6 }]}>{t("pagesThTitle")}</Text>
+                <Text style={[styles.tableCell, styles.tableHead, { flex: 2 }]}>{t("pagesThUrl")}</Text>
+                <Text style={[styles.tableCell, styles.tableHead, { flex: 0.6 }]}>{t("pagesThTime")}</Text>
+                <Text style={[styles.tableCell, styles.tableHead, { flex: 0.7 }]}>{t("pagesThStatus")}</Text>
+                <Text style={[styles.tableCell, styles.tableHead, { flex: 1.2 }]}>{t("pagesThFindings")}</Text>
+              </View>
+              {pages.map((page) => {
+                const pageFindings = findingsByPage.get(page.url) ?? [];
+                const pc = severityCounts(pageFindings);
+                return (
+                  <View key={page.url} style={styles.tableRow}>
+                    <Text style={[styles.tableCell, { flex: 1.6 }]}>{page.title || page.url}</Text>
+                    <Text style={[styles.tableCell, { flex: 2 }]}>{page.url}</Text>
+                    <Text style={[styles.tableCell, { flex: 0.6 }]}>{(page.scanTimeMs / 1000).toFixed(1)}s</Text>
+                    <Text style={[styles.tableCell, { flex: 0.7 }]}>{t(PAGE_STATUS_KEY[page.status] ?? "pageStatusScanned")}</Text>
+                    <Text style={[styles.tableCell, { flex: 1.2 }]}>
+                      {pageFindings.length === 0
+                        ? t("pagesNoFindings")
+                        : t("pagesFindingsSummary", {
+                            critical: pc.critical,
+                            serious: pc.serious,
+                            moderate: pc.moderate,
+                            minor: pc.minor,
+                          })}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
+        <View id="findings" style={styles.section}>
+          <Text style={styles.h2}>{t("sectionFindings")}</Text>
+          {totalFindings === 0 ? (
+            <Text style={styles.empty}>{t("noViolations")}</Text>
+          ) : (
+            grouped.map((g) => (
+              <View key={g.severity} style={{ marginTop: 8 }}>
+                <Text style={[styles.h3, { color: severityColor(g.severity) }]}>
+                  {impactLabel(g.severity, locale)} ({g.items.length})
+                </Text>
+                {g.items.map((f, i) => (
+                  <FindingBlock key={i} finding={f} locale={locale} strings={strings} report={report} />
+                ))}
+              </View>
+            ))
+          )}
+        </View>
+
+        <View id="recommendations" style={styles.section}>
+          <Text style={styles.h2}>{t("sectionRecommendations")}</Text>
+          {totalFindings === 0 ? (
+            <Text style={styles.empty}>{t("noRemediation")}</Text>
+          ) : (
+            [...report.findings]
+              .sort((a, b) => severityRank(a.impact) - severityRank(b.impact))
+              .map((f, i) => (
+                <Text key={i} style={{ marginTop: 3 }}>
+                  <Text style={{ fontWeight: 700 }}>{(f.wcagSc ?? []).join(" ") || f.ruleId}</Text> — {f.recommendation} <Text style={styles.muted}>({f.pageUrl})</Text>
+                </Text>
+              ))
+          )}
+        </View>
+
+        {comparison ? (
+          <View id="comparison" style={styles.section}>
+            <Text style={styles.h2}>{t("sectionComparison")}</Text>
+            <View style={styles.tableRow}>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>{t("thSignal")}</Text>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>{t("thResult")}</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={[styles.tableCell, { flex: 1 }]}>{t("conformance")}</Text>
+              <Text style={[styles.tableCell, { flex: 1 }]}>{outcomeLabel(comparison.conformance?.outcome, locale)}</Text>
+            </View>
+            {typeof comparison.audit?.score === "number" ? (
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableCell, { flex: 1 }]}>{t("siteAuditA11y")}</Text>
+                <Text style={[styles.tableCell, { flex: 1 }]}>{comparison.audit.score} / 100</Text>
+              </View>
+            ) : null}
+            {(["performance", "seo", "bestPractices", "pwa"] as const).map((key) =>
+              typeof comparison.audit?.signals?.[key] === "number" ? (
+                <View key={key} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, { flex: 1 }]}>{t(SIGNAL_KEY[key]!)}</Text>
+                  <Text style={[styles.tableCell, { flex: 1 }]}>{comparison.audit!.signals![key]! / 1} / 100</Text>
+                </View>
+              ) : null,
+            )}
+            <Text style={[styles.muted, { marginTop: 4 }]}>{t("preliminaryNote")}</Text>
+          </View>
+        ) : null}
+
+        {report.log && report.log.length > 0 ? (
+          <View id="log" style={styles.section}>
+            <Text style={styles.h2}>{t("scanLog")}</Text>
+            <Text style={styles.muted}>{t("logTruncated", { count: LOG_LIMIT })}</Text>
+            {report.log.slice(-LOG_LIMIT).map((entry, i) => (
+              <Text key={`${entry.timestamp}-${i}`} style={{ marginTop: 1, fontSize: 8, fontFamily: "Courier" }}>
+                [{entry.timestamp.slice(11, 19)}] {entry.message}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+
+        {conformance?.rows?.length ? (
+          <View id="acr" style={styles.section}>
+            <Text style={styles.h2}>{tAcr("title")}</Text>
+            <Text style={{ color: "#8a3b00", fontWeight: 700 }}>{tAcr("draft")}</Text>
+
+            <Text style={styles.h3}>{tAcr("summaryHeading")}</Text>
+            <Row label={tAcr("productUrl")}>{report.url}</Row>
+            <Row label={tAcr("standard")}>{report.standard}</Row>
+            <Row label={tAcr("reportDate")}>{generatedDate(report.generatedAt)}</Row>
+            <Row label={tAcr("coverage")}>
+              {tAcr("coverageBody", {
+                resolved: conformance.passed + conformance.failed,
+                total: conformance.total,
+                cannotTell: conformance.cannotTell,
+              })}
+            </Row>
+            <Row label={tAcr("evaluationMethod")}>{tAcr("evaluationMethodBody")}</Row>
+
+            <Text style={styles.h3}>{tAcr("resultsHeading")}</Text>
+            <Text style={styles.muted}>{tAcr("conformanceNote")}</Text>
+            <View style={styles.tableRow}>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>{tAcr("thSc")}</Text>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 1.8 }]}>{tAcr("thCriterion")}</Text>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 0.6 }]}>{tAcr("thLevel")}</Text>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 1.2 }]}>{tAcr("thConformance")}</Text>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>{tAcr("thTestedBy")}</Text>
+            </View>
+            {conformance.rows.map((row) => (
+              <View key={row.num} style={styles.tableRow}>
+                <Text style={[styles.tableCell, { flex: 0.8 }]}>{row.num}</Text>
+                <Text style={[styles.tableCell, { flex: 1.8 }]}>{scTitle(row.num, locale)}</Text>
+                <Text style={[styles.tableCell, { flex: 0.6 }]}>{row.level}</Text>
+                <Text style={[styles.tableCell, { flex: 1.2 }]}>{tAcr(VPAT_LABEL_KEY[vpatLevelOf(row)])}</Text>
+                <Text style={[styles.tableCell, { flex: 1 }]}>{tAcr(TESTED_BY_KEY[testedByOf(row)])}</Text>
+              </View>
+            ))}
+            <Text style={[styles.muted, { marginTop: 4 }]}>{tAcr("generatedBy")}</Text>
+          </View>
+        ) : null}
+
+        <View style={styles.colophon}>
+          <View>
+            <Text>{BRANDING.legalName}</Text>
+            <Text>{BRANDING.charity}</Text>
+            {BRANDING.address.split("\n").map((line, i) => (
+              <Text key={i}>{line}</Text>
+            ))}
+          </View>
+          <View style={{ textAlign: "right" }}>
+            <Text>{BRANDING.website}</Text>
+            <Text>{BRANDING.email}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.pageNumber} fixed render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
+            `Page ${pageNumber} of ${totalPages}`
+          } />
+      </Page>
+    </Document>
+  );
+}
+
+function groupConformanceRows(
+  rows: NonNullable<NonNullable<ReportData["comparison"]>["conformance"]>["rows"],
+): [string, typeof rows][] {
+  const map = new Map<string, typeof rows>();
+  for (const row of rows) {
+    const principle = row.num.split(".")[0] ?? "?";
+    const list = map.get(principle) ?? [];
+    list.push(row);
+    map.set(principle, list);
+  }
+  return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }));
+}
+
+function testedByLabel(tested: TestedBy, t: ReportStrings["t"]): string {
+  if (tested === "machine") return t("machine");
+  if (tested === "ai") return t("ai");
+  if (tested === "human") return t("needsHuman");
+  return "—";
+}
+
+function cannotTellReasonLabel(reason: string, t: ReportStrings["t"]): string {
+  switch (reason) {
+    case "manual-only":
+      return t("reasonManualOnly");
+    case "not-judgeable-from-screenshot":
+      return t("reasonNotJudgeable");
+    case "engine-rule-pending":
+      return t("reasonEnginePending");
+    case "ai-low-confidence":
+      return t("reasonAiLowConfidence");
+    default:
+      return "";
+  }
+}
+
+function FindingBlock({
+  finding,
+  locale,
+  strings,
+  report,
+}: {
+  finding: ReportData["findings"][number];
+  locale: string;
+  strings: ReportStrings;
+  report: ReportData;
+}) {
+  const { t } = strings;
+  const sc = finding.wcagSc?.[0];
+  const instances = finding.instances ?? [];
+  return (
+    <View style={{ marginTop: 6, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 6 }}>
+      <Text>
+        <Text style={{ color: severityColor(finding.impact), fontWeight: 700 }}>
+          {impactLabel(finding.impact, locale)}
+        </Text>
+        {sc ? ` · WCAG ${sc} · ${scTitle(sc, locale)} (${t("levelLabel", { level: finding.wcagLevel ?? "" })})` : ` · ${t("bestPractice")}`}
+      </Text>
+      <Text style={{ marginTop: 2 }}>{finding.description}</Text>
+      <Text style={styles.muted}>{finding.pageUrl}</Text>
+      {finding.sources && finding.sources.length > 0 ? (
+        <Text style={[styles.muted, { marginTop: 2 }]}>
+          {t("detectedBy")} {[...new Set(finding.sources.map((s) => s.tool))].map((x) => x.toUpperCase()).join(", ")}
+        </Text>
+      ) : null}
+      {instances.map((instance, i) => {
+        const img = instance.evidenceId ? report.evidenceImages?.[instance.evidenceId] : undefined;
+        return (
+          <View key={i} style={{ marginTop: 4 }}>
+            {instance.target ? <Text style={styles.codeBlock}>{instance.target}</Text> : null}
+            {instance.html ? <Text style={styles.codeBlock}>{instance.html}</Text> : null}
+            {instance.failureSummary ? (
+              <Text style={{ marginTop: 2, color: "#8a3b00" }}>{instance.failureSummary}</Text>
+            ) : null}
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop */}
+            {img ? <Image src={img.dataUri} style={styles.evidenceImage} /> : null}
+          </View>
+        );
+      })}
+      <Text style={{ marginTop: 4 }}>
+        <Text style={{ color: "#8a3b00" }}>{t("fixLabel")} </Text>
+        {finding.recommendation}
+      </Text>
+    </View>
+  );
+}
+
+export async function renderReportDocument(
+  report: ReportData,
+  logo: Buffer | null,
+  strings: ReportStrings,
+): Promise<Buffer> {
+  return renderToBuffer(<AccessibilityReportDocument report={report} logo={logo} strings={strings} />);
+}

@@ -1,0 +1,233 @@
+"use client";
+
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { Button } from "@/components/ui/button";
+
+export interface ApiKeySummary {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  status: "active" | "revoked";
+  rateLimit: number;
+}
+
+type AuthState = "loading" | "signed-out" | "unverified" | "ready";
+
+export function ApiKeysClient() {
+  const t = useTranslations("apiKeys");
+  const [keys, setKeys] = useState<ApiKeySummary[]>([]);
+  const [auth, setAuth] = useState<AuthState>("loading");
+  const [name, setName] = useState("");
+  const [rateLimit, setRateLimit] = useState(60);
+  const [issuedKey, setIssuedKey] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/v1/api-keys");
+      if (res.status === 401) {
+        setAuth("signed-out");
+        return;
+      }
+      if (res.status === 403) {
+        setAuth("unverified");
+        return;
+      }
+      if (!res.ok) throw new Error("load failed");
+      const data = (await res.json()) as ApiKeySummary[];
+      setKeys(data);
+      setAuth("ready");
+    } catch {
+      setError(t("loadFailed"));
+      setAuth("ready");
+    }
+  }, [t]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function createKey(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch("/api/v1/api-keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, rateLimit }),
+      });
+      if (!res.ok) throw new Error("create failed");
+      const issued = (await res.json()) as { key: string };
+      setIssuedKey(issued.key);
+      setName("");
+      await load();
+    } catch {
+      setError(t("createFailed"));
+    }
+  }
+
+  async function revoke(id: string) {
+    setError(null);
+    setNotice(null);
+    setBusyIds((prev) => new Set(prev).add(id));
+    try {
+      const res = await fetch(`/api/v1/api-keys/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("revoke failed");
+      setNotice(t("keyRevoked"));
+      await load();
+    } catch {
+      setError(t("revokeFailed"));
+    } finally {
+      setBusyIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+  }
+
+  if (auth === "loading") {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16">
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">{t("title")}</h1>
+        <p className="mt-4 font-sans text-sm text-terminal-muted">{t("loading")}</p>
+      </div>
+    );
+  }
+
+  if (auth === "signed-out") {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16">
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">{t("title")}</h1>
+        <p className="mt-4 font-sans leading-7 text-terminal-muted">{t("signedOut")}</p>
+        <Link
+          href="/sign-in"
+          className="mt-6 inline-block rounded bg-terminal-fg px-4 py-2 font-sans text-sm text-terminal-bg hover:bg-terminal-serious"
+        >
+          {t("signIn")}
+        </Link>
+      </div>
+    );
+  }
+
+  if (auth === "unverified") {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16">
+        <h1 className="font-display text-2xl font-bold text-terminal-fg">{t("title")}</h1>
+        <p className="mt-4 font-sans leading-7 text-terminal-muted">{t("unverified")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-10">
+      <h1 className="font-display text-2xl font-bold text-terminal-fg">{t("title")}</h1>
+      <p className="mt-1 font-sans text-sm text-terminal-muted">{t("intro")}</p>
+
+      {issuedKey && (
+        <div role="status" className="mt-6 rounded border border-terminal-pass p-4">
+          <p className="font-sans text-sm text-terminal-fg">{t("copyNow")}</p>
+          <code className="mt-2 block break-all rounded bg-terminal-surface p-3 font-sans text-sm text-terminal-pass">
+            {issuedKey}
+          </code>
+        </div>
+      )}
+
+      {error && (
+        <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
+          {error}
+        </p>
+      )}
+      {notice && (
+        <p role="status" className="mt-4 font-sans text-sm text-terminal-pass">
+          {notice}
+        </p>
+      )}
+
+      <form onSubmit={createKey} className="mt-6 space-y-4 rounded border border-terminal-border p-4">
+        <div>
+          <label htmlFor="key-name" className="block font-sans text-sm text-terminal-fg">
+            {t("keyNameLabel")}
+          </label>
+          <input
+            id="key-name"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="CI / Staging / Local dev"
+            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-terminal-fg placeholder:text-terminal-muted"
+          />
+        </div>
+        <div>
+          <label htmlFor="key-rate" className="block font-sans text-sm text-terminal-fg">
+            {t("rateLabel")}
+          </label>
+          <input
+            id="key-rate"
+            type="number"
+            min={1}
+            value={rateLimit}
+            onChange={(e) => setRateLimit(Number(e.target.value))}
+            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-terminal-fg"
+          />
+        </div>
+        <Button type="submit" className="self-start">
+          {t("createKey")}
+        </Button>
+      </form>
+
+      <div className="mt-8">
+        <h2 className="font-display text-lg font-semibold text-terminal-fg">{t("yourKeys")}</h2>
+        {keys.length === 0 ? (
+          <p className="mt-4 font-sans text-sm text-terminal-muted">{t("noKeys")}</p>
+        ) : (
+          <div className="mt-4 overflow-x-auto rounded border border-terminal-border">
+            <table className="w-full border-collapse font-sans text-sm">
+              <thead>
+                <tr className="border-b border-terminal-border text-left text-terminal-muted">
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thName")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thKey")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thRate")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thStatus")}</th>
+                  <th scope="col" className="px-3 py-2 font-medium">{t("thActions")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {keys.map((key) => (
+                  <tr key={key.id} className="border-b border-terminal-border last:border-b-0">
+                    <td className="px-3 py-2 text-terminal-fg">{key.name}</td>
+                    <td className="px-3 py-2 text-terminal-muted">{key.keyPrefix}…</td>
+                    <td className="px-3 py-2 text-terminal-muted">{key.rateLimit}/min</td>
+                    <td className="px-3 py-2">
+                      <span className={key.status === "active" ? "text-terminal-pass" : "text-terminal-muted"}>
+                        {key.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      {key.status === "active" && (
+                        <Button
+                          variant="ghost"
+                          onClick={() => revoke(key.id)}
+                          disabled={busyIds.has(key.id)}
+                          aria-label={t("revokeAria", { name: key.name })}
+                          className="text-terminal-critical"
+                        >
+                          {t("revoke")}
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

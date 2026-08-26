@@ -1,0 +1,276 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { MasterDetail, type MasterDetailItem } from "@/components/efficiency/master-detail";
+import { StateBlock } from "@/components/ui/state-block";
+import { HUMAN_DECISION_CATEGORIES, humanDecisionFor } from "@/lib/standards/human-decision";
+
+interface QueueItem {
+  id: string;
+  url: string;
+  standard: string;
+  conformance: string | null;
+  status: string;
+}
+
+interface ConformanceRow {
+  num: string;
+  title: string;
+  level: string;
+  result: string;
+}
+
+interface AiVerdictInfo {
+  sc: string;
+  verdict: string;
+  confidence: number;
+  reasoning: string;
+}
+
+const VERDICTS = ["Passed", "Failed", "NotPresent"] as const;
+
+const MAX_VISIBLE = 20;
+
+export function ReviewQueue() {
+  const t = useTranslations("reviewQueue");
+  const [items, setItems] = useState<QueueItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [rows, setRows] = useState<ConformanceRow[]>([]);
+  const [resolutions, setResolutions] = useState<Record<string, string>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  const [aiVerdicts, setAiVerdicts] = useState<Record<string, AiVerdictInfo>>({});
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/v1/review/queue");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as { assessments: QueueItem[] };
+      setItems(data.assessments);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("loadFailed"));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function claim(id: string) {
+    const res = await fetch(`/api/v1/review/${id}/claim`, { method: "POST" });
+    if (res.ok) {
+      await load();
+    } else {
+      const data = (await res.json().catch(() => ({}))) as { code?: string };
+      setError(data.code ?? t("claimFailed"));
+    }
+  }
+
+  async function open(id: string) {
+    setSubmitted(null);
+    setResolutions({});
+    setNotes({});
+    setRows([]);
+    setAiVerdicts({});
+    const res = await fetch(`/api/v1/assessments/${id}`);
+    if (!res.ok) return;
+    const data = (await res.json()) as {
+      comparison?: { conformance?: { rows?: ConformanceRow[] }; ai?: { verdicts?: AiVerdictInfo[] } };
+    };
+    setRows((data.comparison?.conformance?.rows ?? []).filter((r) => r.result === "CannotTell"));
+    const bySc: Record<string, AiVerdictInfo> = {};
+    for (const v of data.comparison?.ai?.verdicts ?? []) bySc[v.sc] = v;
+    setAiVerdicts(bySc);
+  }
+
+  async function submit(id: string) {
+    const body = {
+      resolutions: Object.fromEntries(
+        rows.map((row) => [
+          row.num,
+          { verdict: resolutions[row.num] ?? "Passed", note: notes[row.num] ?? "" },
+        ]),
+      ),
+    };
+    const res = await fetch(`/api/v1/review/${id}/submit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) {
+      setSubmitted(id);
+      setRows([]);
+      await load();
+    } else {
+      const data = (await res.json().catch(() => ({}))) as { code?: string };
+      setError(data.code ?? t("submitFailed"));
+    }
+  }
+
+  const detail = (id: string) => (
+    <div className="rounded border border-terminal-border bg-terminal-surface p-4">
+      <h2 className="font-display text-base font-semibold text-terminal-fg">{t("reviewHeading")}</h2>
+      {submitted === id ? (
+        <p role="status" className="mt-3 font-sans text-sm text-terminal-pass">
+          {t("reviewSubmitted")}
+        </p>
+      ) : rows.length === 0 ? (
+        <p className="mt-3 font-sans text-sm text-terminal-muted">
+          {t("noCannotTell")}
+        </p>
+      ) : (
+        <>
+          <ul className="mt-3 space-y-3">
+            {rows.map((row) => {
+              const hd = humanDecisionFor(row.num);
+              const cat = hd ? HUMAN_DECISION_CATEGORIES[hd.category] : undefined;
+              const ai = aiVerdicts[row.num];
+              return (
+                <li key={row.num} className="rounded border border-terminal-border p-3">
+                  <p className="font-sans text-sm text-terminal-fg">
+                    {row.num} {row.title}{" "}
+                    <span className="text-terminal-muted">{t("levelLabel", { level: row.level })}</span>
+                  </p>
+                  {hd && (
+                    <p className="mt-1 font-sans text-sm text-terminal-fg">
+                      <span className="font-semibold">{t("decisionPoint")}:</span>{" "}
+                      {hd.humanDecisionPoint}
+                    </p>
+                  )}
+                  {cat && (
+                    <p className="mt-1 font-sans text-xs text-terminal-muted">
+                      <span className="font-semibold">{t("whyNotAi")}:</span> {cat.whyNotAi}
+                    </p>
+                  )}
+                  {ai && (
+                    <p className="mt-1 font-sans text-xs text-terminal-muted">
+                      <span className="font-semibold">{t("aiTentative")}:</span> {ai.verdict} (
+                      {Math.round(ai.confidence * 100)}%) — {ai.reasoning}
+                    </p>
+                  )}
+                  <div className="mt-2 flex flex-col gap-2">
+                    <select
+                      aria-label={t("verdictFor", { num: row.num })}
+                      value={resolutions[row.num] ?? "Passed"}
+                      onChange={(e) => setResolutions((r) => ({ ...r, [row.num]: e.target.value }))}
+                      className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-sans text-sm text-terminal-fg"
+                    >
+                      {VERDICTS.map((v) => (
+                        <option key={v} value={v}>
+                          {v}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      aria-label={t("rationaleFor", { num: row.num })}
+                      placeholder={t("rationalePlaceholder")}
+                      value={notes[row.num] ?? ""}
+                      onChange={(e) => setNotes((n) => ({ ...n, [row.num]: e.target.value }))}
+                      className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-sans text-sm text-terminal-fg"
+                    />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <button
+            type="button"
+            onClick={() => void submit(id)}
+            className="mt-4 rounded bg-terminal-fg px-4 py-2 font-sans text-sm text-terminal-bg hover:bg-terminal-serious"
+          >
+            {t("submitReview")}
+          </button>
+        </>
+      )}
+    </div>
+  );
+
+  const masterItems: MasterDetailItem[] = (showAll ? items : items.slice(0, MAX_VISIBLE)).map((item) => ({
+    id: item.id,
+    render: ({ selected, active }) => (
+      <div
+        className={`mb-2 rounded border p-3 ${
+          active ? "border-terminal-serious" : "border-terminal-border"
+        } ${selected ? "bg-terminal-bg" : "bg-transparent"}`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <Link
+              href={`/auditor/report/${item.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="block truncate font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
+              title={item.url}
+            >
+              {item.url}
+            </Link>
+            <p className="font-sans text-xs text-terminal-muted">{item.standard}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {item.status === "completed" && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void claim(item.id);
+                }}
+                className="rounded border border-terminal-border px-3 py-1 font-sans text-sm text-terminal-fg hover:border-terminal-serious"
+              >
+                {t("claim")}
+              </button>
+            )}
+            <span aria-hidden="true" className="font-sans text-xs text-terminal-muted">
+              {t("reviewArrow")}
+            </span>
+          </div>
+        </div>
+      </div>
+    ),
+  }));
+
+  return (
+    <section aria-labelledby="review-queue-heading">
+      <h1 id="review-queue-heading" className="font-display text-2xl font-bold text-terminal-fg">
+        {t("title")}
+      </h1>
+      {error && (
+        <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
+          {error}
+        </p>
+      )}
+      {loading ? (
+        <p className="mt-4 font-sans text-sm text-terminal-muted">{t("loading")}</p>
+      ) : items.length === 0 ? (
+        <div className="mt-6">
+          <StateBlock
+            title={t("noPendingTitle")}
+            body={t("noPendingBody")}
+          />
+        </div>
+      ) : (
+        <div className="mt-6">
+          <p className="mb-2 font-sans text-xs text-terminal-muted">
+            {t("keyboardHint")}
+          </p>
+          <MasterDetail items={masterItems} detail={detail} onOpen={(id) => void open(id)} />
+          {items.length > MAX_VISIBLE && (
+            <button
+              type="button"
+              onClick={() => setShowAll((value) => !value)}
+              className="mt-3 font-sans text-sm text-terminal-fg underline underline-offset-4 hover:text-terminal-serious"
+            >
+              {showAll ? t("showFewer") : t("showAll", { count: items.length })}
+            </button>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
