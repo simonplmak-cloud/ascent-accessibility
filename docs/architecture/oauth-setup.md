@@ -11,7 +11,25 @@ confirm you're editing the right app in each console.
 |---|---|---|
 | GitHub OAuth App | `Ov23lip4sUglz6zeoPBo` | Authorization callback URL + Homepage URL |
 | Microsoft Entra app | `71823f83-06ff-432b-bf95-359b865c21dc` | Web redirect URI |
-| Google OAuth client | `82086150861-rv0m9lqq8il6qc6dk58hbh2nhc6tlcno.apps.googleusercontent.com` | Authorized JavaScript origins |
+| Google OAuth client | the value of `GOOGLE_CLIENT_ID` (Vercel) | Authorized redirect URI + Client secret |
+
+---
+
+## Required environment variables (Vercel)
+
+These must be set for the login flows to work. The Google client is now the
+**server-side authorization-code flow** (no client-side `NEXT_PUBLIC_GOOGLE_CLIENT_ID`).
+
+| Variable | Required | Notes |
+|---|---|---|
+| `GOOGLE_CLIENT_ID` | ✅ | Google OAuth web client ID (audience for ID-token verification) |
+| `GOOGLE_CLIENT_SECRET` | ✅ | Google OAuth client secret (code exchange) |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | ✅ (if GitHub) | |
+| `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET` | ✅ (if Microsoft) | |
+| `SESSION_SECRET` | ✅ | Signs the session JWT **and the stateless magic-link token** — must be a strong secret |
+| `OAUTH_STATE_SECRET` | ✅ | Signs the OAuth `state` (falls back to `BYOK_ENCRYPTION_SECRET`) |
+| `NEXT_PUBLIC_SITE_URL` | ✅ | `https://accessibility.ascent.partners` — used to build the `redirect_uri` |
+| `BYOK_ENCRYPTION_SECRET` | ✅ (if BYOK AI) | Also the OAuth-state fallback |
 
 ---
 
