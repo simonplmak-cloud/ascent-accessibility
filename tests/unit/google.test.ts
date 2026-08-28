@@ -70,7 +70,7 @@ describe("verifyGoogleIdToken", () => {
   });
 
   it("rejects a token missing sub or email", async () => {
-    const { sub, email, ...rest } = basePayload;
+    const { sub: _sub, email: _email, ...rest } = basePayload;
     const token = makeToken(rest);
     expect(await verifyGoogleIdToken(token, jsonResponse(jwks))).toBeNull();
   });

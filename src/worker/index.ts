@@ -23,7 +23,6 @@ const CLEANUP_INTERVAL_MS = Number(process.env.WORKER_CLEANUP_INTERVAL_MS ?? 3_6
 const CLEANUP_DRY_RUN = process.env.WORKER_CLEANUP_DRY_RUN === "1";
 const ASSESSMENT_RETENTION_DAYS = Number(process.env.ASSESSMENT_RETENTION_DAYS ?? 180);
 const AUDIT_LOG_RETENTION_DAYS = Number(process.env.AUDIT_LOG_RETENTION_DAYS ?? 30);
-const MAGIC_LINK_TOKEN_TTL_MINUTES = Number(process.env.MAGIC_LINK_TOKEN_TTL_MINUTES ?? 15);
 const EVIDENCE_COMPACTION_ENABLED = process.env.EVIDENCE_COMPACTION_ENABLED !== "0";
 const STORAGE_QUOTA_BYTES_PER_USER = Number(process.env.STORAGE_QUOTA_BYTES_PER_USER ?? 524_288_000);
 
@@ -112,7 +111,6 @@ async function runCleanupSweep(): Promise<void> {
     dryRun: CLEANUP_DRY_RUN,
     reportRetentionDays: ASSESSMENT_RETENTION_DAYS,
     auditLogRetentionDays: AUDIT_LOG_RETENTION_DAYS,
-    magicLinkTokenTtlMinutes: MAGIC_LINK_TOKEN_TTL_MINUTES,
     compactionEnabled: EVIDENCE_COMPACTION_ENABLED,
   });
 

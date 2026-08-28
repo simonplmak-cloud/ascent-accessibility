@@ -307,7 +307,6 @@ DEFINE FIELD user ON user_email TYPE record<user>;
 DEFINE FIELD email ON user_email TYPE string;
 DEFINE FIELD verified ON user_email TYPE bool DEFAULT false;
 DEFINE FIELD primary ON user_email TYPE bool DEFAULT false;
-DEFINE FIELD magicLinkToken ON user_email TYPE option<string>;
 DEFINE FIELD createdAt ON user_email TYPE datetime DEFAULT time::now();
 DEFINE INDEX user_email_email_idx ON user_email FIELDS email UNIQUE;
 DEFINE INDEX user_email_user_idx ON user_email FIELDS user;`,

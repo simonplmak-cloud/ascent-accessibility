@@ -7,7 +7,6 @@ export interface CleanupOptions {
   dryRun: boolean;
   reportRetentionDays: number;
   auditLogRetentionDays: number;
-  magicLinkTokenTtlMinutes: number;
   compactionEnabled: boolean;
 }
 
@@ -15,7 +14,6 @@ export interface CleanupResult {
   deletedReports: number;
   deletedAuditLogs: number;
   deletedApiKeys: number;
-  clearedTokens: number;
   compactedEvidence: number;
 }
 
@@ -32,7 +30,6 @@ export async function runCleanup(opts: CleanupOptions): Promise<CleanupResult> {
     deletedReports: 0,
     deletedAuditLogs: 0,
     deletedApiKeys: 0,
-    clearedTokens: 0,
     compactedEvidence: 0,
   };
 
@@ -76,18 +73,7 @@ export async function runCleanup(opts: CleanupOptions): Promise<CleanupResult> {
     result.deletedAuditLogs = rows.length;
   }
 
-  // 4. Unused magic-link tokens older than the TTL (computed cutoff in TS — a
-  // bound duration string does not coerce to a SurrealDB duration).
-  const tokenCutoff = new Date(Date.now() - opts.magicLinkTokenTtlMinutes * 60_000).toISOString();
-  if (!opts.dryRun) {
-    const rows = await query<Record<string, unknown>>(
-      "UPDATE user_email SET magicLinkToken = NONE WHERE magicLinkToken IS NOT NONE AND createdAt < type::datetime($cutoff) RETURN AFTER",
-      { cutoff: tokenCutoff },
-    );
-    result.clearedTokens = rows.length;
-  }
-
-  // 5. Compaction: re-encode uncompacted evidence (bounded batch).
+  // 4. Compaction: re-encode uncompacted evidence (bounded batch).
   if (opts.compactionEnabled) {
     const batch = await query<{ id: string; image: string; mime: string; kind: string; html: string | null }>(
       "SELECT id, image, mime, kind, html FROM evidence WHERE compacted = false AND image != '' LIMIT 50",
