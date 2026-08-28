@@ -10,7 +10,7 @@ confirm you're editing the right app in each console.
 | Provider | Client ID | What to change |
 |---|---|---|
 | GitHub OAuth App | `Ov23lip4sUglz6zeoPBo` | Authorization callback URL + Homepage URL |
-| Microsoft Entra app | `71823f83-06ff-432b-bf95-359b865c21dc` | Web redirect URI |
+| Microsoft Entra app | `8bd51f98-60a7-49bc-82d2-94e414878ab3` | Web redirect URI |
 | Google OAuth client | the value of `GOOGLE_CLIENT_ID` (Vercel) | Authorized redirect URI + Client secret |
 
 ---
