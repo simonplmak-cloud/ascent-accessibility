@@ -1,24 +1,28 @@
-# Ascent Accessibility — Architecture
+# Ascent Accessibility — Architecture Overview
 
-Web accessibility assessment platform (branded **Ascent Accessibility**) by Ascent Partners
-Foundation. A visitor submits a domain + standard (WCAG 2.2 AA default); the system crawls the
-site, runs three accessibility engines in a remote browser, consolidates the results, and returns
-a score, a per-success-criterion conformance table, and evidence-backed findings — exportable as
-PDF/CSV, with a live scan log.
+> This is the concise entry point. The full, diagram-heavy reference is
+> **[`architecture.md`](./architecture.md)**.
+
+Web accessibility assessment platform (branded **Ascent Accessibility**) by Ascent
+Partners Foundation. A visitor submits a domain + standard (WCAG 2.2 AA default); the
+system crawls the site, runs an **in-house clean-room engine** in a headless browser,
+and returns a conformance verdict, per-success-criterion results, and evidence-backed
+findings — exportable as a **PDF-only** report, with magic-link + Google/GitHub/Microsoft
+auth, Stripe subscriptions/donations, and a free training path.
 
 ## Topology
 
-This is a **split, DB-as-queue** deployment. There is **no background work on Vercel**.
+Split, **DB-as-queue** deployment — **no background work on Vercel**.
 
 ```mermaid
 flowchart LR
   V["Visitor"] -->|submit domain| API["Vercel: POST /api/v1/assessments"]
   API -->|insert queued| DB[(SurrealDB)]
-  W["Fly.io worker"] -->|poll queued every 5s| DB
-  W -->|sitemap + link crawl| SITE["Target website"]
-  W -->|axe + IBM scan, screenshots| B["Browserless.io (remote Chrome)"]
-  W -->|score + findings + evidence + comparison| DB
-  DB -->|report data| WEB["Vercel: /assess/[id], /history, /api-keys"]
+  W["SWAS worker (systemd)"] -->|poll queued every 1s| DB
+  W -->|crawl + scan| SITE["Target website"]
+  W -->|"CDP → Browserless (Chromium)"| BL["Browserless 127.0.0.1:3000"]
+  W -->|score + findings + evidence| DB
+  DB -->|report data| WEB["Vercel: report / history / api-keys"]
   WEB --> V
 ```
 
@@ -26,45 +30,47 @@ flowchart LR
 
 | Component | Role | Runtime |
 |---|---|---|
-| **Vercel** (Next.js App Router) | marketing site + API + report/history/api-keys pages | serverless (no background work) |
-| **SurrealDB** | job store (the `assessment.status` field *is* the queue) + findings/evidence/comparison | SurrealDB Cloud |
-| **Fly.io worker** | `dist/worker.js` — polls `queued`, runs `runAssessment`, persists results | Node container |
-| **Browserless.io** | remote headless Chromium for axe/IBM scans, screenshots, and PDF export | subscription service |
+| **Vercel** (Next.js App Router) | marketing site + API + report pages | serverless (no background work) |
+| **SurrealDB** | job store (`assessment.status` *is* the queue) + data | SurrealDB Cloud |
+| **Worker** | `dist/worker.js` — polls `queued`, runs `runAssessment`, persists results | SWAS box, systemd |
+| **Browserless** | headless Chromium for engine scan, interaction scan, screenshots, PDF | Docker, co-located with the worker |
 
 ## Data flow
 
-1. `POST /api/v1/assessments` validates (Zod) + SSRF-checks the URL, then inserts a `queued`
-   `assessment` record and returns `202`.
-2. The worker polls for `queued` records, marks them `running`, then:
-   1. **Crawls** (sitemap-first, then link crawl, `robots.txt`-respecting).
-   2. **Scans** each page with **axe-core** (injected via `page.addInitScript` to bypass CSP).
-   3. Runs **IBM Equal Access** (`accessibility-checker`) per page.
-   4. Captures **evidence**: one full-page screenshot with all violations highlighted + element
-      screenshots for the top findings (stored as bytes in SurrealDB `evidence`).
-   5. **Consolidates** axe + IBM findings (and derives a Lighthouse-comparable score from the axe
-      rule set), mapping each finding to WCAG success criteria via axe `wcagNNN` tags.
-   6. **Scores**: severity-weighted 0–100 + a per-SC conformance table.
-3. Results are persisted; the report page reads findings + comparison + evidence from SurrealDB.
+1. `POST /api/v1/assessments` validates (Zod) + SSRF-checks the URL, inserts a `queued`
+   `assessment` record, returns `202`.
+2. The worker polls for `queued` records, marks them `running`, then **crawls**
+   (sitemap-first → link crawl, `robots.txt`), **scans** each page with the **clean-room
+   engine** (55 rules, injected via `page.addInitScript`), captures **evidence**
+   (screenshots), runs **BYOK AI review** on unresolved SCs, **scores** (machine → AI →
+   final verdict → conformance), and **persists** via a single `finalize()`.
+3. The report page reads findings + comparison + evidence from SurrealDB.
 
 ## Key modules
 
 | Module | Responsibility |
 |---|---|
-| `src/lib/assessment` | orchestration (crawl → scan → consolidate → score → persist), DI-friendly |
+| `src/lib/assessment` | orchestration (crawl → scan → consolidate → score → persist) |
 | `src/lib/crawler` | sitemap + link crawl |
-| `src/lib/scanner` | axe injection + result mapping (evidence nodes, help, tags) |
-| `src/lib/evidence` | screenshot capture + SurrealDB `evidence` store |
-| `src/lib/comparison` | axe/IBM consolidation + Lighthouse-comparable score |
-| `src/lib/scoring` | severity-weighted score + per-SC conformance |
-| `src/lib/standards` | WCAG 2.2 SC catalog + axe-tag mapping + Lighthouse audit weights |
-| `src/db/repository` | SurrealDB repositories (assessment, api_key, evidence) |
-| `src/server/*` | SSRF, rate-limit, API keys, validation, stripe, scanner-factory |
+| `src/lib/engine` | clean-room engine: rule registry, runner, interaction scan |
+| `src/lib/evidence` | screenshot capture + `evidence` store |
+| `src/lib/ai-review` | BYOK AI review (providers, triage, budget) |
+| `src/lib/comparison` | findings consolidation + site audit |
+| `src/lib/scoring` | verdicts + conformance |
+| `src/lib/standards` | WCAG SC catalog + human-decision contract |
+| `src/lib/auth` | magic-link, OAuth, session, identity resolution |
+| `src/db` | schema + repositories |
+| `src/server` | scanner-factory, byok, stripe, rate-limit, ssrf |
+| `src/worker` | worker entrypoint (`dist/worker.js`) |
 
-## Standards chain
+## Detail pages
 
-Every finding carries `wcagSc` (e.g. `1.4.3`), `wcagLevel`, and `scTitle`, resolved from the axe
-`wcagNNN` tag through `src/lib/standards/wcag-sc.ts` (authoritative WCAG 2.2 catalog). The
-conformance table lists every applicable SC with a `pass` / `fail` / `not-tested` result.
-
-See also: [data model](data-model.md), [deployment](deployment.md), [environment](env-reference.md),
-and [ADR index](adr/).
+- **[`architecture.md`](./architecture.md)** — holistic reference (system context,
+  containers, lifecycle, scan pipeline, engine, scoring, AI/human review, data model,
+  auth, API, i18n, payments, training, observability, deployment, ADRs, roadmap).
+- [`data-model.md`](./data-model.md) — SurrealDB schema detail.
+- [`deployment.md`](./deployment.md) — deployment runbook.
+- [`oauth-setup.md`](./oauth-setup.md) — OAuth provider configuration + env vars.
+- [`env-reference.md`](./env-reference.md) — environment variable reference.
+- [`adr/`](./adr/) — architectural decision records.
+- [`../engine/`](../engine/) — the 55-rule engine documentation.
