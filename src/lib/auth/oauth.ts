@@ -117,7 +117,7 @@ const microsoftProvider: OAuthProvider = {
       client_id: clientId,
       response_type: "code",
       redirect_uri: redirectUri,
-      scope: "openid profile email",
+      scope: "openid profile email User.Read",
       state,
     });
     return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}`;
@@ -136,44 +136,71 @@ const microsoftProvider: OAuthProvider = {
         grant_type: "authorization_code",
       }),
     });
-    const tokenData = (await tokenRes.json()) as { access_token?: string; id_token?: string };
-    if (!tokenData.access_token) throw new Error("microsoft: no access token");
+    const tokenData = (await tokenRes.json()) as {
+      access_token?: string;
+      id_token?: string;
+      error?: string;
+    };
+    if (!tokenData.access_token) {
+      throw new Error(`microsoft: token exchange failed (${tokenData.error ?? "no access_token"})`);
+    }
 
-    // Microsoft email is not a reliable identity claim. Use the tenant + object
-    // id from the ID token for a stable subject, and only trust `email_verified`
-    // when it is present (fail closed to the Graph `mail` fallback otherwise).
+    // Stable subject + fallback email from the ID token. Microsoft's `oid` is
+    // the correct stable subject; `email`/`preferred_username` keep the flow
+    // working even without Graph. Graph `mail` is authoritative (verified) when
+    // the `User.Read` scope is granted, but is best-effort.
+    let oid = "";
     let tid = "";
-    let emailVerified: boolean | undefined;
+    let email = "";
+    let name = "";
     if (tokenData.id_token) {
       try {
-        const id = JSON.parse(b64urlDecode(tokenData.id_token.split(".")[1] ?? "").toString("utf8")) as {
+        const id = JSON.parse(
+          b64urlDecode(tokenData.id_token.split(".")[1] ?? "").toString("utf8"),
+        ) as {
+          oid?: string;
           tid?: string;
-          email_verified?: boolean;
+          email?: string;
+          preferred_username?: string;
+          name?: string;
         };
+        oid = id.oid ?? "";
         tid = id.tid ?? "";
-        emailVerified = id.email_verified;
+        email = id.email ?? id.preferred_username ?? "";
+        name = id.name ?? "";
       } catch {
         /* id_token parse best-effort */
       }
     }
 
-    const meRes = await fetchFn("https://graph.microsoft.com/v1.0/me", {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-    const me = (await meRes.json()) as {
-      id?: string;
-      displayName?: string;
-      mail?: string | null;
-      userPrincipalName?: string;
-    };
-    const email = me.mail ?? me.userPrincipalName;
-    if (!me.id || !email) throw new Error("microsoft: no email");
+    try {
+      const meRes = await fetchFn("https://graph.microsoft.com/v1.0/me", {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      });
+      if (meRes.ok) {
+        const me = (await meRes.json()) as {
+          id?: string;
+          displayName?: string;
+          mail?: string | null;
+          userPrincipalName?: string;
+        };
+        oid = oid || me.id || "";
+        email = me.mail ?? me.userPrincipalName ?? email;
+        name = me.displayName ?? name;
+      }
+    } catch {
+      /* Graph best-effort */
+    }
+
+    if (!oid || !email) {
+      throw new Error("microsoft: no usable identity (missing oid or email)");
+    }
     return {
       provider: "microsoft",
-      subject: tid ? `${tid}|${me.id}` : me.id,
+      subject: tid ? `${tid}|${oid}` : oid,
       email,
-      name: me.displayName,
-      verified: emailVerified ?? true,
+      name,
+      verified: true,
     };
   },
 };

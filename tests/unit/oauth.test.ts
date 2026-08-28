@@ -111,4 +111,34 @@ describe("microsoft provider", () => {
     const identity = await providers.microsoft!.exchange("code", "https://example.com/cb", fetchFn);
     expect(identity?.email).toBe("ada@org.onmicrosoft.com");
   });
+
+  it("falls back to the ID token when Graph is unavailable (no User.Read)", async () => {
+    process.env.MICROSOFT_CLIENT_ID = "ms-client";
+    process.env.MICROSOFT_CLIENT_SECRET = "ms-secret";
+    const idToken = `h.${Buffer.from(
+      JSON.stringify({ oid: "oid-1", tid: "tid-9", email: "ada@example.com", name: "Ada" }),
+    ).toString("base64url")}.s`;
+    const fetchFn = (async (input: string | URL | Request) => {
+      const url = typeof input === "string" ? input : String(input);
+      if (url.includes("login.microsoftonline.com")) {
+        return new Response(JSON.stringify({ access_token: "tok", id_token: idToken }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response(
+        JSON.stringify({ error: { code: "Authorization_RequestDenied" } }),
+        { status: 403, headers: { "Content-Type": "application/json" } },
+      );
+    }) as unknown as typeof fetch;
+
+    const identity = await providers.microsoft!.exchange("code", "https://example.com/cb", fetchFn);
+    expect(identity).toMatchObject({
+      provider: "microsoft",
+      subject: "tid-9|oid-1",
+      email: "ada@example.com",
+      name: "Ada",
+      verified: true,
+    });
+  });
 });
