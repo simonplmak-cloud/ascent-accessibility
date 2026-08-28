@@ -44,22 +44,25 @@ that's what the code needs; leave scopes alone.
 The code uses `scope=openid profile email` and `login.microsoftonline.com/common` —
 no change needed there.
 
-## 3. Google (Sign in with Google / Google Identity Services)
+## 3. Google (OAuth 2.0 web application — authorization-code flow)
+
+Google now uses the **same server-side authorization-code flow** as GitHub and
+Microsoft (`/api/auth/oauth/google` → redirect → callback), not the client-side
+Google Identity Services button.
 
 1. Go to **https://console.cloud.google.com** → **APIs & Services** → **Credentials**.
-2. Open the **OAuth 2.0 Client ID** whose ID is
-   `82086150861-rv0m9lqq8il6qc6dk58hbh2nhc6tlcno.apps.googleusercontent.com`.
-3. Under **Authorized JavaScript origins** → add (and keep only the new domain):
+2. Open the **OAuth 2.0 Client ID** configured for this app (its ID is the value of
+   `GOOGLE_CLIENT_ID` in Vercel — the previous JavaScript-origin client is no longer used).
+3. Under **Authorized redirect URIs** → add:
    ```
-   https://accessibility.ascent.partners
+   https://accessibility.ascent.partners/api/auth/oauth/google/callback
    ```
-4. **Save**.
+4. Note the **Client secret** and set `GOOGLE_CLIENT_SECRET` in Vercel.
+5. **Save**.
 
-Note: this app uses the client-side **Google Identity Services** flow (the button
-mints an ID token in the browser and POSTs it to `/api/auth/google`). It needs a
-**JavaScript origin** — there is **no redirect URI** to configure. Make sure
-`GOOGLE_CLIENT_ID` and `NEXT_PUBLIC_GOOGLE_CLIENT_ID` in Vercel both equal this
-same client ID (the server verifies the token's `aud` against it).
+The server exchanges the authorization code for tokens and verifies the Google ID
+token locally (JWKS) — the audience (`aud`) is checked against `GOOGLE_CLIENT_ID`.
+There is no client-side `NEXT_PUBLIC_GOOGLE_CLIENT_ID` anymore.
 
 ---
 

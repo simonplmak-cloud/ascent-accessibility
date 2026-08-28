@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS, issueSession } from "@/lib/auth/session";
-import { linkOrCreateOAuth } from "@/lib/auth/identity";
+import { EmailConflictError, linkOrCreateOAuth } from "@/lib/auth/identity";
 import { providers, verifyOauthState, type OAuthIdentity } from "@/lib/auth/oauth";
 import { logger } from "@/lib/observability/logger";
 import { getSiteUrl } from "@/lib/site/site-url";
@@ -43,7 +43,16 @@ export async function GET(
     return NextResponse.redirect(failUrl);
   }
 
-  const userId = await linkOrCreateOAuth(identity);
+  const userId = await linkOrCreateOAuth(identity).catch((error: unknown) => {
+    if (error instanceof EmailConflictError) {
+      logger.warn({ provider: providerId }, "oauth: email conflict (unverified identity)");
+      return null;
+    }
+    throw error;
+  });
+  if (!userId) {
+    return NextResponse.redirect(`${siteUrl}/sign-in?error=email-conflict`);
+  }
 
   logger.info({ provider: providerId, email: identity.email }, "oauth: session issued");
   const res = NextResponse.redirect(`${siteUrl}${verifiedState.next}`);

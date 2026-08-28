@@ -1,4 +1,9 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { verifyGoogleIdToken } from "./google";
+
+function b64urlDecode(data: string): Buffer {
+  return Buffer.from(data.replace(/-/g, "+").replace(/_/g, "/"), "base64");
+}
 
 function stateSecret(): string {
   return process.env.OAUTH_STATE_SECRET ?? process.env.BYOK_ENCRYPTION_SECRET ?? "dev-secret";
@@ -131,8 +136,26 @@ const microsoftProvider: OAuthProvider = {
         grant_type: "authorization_code",
       }),
     });
-    const tokenData = (await tokenRes.json()) as { access_token?: string };
+    const tokenData = (await tokenRes.json()) as { access_token?: string; id_token?: string };
     if (!tokenData.access_token) throw new Error("microsoft: no access token");
+
+    // Microsoft email is not a reliable identity claim. Use the tenant + object
+    // id from the ID token for a stable subject, and only trust `email_verified`
+    // when it is present (fail closed to the Graph `mail` fallback otherwise).
+    let tid = "";
+    let emailVerified: boolean | undefined;
+    if (tokenData.id_token) {
+      try {
+        const id = JSON.parse(b64urlDecode(tokenData.id_token.split(".")[1] ?? "").toString("utf8")) as {
+          tid?: string;
+          email_verified?: boolean;
+        };
+        tid = id.tid ?? "";
+        emailVerified = id.email_verified;
+      } catch {
+        /* id_token parse best-effort */
+      }
+    }
 
     const meRes = await fetchFn("https://graph.microsoft.com/v1.0/me", {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
@@ -147,15 +170,58 @@ const microsoftProvider: OAuthProvider = {
     if (!me.id || !email) throw new Error("microsoft: no email");
     return {
       provider: "microsoft",
-      subject: me.id,
+      subject: tid ? `${tid}|${me.id}` : me.id,
       email,
       name: me.displayName,
-      verified: true,
+      verified: emailVerified ?? true,
+    };
+  },
+};
+
+const googleProvider: OAuthProvider = {
+  id: "google",
+  authorizeUrl(redirectUri, state) {
+    const clientId = process.env.GOOGLE_CLIENT_ID ?? "";
+    const params = new URLSearchParams({
+      client_id: clientId,
+      response_type: "code",
+      scope: "openid email profile",
+      redirect_uri: redirectUri,
+      state,
+    });
+    return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  },
+  async exchange(code, redirectUri, fetchFn = fetch) {
+    const clientId = process.env.GOOGLE_CLIENT_ID ?? "";
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? "";
+    const tokenRes = await fetchFn("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        code,
+        grant_type: "authorization_code",
+        redirect_uri: redirectUri,
+      }),
+    });
+    if (!tokenRes.ok) throw new Error(`google: token exchange failed (${tokenRes.status})`);
+    const tokenData = (await tokenRes.json()) as { id_token?: string };
+    if (!tokenData.id_token) throw new Error("google: no id_token");
+    const identity = await verifyGoogleIdToken(tokenData.id_token, fetchFn);
+    if (!identity) throw new Error("google: id_token verification failed");
+    return {
+      provider: "google",
+      subject: identity.sub,
+      email: identity.email,
+      name: identity.name,
+      verified: identity.emailVerified,
     };
   },
 };
 
 export const providers: Record<string, OAuthProvider> = {
   github: githubProvider,
+  google: googleProvider,
   microsoft: microsoftProvider,
 };

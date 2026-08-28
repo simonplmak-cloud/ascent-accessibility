@@ -3,11 +3,12 @@
 import { useTranslations } from "next-intl";
 import { ProviderButton } from "./provider-button";
 import { GitHubIcon, GoogleIcon, MicrosoftIcon } from "./brand-icons";
-import { useGoogleSignIn } from "./google-button";
 
+// All three providers use the same server-side authorization-code flow
+// (`/api/auth/oauth/:provider` → provider → callback). Google no longer needs a
+// special client-side button.
 export function OAuthButtons({ next }: { next?: string }) {
   const t = useTranslations("auth");
-  const google = useGoogleSignIn();
   const suffix = next ? `?next=${encodeURIComponent(next)}` : "";
 
   const buttons = [
@@ -17,16 +18,12 @@ export function OAuthButtons({ next }: { next?: string }) {
       label: t("continueWith", { provider: "GitHub" }),
       href: `/api/auth/oauth/github${suffix}`,
     },
-    ...(google.available
-      ? [
-          {
-            key: "google",
-            logo: <GoogleIcon />,
-            label: t("continueWith", { provider: "Google" }),
-            onClick: google.signIn,
-          },
-        ]
-      : []),
+    {
+      key: "google",
+      logo: <GoogleIcon />,
+      label: t("continueWith", { provider: "Google" }),
+      href: `/api/auth/oauth/google${suffix}`,
+    },
     {
       key: "microsoft",
       logo: <MicrosoftIcon />,
@@ -37,13 +34,9 @@ export function OAuthButtons({ next }: { next?: string }) {
 
   return (
     <div className="flex flex-col gap-2">
-      {buttons.map((b) =>
-        "href" in b ? (
-          <ProviderButton key={b.key} logo={b.logo} label={b.label} href={b.href} />
-        ) : (
-          <ProviderButton key={b.key} logo={b.logo} label={b.label} onClick={b.onClick} />
-        ),
-      )}
+      {buttons.map((b) => (
+        <ProviderButton key={b.key} logo={b.logo} label={b.label} href={b.href} />
+      ))}
     </div>
   );
 }

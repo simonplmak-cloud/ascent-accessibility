@@ -1,16 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { hashToken, mintToken } from "@/lib/auth/identity";
+import {
+  issueMagicLinkToken,
+  normalizeEmail,
+  verifyMagicLinkToken,
+} from "@/lib/auth/identity";
 
-describe("identity tokens", () => {
-  it("hashes deterministically and uniquely", () => {
-    expect(hashToken("abc")).toBe(hashToken("abc"));
-    expect(hashToken("abc")).not.toBe(hashToken("abd"));
+describe("normalizeEmail", () => {
+  it("trims and lowercases", () => {
+    expect(normalizeEmail("  Simon@Example.COM  ")).toBe("simon@example.com");
+    expect(normalizeEmail("A@B.com")).toBe("a@b.com");
+    expect(normalizeEmail("a@b.com")).toBe("a@b.com");
+  });
+});
+
+describe("magic-link token", () => {
+  it("round-trips the email", () => {
+    const token = issueMagicLinkToken("Simon@Example.COM");
+    expect(verifyMagicLinkToken(token)?.email).toBe("simon@example.com");
   });
 
-  it("mints unique, 64-char tokens", () => {
-    const a = mintToken();
-    const b = mintToken();
-    expect(a).not.toBe(b);
-    expect(a).toHaveLength(64);
+  it("rejects a tampered signature", () => {
+    const token = issueMagicLinkToken("simon@example.com");
+    const [payload] = token.split(".");
+    expect(verifyMagicLinkToken(`${payload}.AAAA`)).toBeNull();
+  });
+
+  it("rejects a malformed token", () => {
+    expect(verifyMagicLinkToken("garbage")).toBeNull();
+    expect(verifyMagicLinkToken("a.b.c")).toBeNull();
   });
 });
