@@ -171,7 +171,195 @@ stateDiagram-v2
 
 ---
 
-## 5. Scan Pipeline
+## 5. How a website is assessed (deep dive)
+
+This is the authoritative walk-through of the assessment mechanics — from the
+submitted URL to the persisted conformance result. The sections that follow
+(6–9) expand on the individual stages at the module level.
+
+### 5.1 Crawl & page discovery
+
+```mermaid
+flowchart TB
+  SEED["seed URL"] --> ROBOTS["robots.txt<br/>parse disallow rules"]
+  ROBOTS --> SITEMAP{"sitemap.xml?"}
+  SITEMAP -->|"found (or sitemap index)"| SLOC["collect <loc> URLs<br/>(sitemapindex recurse ≤ 3)"]
+  SITEMAP -->|"not found"| LINK["link crawl<br/>extractLinks from HTML"]
+  SLOC --> BFS["same-origin BFS<br/>depth ≤ maxDepth, cap maxPages"]
+  LINK --> BFS
+  BFS --> OUT["urls[] + pagesScanned + partial + sitemapUrls"]
+```
+
+- **robots.txt** first (`parseRobotsDisallow`); every URL is filtered by
+  `isAllowedByRobots`.
+- **sitemap.xml** (`fetchSitemapUrls`) — handles `<sitemapindex>` (recursive, max
+  depth 3) and `<loc>` entries. If any are found they seed the queue; otherwise the
+  crawler falls back to link extraction (`extractLinks`).
+- Bounded BFS: `maxDepth` (default 3), `maxPages` (default 100), same-origin only,
+  a `visited` set, and a politeness delay (default `CRAWL_DELAY_MS ?? 200`).
+- **Depth 0** = single-page scan — the crawl is skipped entirely.
+
+### 5.2 Per-page engine evaluation
+
+For every page, the worker acquires a pooled browser context, injects the
+self-contained engine, navigates, and evaluates it in-page:
+
+```mermaid
+flowchart TB
+  G["goto(url)<br/>waitUntil domcontentloaded"] --> S["settle (SCAN_SETTLE_MS)"]
+  S --> E["evaluate(() => __apfEngine.run(tags))"]
+  E --> LOOP{"for each rule<br/>with a matching tag"}
+  LOOP --> M["matcher → querySelectorAll<br/>(or [documentElement] if null)"]
+  M --> Z{"nodes?"}
+  Z -->|"none"| IN["inapplicable"]
+  Z -->|"some"| X["for each node:<br/>extract facts"]
+  X --> C["run checks (pure)"]
+  C --> V{"any fail?"}
+  V -->|"yes"| F["violation + node html / failureSummary"]
+  V -->|"incomplete"| I["incomplete"]
+  V -->|"all pass"| P["pass"]
+  F & I & P & IN --> R["{ violations, passes, incomplete,<br/>inapplicable, features, mediaUrls }"]
+```
+
+The in-page `run(tags)` loop, in full:
+
+1. Build a `tagSet` from the selected standard's tags.
+2. Skip any rule whose `tags` don't intersect the set.
+3. `matcher` selects candidate nodes (or the whole document when `matcher` is null,
+   for document-level rules such as `<html lang>`).
+4. No matching nodes → the rule is recorded **inapplicable**.
+5. For each node, `extract` pulls facts (a pure DOM snapshot); each `check` runs
+   against those facts. The first failing check produces a **violation** node (with
+   its `failureSummary` and a truncated outerHTML slice); otherwise **incomplete**
+   nodes are collected.
+6. Results are bounded: `MAX_NODES` (100) per violation, `MAX_BUCKET` (1000) per
+   category.
+
+### 5.3 Rule anatomy
+
+Every rule is `matcher → extract (facts) → checks`. Concrete example (`image-alt`,
+mapping to SC 1.1.1):
+
+```ts
+{
+  id: "image-alt",
+  impact: "critical",
+  tags: ["wcag2a", "wcag111"],
+  wcagSc: ["1.1.1"],
+  matcher: "img",
+  extract: (el) => ({ alt: el.getAttribute("alt"), role: el.getAttribute("role") }),
+  checks: [{
+    id: "alt-present-or-decorative",
+    evaluate: (f) => {
+      if (f.alt !== null) return { result: "pass" };
+      if (f.role === "presentation" || f.role === "none") return { result: "pass" };
+      return { result: "fail", failureSummary: "img element has no alt attribute" };
+    },
+  }],
+}
+```
+
+The 55 rules are split across `perceivable` (14), `robust` (9), `additional` (9),
+`gap-fill` (8), `operable` (5), `rendering` (4), `interaction` (3), `understandable`
+(3). Every rule carries `wcagSc` — the success criteria it can fail.
+
+### 5.4 Feature detection & applicability
+
+Alongside rule results, the engine reports **page features** — 25 booleans extracted
+from the DOM (`__apfFeatures`): `hasVideo`, `hasAudio`, `hasForms`, `hasTables`,
+`hasIframes`, `hasImages`, `hasHeadings`, `hasLandmarks`, `hasLang`,
+`hasPositiveTabindex`, `hasAnimatedContent`, `hasLiveContent`, and more.
+
+```mermaid
+flowchart LR
+  DOM["DOM"] --> F["__apfFeatures(document)"]
+  F --> APP["isScApplicable(sc, matchedScs, features)"]
+  APP -->|"not-applicable"| NP["NotPresent"]
+  APP -->|"applicable"| EVAL["evaluate / AI review"]
+```
+
+Features are merged across pages (`mergeFeatures`) and drive **success-criterion
+applicability**: an SC that isn't applicable (e.g. captions when there is no video)
+is marked `NotPresent`, not `Failed`. The page language is also detected
+(`detectPageLanguage`) and persisted for the report.
+
+### 5.5 Interaction scan
+
+Two checks run outside the pure rule engine because they need real browser behaviour:
+
+- **Reflow (1.4.10)** — the viewport is resized to 320px; horizontal overflow
+  (`scrollWidth > innerWidth + 1`) is flagged.
+- **Keyboard trap (2.1.2)** — Tab is pressed up to 20 times, tracking the *distinct*
+  elements focus lands on; a page with many focusable elements but only one distinct
+  target is flagged as a trap.
+
+### 5.6 Evidence capture
+
+For each page the scanner captures a full-page screenshot (with violations
+highlighted) and element screenshots for the top findings; images are optimized
+(`optimizeEvidenceImage`) and stored as bytes in `evidence`, with page snapshots
+(screenshot + HTML) referenced from the assessment.
+
+### 5.7 Findings consolidation
+
+```mermaid
+flowchart LR
+  V["violations per page"] --> F["violationsToFindings"]
+  F --> G["group by (primary SC | rule) + pageUrl"]
+  G --> O["Finding: ruleId, impact, instances[],<br/>wcagSc, recommendation, sources"]
+```
+
+Each engine violation becomes a `Finding` with its node instances; findings are
+grouped by primary success criterion (or rule) + page. Impact is the rule's severity
+(`critical` / `serious` / `moderate` / `minor`); a recommendation is attached
+(`getRecommendation`); provenance is `sources: [{ tool: "engine" }]`.
+
+### 5.8 AI review (unresolved SCs)
+
+SCs the deterministic engine left `Unresolved` go through AI review:
+
+```mermaid
+flowchart LR
+  U["Unresolved SCs"] --> T["runTriage<br/>build prompts (screenshot + context)"]
+  T --> V["vision-model verdict per SC"]
+  V -->|"confidence ≥ 0.8"| R["Passed / Failed"]
+  V -->|"otherwise"| CT["CannotTell"]
+  R --> A["applyAiVerdicts<br/>Failed → new findings"]
+  A -->|"media SCs"| AU["audio-model pass"]
+```
+
+`runTriage` builds per-SC prompts (screenshot + context), the BYOK vision model
+returns a verdict with a confidence score, and only confident verdicts (≥ 0.8) fold
+in; otherwise the SC stays `CannotTell`. A second **audio pass** resolves media SCs.
+Budget is tracked per scan (calls + images).
+
+### 5.9 Scoring & conformance (folding)
+
+```mermaid
+flowchart TB
+  F1["findings"] --> M["computeConformance<br/>machine verdict per SC"]
+  M --> U{"Unresolved?"}
+  U -->|"no"| FIN["final = machine"]
+  U -->|"yes"| AI["AI (vision + audio)"]
+  AI --> FIN2["final = AI (Passed / Failed)<br/>or CannotTell"]
+  FIN & FIN2 --> O["finalizeConformance"]
+  O --> OUT["outcome + levelAttained + coverage"]
+```
+
+Machine verdicts (`Passed` / `Failed` / `NotPresent` / `Unresolved`) are computed
+from findings' `wcagSc` tags, applicability, and the passed-rule set; AI verdicts
+resolve `Unresolved` rows; `finalizeConformance` produces the final per-SC table, the
+`levelAttained` (A/AA/AAA), the `coverage`, and the conformance `outcome`
+(`conforms` / `does-not-conform` / `undetermined`).
+
+### 5.10 Site audit (perf / SEO)
+
+After the accessibility scan, a **site audit** queries Browserless `/performance` for
+perf/SEO signals, appended to the report as a non-scored appendix.
+
+---
+
+## 6. Scan Pipeline
 
 ```mermaid
 flowchart TB
@@ -207,7 +395,7 @@ the queue.
 
 ---
 
-## 6. Engine Architecture (clean-room)
+## 7. Engine Architecture (clean-room)
 
 The engine is **clean-room in-house** — there are no third-party accessibility engines
 (axe-core, IBM, Lighthouse) anywhere in the scan path.
@@ -286,7 +474,7 @@ a standard therefore composes the full cumulative tag set across versions; `wcag
 
 ---
 
-## 7. Scoring & Conformance Model
+## 8. Scoring & Conformance Model
 
 ```mermaid
 flowchart LR
@@ -316,7 +504,7 @@ flowchart LR
 
 ---
 
-## 8. AI Review & Human Review
+## 9. AI Review & Human Review
 
 ```mermaid
 sequenceDiagram
@@ -351,7 +539,7 @@ review). `HUMAN_DECISION_SCS` is a *snapshot expected to shrink over time* — t
 
 ---
 
-## 9. Data Model (SurrealDB)
+## 10. Data Model (SurrealDB)
 
 ```mermaid
 erDiagram
@@ -396,7 +584,7 @@ erDiagram
 
 ---
 
-## 10. Auth & Identity
+## 11. Auth & Identity
 
 ```mermaid
 sequenceDiagram
@@ -436,7 +624,7 @@ Auth is SurrealDB-native (not Clerk). Every assessment needs a non-null `ownerId
 
 ---
 
-## 11. API Surface
+## 12. API Surface
 
 | Group | Routes | Notes |
 |---|---|---|
@@ -455,7 +643,7 @@ rate limiting.
 
 ---
 
-## 12. Internationalization
+## 13. Internationalization
 
 ```mermaid
 flowchart LR
@@ -469,7 +657,7 @@ flowchart LR
 
 ---
 
-## 13. Payments
+## 14. Payments
 
 Stripe handles **subscriptions** and **one-off donations**; the webhook
 (`/api/webhooks/stripe`) syncs `subscription` / `stripe_topup` records. BYOK AI
@@ -477,7 +665,7 @@ consumption is metered against a per-user balance with top-ups.
 
 ---
 
-## 14. Training (free path)
+## 15. Training (free path)
 
 A self-contained training path — lessons, paths, quizzes — tracking progress in
 `learner_progress` and issuing `credential` records (downloadable certificate).
@@ -485,7 +673,7 @@ Lesson checks are graded server-side (`/api/v1/training/lessons/[id]/check`).
 
 ---
 
-## 15. Observability & Security
+## 16. Observability & Security
 
 **Observability:** pino-structured JSON logging (`src/lib/observability/logger`) +
 lightweight metrics (`src/lib/observability/metrics`) persisted to the `metrics`
@@ -501,7 +689,7 @@ table. Sentry was removed (FSL dependency).
 
 ---
 
-## 16. Deployment & Operations
+## 17. Deployment & Operations
 
 ```mermaid
 flowchart LR
@@ -523,7 +711,7 @@ flowchart LR
 
 ---
 
-## 17. Architectural Decisions
+## 18. Architectural Decisions
 
 | ADR | Decision |
 |---|---|
@@ -533,7 +721,7 @@ flowchart LR
 
 ---
 
-## 18. Evolution & Scaling Roadmap (2-year horizon)
+## 19. Evolution & Scaling Roadmap (2-year horizon)
 
 Forward-looking, not yet built:
 
