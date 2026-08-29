@@ -744,6 +744,180 @@ flowchart LR
 
 ---
 
+## 20. Rule → SC coverage matrix
+
+Reference: every engine rule mapped to its success criterion, plus the reverse
+index. The **55 rules** cover **38 success criteria** directly; the worker-side
+interaction scan adds **2 more** (1.4.10 Reflow, 2.1.2 No Keyboard Trap), for
+**40 machine-checkable SCs** out of the **87** in the catalog. Every other SC is
+resolved by AI or human review.
+
+**Applicability classes**
+
+| Class | Meaning |
+|---|---|
+| Machine (partial) | has a rule, but the matcher isn't a complete enumeration of the content type → no match ⇒ **Cannot tell** (never a false "not present") |
+| Matcher-exhaustive | the matcher enumerates the content type → no match ⇒ **NotPresent** |
+| Always applicable | non-interference SC (WCAG 2.2 §5.2.5) — never **NotPresent** |
+| Feature-flag | applicability routed through page-feature flags (`checkScApplicability`) |
+| Interaction scan | checked by the worker-side scan (reflow / keyboard trap), not the in-page engine |
+| Not machine-checked | no rule → feature-flag applicability; resolved by AI / human review |
+
+### 20.1 Rule → SC
+
+
+| # | Rule | Category | Impact | SC | Matcher | Applicability |
+|---|---|---|---|---|---|---|
+| 1 | `image-alt` | perceivable | critical | 1.1.1 Non-text Content | `img` | Machine (partial) |
+| 2 | `input-image-alt` | perceivable | serious | 1.1.1 Non-text Content | `input[type='image']` | Machine (partial) |
+| 3 | `object-alt` | perceivable | serious | 1.1.1 Non-text Content | `object` | Machine (partial) |
+| 4 | `svg-img-alt` | perceivable | serious | 1.1.1 Non-text Content | `svg` | Machine (partial) |
+| 5 | `video-caption` | perceivable | serious | 1.2.2 Captions (Prerecorded) | `video` | Matcher-exhaustive (no match → NotPresent) |
+| 6 | `list` | perceivable | moderate | 1.3.1 Info and Relationships | `ul, ol` | Machine (partial) |
+| 7 | `listitem` | perceivable | moderate | 1.3.1 Info and Relationships | `li` | Machine (partial) |
+| 8 | `dlitem` | perceivable | moderate | 1.3.1 Info and Relationships | `dt, dd` | Machine (partial) |
+| 9 | `definition-list` | perceivable | moderate | 1.3.1 Info and Relationships | `dl` | Machine (partial) |
+| 10 | `region` | perceivable | moderate | 1.3.1 Info and Relationships | `document` | Machine (partial) |
+| 11 | `landmark-unique` | perceivable | moderate | 1.3.1 Info and Relationships | `document` | Machine (partial) |
+| 12 | `heading-order` | perceivable | moderate | 1.3.1 Info and Relationships | `document` | Machine (partial) |
+| 13 | `empty-heading` | perceivable | minor | 2.4.6 Headings and Labels | `h1, h2, h3, h4, h5, h6` | Machine (partial) |
+| 14 | `meta-viewport` | perceivable | serious | 1.4.4 Resize Text | `meta[name='viewport']` | Machine (partial) |
+| 15 | `document-title` | operable | serious | 2.4.2 Page Titled | `document` | Machine (partial) |
+| 16 | `link-name` | operable | serious | 2.4.4 Link Purpose (In Context) | `a[href]` | Matcher-exhaustive (no match → NotPresent) |
+| 17 | `skip-link` | operable | moderate | 2.4.1 Bypass Blocks | `document` | Machine (partial) |
+| 18 | `tabindex` | operable | serious | 2.4.3 Focus Order | `[tabindex]` | Machine (partial) |
+| 19 | `focus-visible` | operable | moderate | 2.4.7 Focus Visible | `document` | Machine (partial) |
+| 20 | `html-has-lang` | understandable | serious | 3.1.1 Language of Page | `html` | Machine (partial) |
+| 21 | `html-lang-valid` | understandable | serious | 3.1.1 Language of Page | `html` | Machine (partial) |
+| 22 | `label` | understandable | critical | 3.3.2 Labels or Instructions | `input:not([type='hidden']):not([type='submit']):…` | Matcher-exhaustive (no match → NotPresent) |
+| 23 | `button-name` | robust | critical | 4.1.2 Name, Role, Value | `button` | Machine (partial) |
+| 24 | `input-button-name` | robust | serious | 4.1.2 Name, Role, Value | `input[type='button'], input[type='submit'], inpu…` | Machine (partial) |
+| 25 | `select-name` | robust | serious | 4.1.2 Name, Role, Value | `select` | Machine (partial) |
+| 26 | `frame-title` | robust | serious | 4.1.2 Name, Role, Value | `iframe, frame` | Machine (partial) |
+| 27 | `aria-roles` | robust | serious | 4.1.2 Name, Role, Value | `[role]` | Machine (partial) |
+| 28 | `aria-valid-attr-value` | robust | serious | 4.1.2 Name, Role, Value | `[aria-checked], [aria-pressed], [aria-expanded],…` | Machine (partial) |
+| 29 | `aria-required-attr` | robust | serious | 4.1.2 Name, Role, Value | `[role]` | Machine (partial) |
+| 30 | `aria-hidden-focus` | robust | serious | 4.1.2 Name, Role, Value | `[aria-hidden='true']` | Machine (partial) |
+| 31 | `duplicate-id` | robust | moderate | 4.1.1 Parsing | `document` | Machine (partial) |
+| 32 | `color-contrast` | rendering | serious | 1.4.3 Contrast (Minimum) | `p, h1, h2, h3, h4, h5, h6, li, a, button, label,…` | Machine (partial) |
+| 33 | `target-size` | rendering | serious | 2.5.8 Target Size (Minimum) | `button, [role='button'], a[href], input:not([typ…` | Machine (partial) |
+| 34 | `meta-refresh` | rendering | serious | 2.2.1 Timing Adjustable | `meta[http-equiv='refresh' i]` | Machine (partial) |
+| 35 | `non-text-contrast` | rendering | serious | 1.4.11 Non-text Contrast | `input:not([type='hidden']), select, textarea, bu…` | Machine (partial) |
+| 36 | `click-events-have-key-events` | interaction | serious | 2.1.1 Keyboard | `[onclick], [role='button'], [role='link'], [role…` | Machine (partial) |
+| 37 | `pointer-cancellation` | interaction | serious | 2.5.2 Pointer Cancellation | `[onmousedown], [onpointerdown], [ontouchstart]` | Machine (partial) |
+| 38 | `dragging-movements` | interaction | serious | 2.5.7 Dragging Movements | `[draggable='true']` | Machine (partial) |
+| 39 | `no-autoplay-audio` | additional | serious | 1.4.2 Audio Control | `audio[autoplay], video[autoplay]` | Always applicable |
+| 40 | `orientation` | additional | serious | 1.3.4 Orientation | `document` | Machine (partial) |
+| 41 | `autocomplete-valid` | additional | serious | 1.3.5 Identify Input Purpose | `input[autocomplete]` | Feature-flag |
+| 42 | `text-spacing` | additional | serious | 1.4.12 Text Spacing | `document` | Machine (partial) |
+| 43 | `lang-of-parts` | additional | serious | 3.1.2 Language of Parts | `[lang]` | Machine (partial) |
+| 44 | `pause-stop-hide` | additional | serious | 2.2.2 Pause, Stop, Hide | `marquee, blink` | Always applicable |
+| 45 | `media-transcript` | additional | serious | 1.2.1 Audio-only and Video-only (Prerecorded) | `audio, video` | Matcher-exhaustive (no match → NotPresent) |
+| 46 | `label-in-name` | additional | serious | 2.5.3 Label in Name | `button, a[href], input:not([type='hidden']), sel…` | Machine (partial) |
+| 47 | `use-of-color` | additional | serious | 1.4.1 Use of Color | `document` | Machine (partial) |
+| 48 | `contrast-enhanced` | gap-fill | serious | 1.4.6 Contrast (Enhanced) | `p, h1, h2, h3, h4, h5, h6, li, a, button, label,…` | Machine (partial) |
+| 49 | `target-size-enhanced` | gap-fill | serious | 2.5.5 Target Size (Enhanced) | `button, [role='button'], a[href], input:not([typ…` | Machine (partial) |
+| 50 | `multiple-ways` | gap-fill | moderate | 2.4.5 Multiple Ways | `document` | Machine (partial) |
+| 51 | `location` | gap-fill | moderate | 2.4.8 Location | `document` | Machine (partial) |
+| 52 | `section-headings` | gap-fill | moderate | 2.4.10 Section Headings | `document` | Machine (partial) |
+| 53 | `help` | gap-fill | moderate | 3.3.5 Help | `document` | Machine (partial) |
+| 54 | `redundant-entry` | gap-fill | moderate | 3.3.7 Redundant Entry | `form` | Matcher-exhaustive (no match → NotPresent) |
+| 55 | `no-timing` | gap-fill | moderate | 2.2.3 No Timing | `document` | Machine (partial) |
+
+### 20.2 SC → rules
+
+| SC | Level | Title | Rules | Applicability |
+|---|---|---|---|---|
+| ✓ 1.1.1 | A | Non-text Content | `image-alt`, `input-image-alt`, `object-alt`, `svg-img-alt` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 1.2.1 | A | Audio-only and Video-only (Prerecorded) | `media-transcript` | Matcher-exhaustive — no match ⇒ NotPresent |
+| ✓ 1.2.2 | A | Captions (Prerecorded) | `video-caption` | Matcher-exhaustive — no match ⇒ NotPresent |
+|   1.2.3 | A | Audio Description or Media Alternative (Prerecorded) | — | Not machine-checked — feature-flag applicability |
+|   1.2.4 | AA | Captions (Live) | — | Not machine-checked — feature-flag applicability |
+|   1.2.5 | AA | Audio Description (Prerecorded) | — | Not machine-checked — feature-flag applicability |
+|   1.2.6 | AAA | Sign Language (Prerecorded) | — | Not machine-checked — feature-flag applicability |
+|   1.2.7 | AAA | Extended Audio Description (Prerecorded) | — | Not machine-checked — feature-flag applicability |
+|   1.2.8 | AAA | Media Alternative (Prerecorded) | — | Not machine-checked — feature-flag applicability |
+|   1.2.9 | AAA | Audio-only (Live) | — | Not machine-checked — feature-flag applicability |
+| ✓ 1.3.1 | A | Info and Relationships | `list`, `listitem`, `dlitem`, `definition-list`, `region`, `landmark-unique`, `heading-order` | Machine (partial) — no match ⇒ Cannot tell |
+|   1.3.2 | A | Meaningful Sequence | — | Not machine-checked — feature-flag applicability |
+|   1.3.3 | A | Sensory Characteristics | — | Not machine-checked — feature-flag applicability |
+| ✓ 1.3.4 | AA | Orientation | `orientation` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 1.3.5 | AA | Identify Input Purpose | `autocomplete-valid` | Feature-flag routed |
+|   1.3.6 | AAA | Identify Purpose | — | Not machine-checked — feature-flag applicability |
+| ✓ 1.4.1 | A | Use of Color | `use-of-color` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 1.4.2 | A | Audio Control | `no-autoplay-audio` | Always applicable (non-interference) — never NotPresent |
+| ✓ 1.4.3 | AA | Contrast (Minimum) | `color-contrast` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 1.4.4 | AA | Resize Text | `meta-viewport` | Machine (partial) — no match ⇒ Cannot tell |
+|   1.4.5 | AA | Images of Text | — | Not machine-checked — feature-flag applicability |
+| ✓ 1.4.6 | AAA | Contrast (Enhanced) | `contrast-enhanced` | Machine (partial) — no match ⇒ Cannot tell |
+|   1.4.7 | AAA | Low or No Background Audio | — | Not machine-checked — feature-flag applicability |
+|   1.4.8 | AAA | Visual Presentation | — | Not machine-checked — feature-flag applicability |
+|   1.4.9 | AAA | Images of Text (No Exception) | — | Not machine-checked — feature-flag applicability |
+| ✓ 1.4.10 | AA | Reflow | — · *reflow check* | Interaction scan (worker) |
+| ✓ 1.4.11 | AA | Non-text Contrast | `non-text-contrast` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 1.4.12 | AA | Text Spacing | `text-spacing` | Machine (partial) — no match ⇒ Cannot tell |
+|   1.4.13 | AA | Content on Hover or Focus | — | Not machine-checked — feature-flag applicability |
+| ✓ 2.1.1 | A | Keyboard | `click-events-have-key-events` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 2.1.2 | A | No Keyboard Trap | — · *keyboard-trap check* | Always applicable (non-interference) — never NotPresent |
+|   2.1.3 | AAA | Keyboard (No Exception) | — | Not machine-checked — feature-flag applicability |
+|   2.1.4 | A | Character Key Shortcuts | — | Not machine-checked — feature-flag applicability |
+| ✓ 2.2.1 | A | Timing Adjustable | `meta-refresh` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 2.2.2 | A | Pause, Stop, Hide | `pause-stop-hide` | Always applicable (non-interference) — never NotPresent |
+| ✓ 2.2.3 | AAA | No Timing | `no-timing` | Machine (partial) — no match ⇒ Cannot tell |
+|   2.2.4 | AAA | Interruptions | — | Not machine-checked — feature-flag applicability |
+|   2.2.5 | AAA | Re-authenticating | — | Not machine-checked — feature-flag applicability |
+|   2.2.6 | AAA | Timeouts | — | Not machine-checked — feature-flag applicability |
+|   2.3.1 | A | Three Flashes or Below Threshold | — | Always applicable (non-interference) — never NotPresent |
+|   2.3.2 | AAA | Three Flashes | — | Not machine-checked — feature-flag applicability |
+|   2.3.3 | AAA | Animation from Interactions | — | Not machine-checked — feature-flag applicability |
+| ✓ 2.4.1 | A | Bypass Blocks | `skip-link` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 2.4.2 | A | Page Titled | `document-title` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 2.4.3 | A | Focus Order | `tabindex` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 2.4.4 | A | Link Purpose (In Context) | `link-name` | Matcher-exhaustive — no match ⇒ NotPresent |
+| ✓ 2.4.5 | AA | Multiple Ways | `multiple-ways` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 2.4.6 | AA | Headings and Labels | `empty-heading` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 2.4.7 | AA | Focus Visible | `focus-visible` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 2.4.8 | AAA | Location | `location` | Machine (partial) — no match ⇒ Cannot tell |
+|   2.4.9 | AAA | Link Purpose (Link Only) | — | Not machine-checked — feature-flag applicability |
+| ✓ 2.4.10 | AAA | Section Headings | `section-headings` | Machine (partial) — no match ⇒ Cannot tell |
+|   2.4.11 | AA | Focus Not Obscured (Minimum) | — | Not machine-checked — feature-flag applicability |
+|   2.4.12 | AAA | Focus Not Obscured (Enhanced) | — | Not machine-checked — feature-flag applicability |
+|   2.4.13 | AAA | Focus Appearance | — | Not machine-checked — feature-flag applicability |
+|   2.5.1 | A | Pointer Gestures | — | Not machine-checked — feature-flag applicability |
+| ✓ 2.5.2 | A | Pointer Cancellation | `pointer-cancellation` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 2.5.3 | A | Label in Name | `label-in-name` | Machine (partial) — no match ⇒ Cannot tell |
+|   2.5.4 | A | Motion Actuation | — | Not machine-checked — feature-flag applicability |
+| ✓ 2.5.5 | AAA | Target Size (Enhanced) | `target-size-enhanced` | Machine (partial) — no match ⇒ Cannot tell |
+|   2.5.6 | AAA | Concurrent Input Mechanisms | — | Not machine-checked — feature-flag applicability |
+| ✓ 2.5.7 | AA | Dragging Movements | `dragging-movements` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 2.5.8 | AA | Target Size (Minimum) | `target-size` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 3.1.1 | A | Language of Page | `html-has-lang`, `html-lang-valid` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 3.1.2 | AA | Language of Parts | `lang-of-parts` | Machine (partial) — no match ⇒ Cannot tell |
+|   3.1.3 | AAA | Unusual Words | — | Not machine-checked — feature-flag applicability |
+|   3.1.4 | AAA | Abbreviations | — | Not machine-checked — feature-flag applicability |
+|   3.1.5 | AAA | Reading Level | — | Not machine-checked — feature-flag applicability |
+|   3.1.6 | AAA | Pronunciation | — | Not machine-checked — feature-flag applicability |
+|   3.2.1 | A | On Focus | — | Not machine-checked — feature-flag applicability |
+|   3.2.2 | A | On Input | — | Not machine-checked — feature-flag applicability |
+|   3.2.3 | AA | Consistent Navigation | — | Not machine-checked — feature-flag applicability |
+|   3.2.4 | AA | Consistent Identification | — | Not machine-checked — feature-flag applicability |
+|   3.2.5 | AAA | Change on Request | — | Not machine-checked — feature-flag applicability |
+|   3.2.6 | A | Consistent Help | — | Not machine-checked — feature-flag applicability |
+|   3.3.1 | A | Error Identification | — | Not machine-checked — feature-flag applicability |
+| ✓ 3.3.2 | A | Labels or Instructions | `label` | Matcher-exhaustive — no match ⇒ NotPresent |
+|   3.3.3 | AA | Error Suggestion | — | Not machine-checked — feature-flag applicability |
+|   3.3.4 | AA | Error Prevention (Legal, Financial, Data) | — | Not machine-checked — feature-flag applicability |
+| ✓ 3.3.5 | AAA | Help | `help` | Machine (partial) — no match ⇒ Cannot tell |
+|   3.3.6 | AAA | Error Prevention (All) | — | Not machine-checked — feature-flag applicability |
+| ✓ 3.3.7 | A | Redundant Entry | `redundant-entry` | Matcher-exhaustive — no match ⇒ NotPresent |
+|   3.3.8 | AA | Accessible Authentication (Minimum) | — | Not machine-checked — feature-flag applicability |
+|   3.3.9 | AAA | Accessible Authentication (Enhanced) | — | Not machine-checked — feature-flag applicability |
+| ✓ 4.1.1 | A | Parsing | `duplicate-id` | Machine (partial) — no match ⇒ Cannot tell |
+| ✓ 4.1.2 | A | Name, Role, Value | `button-name`, `input-button-name`, `select-name`, `frame-title`, `aria-roles`, `aria-valid-attr-value`, `aria-required-attr`, `aria-hidden-focus` | Machine (partial) — no match ⇒ Cannot tell |
+|   4.1.3 | AA | Status Messages | — | Not machine-checked — feature-flag applicability |
+
+---
+
 ## Key module map
 
 | Module | Responsibility |
