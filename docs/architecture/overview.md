@@ -73,4 +73,5 @@ flowchart LR
 - [`oauth-setup.md`](./oauth-setup.md) — OAuth provider configuration + env vars.
 - [`env-reference.md`](./env-reference.md) — environment variable reference.
 - [`adr/`](./adr/) — architectural decision records.
+- [`assessment-methods.md`](./assessment-methods.md) — per-standard WCAG coverage + assessment methodology (compute / AI / human).
 - [`../engine/`](../engine/) — the 55-rule engine documentation.

@@ -746,6 +746,9 @@ flowchart LR
 
 ## 20. Rule → SC coverage matrix
 
+> Per-standard methodology (compute / AI / human, with formulas) is in
+> **[`assessment-methods.md`](./assessment-methods.md)**.
+
 Reference: every engine rule mapped to its success criterion, plus the reverse
 index. The **55 rules** cover **38 success criteria** directly; the worker-side
 interaction scan adds **2 more** (1.4.10 Reflow, 2.1.2 No Keyboard Trap), for
