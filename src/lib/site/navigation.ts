@@ -65,9 +65,13 @@ export const SITE_SECTIONS: SiteSection[] = [
   },
 ];
 
-// Signed-in account menu (shown under the account control). Auditor + API access
-// live in the Product tier; the account menu is just the account + sign out.
-export const ACCOUNT_MENU: NavLink[] = [{ href: "/account", label: "account" }];
+// Signed-in account menu (shown under the account control). The assessment
+// history ("My assessments") is surfaced here so returning users can reach it in
+// one click; the Product tier still carries the auditor workspace and API access.
+export const ACCOUNT_MENU: NavLink[] = [
+  { href: "/auditor", label: "myAssessments" },
+  { href: "/account", label: "account" },
+];
 
 // The first-tier section label key that contains a given page path (for
 // breadcrumbs). Returns the i18n key of the section, or undefined if the path
