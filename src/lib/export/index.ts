@@ -54,6 +54,14 @@ const defaultPdfRenderer: PdfRenderer = {
   async render(report) {
     const logo = await fetchLogo();
     const strings = await loadReportStrings(report.locale);
-    return renderReportDocument(report, logo, strings);
+    // Bound the render: a pathological report must not hang the request up to
+    // Vercel's maxDuration.
+    const RENDER_TIMEOUT_MS = 60_000;
+    return Promise.race([
+      renderReportDocument(report, logo, strings),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`PDF render timed out after ${RENDER_TIMEOUT_MS}ms`)), RENDER_TIMEOUT_MS),
+      ),
+    ]);
   },
 };
