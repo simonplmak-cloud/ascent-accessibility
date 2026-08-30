@@ -2,7 +2,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 async function openPreferences(page: Page) {
-  await page.getByRole("button", { name: "Display & language" }).click();
+  // Display & language prefs now live in the consolidated account pick-list.
+  await page.getByRole("button", { name: "Account" }).click();
 }
 
 test("defaults to the dark theme (AC-1)", async ({ page }) => {
