@@ -2,8 +2,9 @@
 
 How each WCAG success criterion is assessed: the **compute → AI → human** chain,
 grouped by standard. The 9 WCAG standards are covered (2.0 / 2.1 / 2.2 × A / AA / AAA);
-`Section 508` appears in the standards catalog but has no engine rules (no rule carries
-the `section508` tag), so it is not tabulated here. Links go to the W3C spec for the rule text; the methodology cites the exact engine rule, formula, AI modality, or human decision point.
+`Section 508` maps to WCAG 2.0 A + AA (the 2017 refresh reference — see
+`wcagReference` in `src/lib/standards/catalog.ts`), so it reuses the WCAG 2.0 tables.
+Links go to the W3C spec for the rule text; the methodology cites the exact engine rule, formula, AI modality, or human decision point.
 
 ## Assessment chain
 
