@@ -174,34 +174,12 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </button>
-            <PreferencesDialog />
-            {auth.signedIn ? (
-              <AccountMenu email={auth.email} onSignOut={signOut} signingOut={signingOut} />
-            ) : (
-              <ButtonLink
-                href="/sign-in"
-                variant="outline"
-                size="sm"
-                aria-label={t("signIn")}
-                title={t("signIn")}
-                className="flex min-h-11 min-w-11 items-center justify-center"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-              </ButtonLink>
-            )}
+            <AccountMenu
+              signedIn={auth.signedIn}
+              email={auth.email}
+              onSignOut={signOut}
+              signingOut={signingOut}
+            />
             <ButtonLink href="/assess" size="sm" className="flex min-h-11 items-center gap-2">
               <ScanIcon />
               {t("scanYourSite")}
@@ -222,7 +200,12 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
           </button>
-          <PreferencesDialog />
+          <AccountMenu
+            signedIn={auth.signedIn}
+            email={auth.email}
+            onSignOut={signOut}
+            signingOut={signingOut}
+          />
           <ButtonLink href="/assess" size="sm" className="flex min-h-11 items-center gap-2">
             <ScanIcon />
             {t("scanYourSite")}
