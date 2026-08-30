@@ -21,6 +21,7 @@
     "auditor": "審核員",
     "apiAccess": "API 存取",
     "account": "帳戶",
+    "myAssessments": "我的評估",
     "scanYourSite": "評估你的網站",
     "signIn": "登入",
     "signOut": "登出",
@@ -821,6 +822,7 @@
   },
   "account": {
     "heading": "帳戶",
+    "viewHistory": "查看您的評估歷史",
     "provisionTitle": "啟用 AI 審核（推薦）",
     "provisionBody": "增值後我們會為你建立安全的 AI 金鑰 — 無需自行申請。你的信用卡資料由 Stripe 處理；我們只儲存加密的金鑰。",
     "topupNote": "增值",

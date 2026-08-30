@@ -4,6 +4,7 @@ import { getSessionUser } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
+import { ButtonLink } from "@/components/ui/button-link";
 import { ProfileForm } from "@/components/account/profile-form";
 
 export async function generateMetadata({
@@ -31,6 +32,11 @@ export default async function AccountPage({
   return (
     <PageShell width="3xl">
       <PageHeading>{t("heading")}</PageHeading>
+      <div className="mb-6">
+        <ButtonLink href="/auditor" variant="outline" size="sm">
+          {t("viewHistory")}
+        </ButtonLink>
+      </div>
       <ProfileForm />
     </PageShell>
   );

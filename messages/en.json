@@ -21,6 +21,7 @@
     "auditor": "Auditor",
     "apiAccess": "API access",
     "account": "Account",
+    "myAssessments": "My assessments",
     "scanYourSite": "Assess your site",
     "signIn": "Sign in",
     "signOut": "Sign out",
@@ -833,6 +834,7 @@
   },
   "account": {
     "heading": "Account",
+    "viewHistory": "View your assessment history",
     "provisionTitle": "Enable AI review (recommended)",
     "provisionBody": "Add credits and we set up a secure AI key for you — no API key needed. Your card goes to Stripe; we store only the encrypted key.",
     "topupNote": "Add credits",
