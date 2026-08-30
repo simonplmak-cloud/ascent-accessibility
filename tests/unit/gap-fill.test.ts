@@ -75,7 +75,10 @@ describe("cannotTellReason", () => {
     expect(cannotTellReason("2.4.5", [])).toBe("engine-rule-pending");
   });
   it("classifies tool-judgeable (ai-detectable) SCs as not-judgeable-from-screenshot", () => {
-    expect(cannotTellReason("2.4.11", [])).toBe("not-judgeable-from-screenshot");
+    expect(cannotTellReason("1.4.5", [])).toBe("not-judgeable-from-screenshot");
+  });
+  it("classifies mixed machine+AI SCs (2.4.11) as engine-rule-pending", () => {
+    expect(cannotTellReason("2.4.11", [])).toBe("engine-rule-pending");
   });
   it("classifies gesture/state SCs as manual-only", () => {
     expect(cannotTellReason("2.5.1", [])).toBe("manual-only");

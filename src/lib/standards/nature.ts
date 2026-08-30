@@ -30,15 +30,15 @@ const AI: Record<string, AiModality> = {
   "1.2.3": "audio", "1.2.5": "audio", "1.2.6": "audio", "1.2.7": "audio",
   "1.3.2": "vision", "1.3.3": "vision", "1.3.6": "vision", "1.4.5": "vision",
   "1.4.7": "audio", "1.4.9": "vision", "1.4.13": "vision",
-  "2.3.3": "vision", "2.4.9": "vision", "2.4.11": "vision", "2.4.12": "vision", "2.4.13": "vision",
-  "3.1.3": "vision", "3.1.4": "vision", "3.1.5": "vision", "3.2.1": "vision", "3.2.2": "vision", "3.2.6": "vision",
+  "2.3.3": "vision", "2.4.9": "vision", "2.4.12": "vision", "2.4.13": "vision",
+  "3.1.3": "vision", "3.1.4": "vision", "3.1.5": "vision", "3.2.1": "vision", "3.2.2": "vision",
   "3.3.1": "vision", "3.3.3": "vision", "4.1.3": "vision",
 };
 
 const MANUAL: string[] = [
   "1.2.8", "1.4.8", "2.1.3", "2.1.4", "2.2.4", "2.2.5", "2.2.6",
   "2.3.1", "2.3.2", "2.5.1", "2.5.4", "2.5.6", "3.1.6",
-  "3.2.3", "3.2.4", "3.2.5", "3.3.4", "3.3.6", "3.3.8", "3.3.9",
+  "3.2.3", "3.2.4", "3.2.5", "3.3.4", "3.3.6", "3.3.9",
 ];
 
 export const NOT_APPLICABLE: string[] = ["1.2.4", "1.2.9"];
@@ -77,6 +77,18 @@ const MIXED: Record<string, Instruction[]> = {
   "4.1.2": [
     { id: "4.1.2.1", sc: "4.1.2", title: "controls have a name, role, value", nature: "machine-testable", method: { ruleId: "button-name" } },
     { id: "4.1.2.2", sc: "4.1.2", title: "name/role/value announced correctly", nature: "manual-only" },
+  ],
+  "2.4.11": [
+    { id: "2.4.11.1", sc: "2.4.11", title: "no fixed/sticky overlay obscures focus", nature: "machine-testable", method: { ruleId: "focus-not-obscured" } },
+    { id: "2.4.11.2", sc: "2.4.11", title: "focus is visually unobscured", nature: "ai-detectable", method: { aiModality: "vision" } },
+  ],
+  "3.2.6": [
+    { id: "3.2.6.1", sc: "3.2.6", title: "a help mechanism is present", nature: "machine-testable", method: { ruleId: "consistent-help" } },
+    { id: "3.2.6.2", sc: "3.2.6", title: "help placement is consistent", nature: "ai-detectable", method: { aiModality: "vision" } },
+  ],
+  "3.3.8": [
+    { id: "3.3.8.1", sc: "3.3.8", title: "no cognitive-only authentication test", nature: "machine-testable", method: { ruleId: "accessible-authentication" } },
+    { id: "3.3.8.2", sc: "3.3.8", title: "a non-cognitive alternative is offered", nature: "manual-only" },
   ],
 };
 

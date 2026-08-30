@@ -1,6 +1,6 @@
 # The Ascent Accessibility engine
 
-The assessment is powered by a **clean-room, in-house rules engine** — 55
+The assessment is powered by a **clean-room, in-house rules engine** — 58
 deterministic rules, each an independent, atomic accessibility assertion. There
 are no third-party accessibility engines (axe-core, IBM Equal Access, Lighthouse)
 in the scan path.
@@ -17,6 +17,7 @@ The rules live in `src/lib/engine/rules/`, grouped by WCAG principle:
 | [`interaction.md`](interaction.md) | Interaction/behavioral (keyboard, pointer) | 3 |
 | [`additional.md`](additional.md) | Extra deterministics (media, autocomplete, spacing) | 9 |
 | [`gap-fill.md`](gap-fill.md) | AAA + presence-based SCs | 8 |
+| [`wcag22.md`](wcag22.md) | WCAG 2.2 additions (focus, auth, help) | 3 |
 
 ## Rule anatomy
 
@@ -76,7 +77,7 @@ This is the core fail-safe: a wrong PASS is worse than an unresolved item, so
 "incomplete" (`CannotTell`) is the honest default and escalates to the
 AI-assisted / human-review tier.
 
-## Index of all 55 rules
+## Index of all 58 rules
 
 | Rule | SC | Level | Impact | Matcher |
 |---|---|---|---|---|
@@ -132,3 +133,6 @@ AI-assisted / human-review tier.
 | help | 3.3.5 | AAA | moderate | doc |
 | redundant-entry | 3.3.7 | AA | moderate | `form` |
 | no-timing | 2.2.3 | AAA | moderate | doc |
+| focus-not-obscured | 2.4.11 | AA | serious | doc |
+| consistent-help | 3.2.6 | A | moderate | doc |
+| accessible-authentication | 3.3.8 | AA | serious | doc |

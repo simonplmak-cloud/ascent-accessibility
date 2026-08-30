@@ -1,41 +1,52 @@
 # Before vs After — Feature & Performance Comparison
 
-Generated 2026-08-18. Compares the **previous** third-party stack (axe-core + IBM Equal Access + a derived "Lighthouse" score) against the **Ascent Accessibility engine** (clean-room in-house engine + site audit + AI review).
+Generated 2026-08-18; **refreshed 2026-08-30**. Compares the **previous**
+third-party stack (axe-core + IBM Equal Access + a derived "Lighthouse" score)
+against the **Ascent Accessibility engine** (clean-room in-house engine + site
+audit + AI review).
 
 ## Executive summary
 
-The new design **fully owns the scanner** and adds two net-new capabilities (AI triage, interaction checks), but has **not yet matched axe-core's rule coverage** — a deliberate, transitional gap. On the fixture used for the earlier comparative report the engine matched axe's detection (83% recall, more SCs mapped); the remaining gap is breadth: axe-core ships ~105 rules across 28 SCs, the engine ~40 checks across 22 SCs.
+The new design **fully owns the scanner** and adds net-new capabilities (AI
+triage, interaction checks). The engine has grown from 38 to **58 deterministic
+rules** across **43 machine-tested WCAG SCs** (plus site-audit + AI/human
+escalation), closing the A/AA rule-breadth gap against axe-core. Remaining gaps
+are deliberate: best-practice (non-WCAG) checks and a second-opinion engine.
 
 ---
 
-## 1. Rule & SC coverage (measured)
+## 1. Rule & SC coverage (current)
 
-| | axe-core (before) | Ascent Accessibility engine (after) |
+| | axe-core (before) | Ascent Accessibility engine (current) |
 |---|---|---|
-| Rules | **105** | **38** rules + 2 interaction checks (reflow, keyboard-trap) |
-| WCAG SCs machine-tested | **28** | **22** |
+| Rules | **105** | **58** rules + 2 interaction checks (reflow, keyboard-trap) |
+| WCAG SCs machine-tested | **28** | **43** |
 | Best-practice rules (no SC) | 32 | 0 |
-| SCs both flag | 14 | 14 |
-| SCs only this tool | 14 | 6 |
+| Section 508 | n/a | **maps to WCAG 2.0 A + AA** (2017 refresh reference) |
 
-> Correction to earlier statements in this workstream: axe-core 4.13 exposes **~105 rules**, not "400+". The gap is ~3×, not ~10×.
+> The engine's 43 machine SCs are derived from the actual rule set (`wcagSc`
+> per rule) plus the two interaction-scan SCs (1.4.10, 2.1.2).
 
-**SCs machine-tested by axe but NOT by the engine (the concrete "missed" list):**
+**A/AA SCs that axe machine-tests but the engine does not:** none. The nine
+previously-missed A/AA SCs are now implemented clean-room:
 
-| Level | Missed SCs | What it checks |
+| SC | Level | Rule |
 |---|---|---|
-| A | 1.2.1 | Audio/video-only has a transcript |
-| A | 1.4.1 | Colour not the only means of conveying info |
-| A | 1.4.2 | Auto-playing audio can be stopped/muted |
-| A | 2.2.2 | Moving/blinking/auto-updating content can be paused |
-| A | 2.5.3 | Visible label matches the accessible name |
-| AA | 1.3.4 | No fixed orientation lock |
-| AA | 1.3.5 | Input purpose identifiable (`autocomplete`) |
-| AA | 1.4.12 | Text spacing (line-height/letter/word/paragraph) not clipped |
-| AA | 3.1.2 | Passages in another language marked with `lang` |
-| AAA | 1.4.6, 2.1.3, 2.2.4, 2.4.9, 3.2.5 | Contrast enhanced, keyboard-no-exception, interruptions, link-only purpose, change-on-request |
+| 1.2.1 | A | `media-transcript` |
+| 1.4.1 | A | `use-of-color` |
+| 1.4.2 | A | `no-autoplay-audio` |
+| 2.2.2 | A | `pause-stop-hide` |
+| 2.5.3 | A | `label-in-name` |
+| 1.3.4 | AA | `orientation` |
+| 1.3.5 | AA | `autocomplete-valid` |
+| 1.4.12 | AA | `text-spacing` |
+| 3.1.2 | AA | `lang-of-parts` |
 
-**SCs the engine maps that axe leaves unmapped** (axe tags them `best-practice`): 1.4.11 non-text contrast, 2.4.3 tabindex, 2.4.6 empty headings, 2.4.7 focus-visible, 2.5.2 pointer cancellation, 2.5.7 dragging.
+WCAG 2.2 additions now machine-tested (2026-08-30): **2.4.11** Focus Not
+Obscured (`focus-not-obscured`), **3.3.8** Accessible Authentication
+(`accessible-authentication`), **3.2.6** Consistent Help (`consistent-help`).
+These are presence-based/conservative: pass on a clear signal or absence of the
+trigger, `incomplete` (→ Cannot tell / AI / human) otherwise.
 
 ---
 
@@ -43,19 +54,19 @@ The new design **fully owns the scanner** and adds two net-new capabilities (AI 
 
 | Capability | Before | After | Verdict |
 |---|---|---|---|
-| Accessibility rule engine | axe-core (~105 rules) | In-house clean-room engine (~40 checks) | ⚠️ Gap in breadth |
-| WCAG A/AA coverage | 28 SCs | 22 SCs | ⚠️ −6 SCs |
-| Best-practice (non-WCAG) checks | 32 (axe) | 0 | ⚠️ Dropped |
-| Second-opinion engine | IBM Equal Access (~170 rules, off by default) | — | ⚠️ Dropped |
-| Tiered verdicts (violation/potential/recommendation) | IBM | — (pass/fail/incomplete) | ⚠️ Lost nuance |
-| Multi-tool corroboration ("confirmed" confidence) | axe+IBM agree | — (all "single-source") | ⚠️ Lost |
-| Real Lighthouse (perf/SEO/BP/PWA) | ❌ (derived score only) | ✅ site-audit via browserless | ✅ Gained |
-| Performance/SEO/Best-Practices/PWA signals | ❌ | ✅ (appendix) | ✅ Gained |
-| Manual-test guidance (57 SCs) | ✅ `sc-manual-tests.ts` | ✅ unchanged | ✅ Parity |
-| Element + page screenshot evidence | ✅ (axe/IBM) | ✅ `captureEvidence` | ✅ Parity |
-| AI resolution of needs-review | ❌ | ✅ Qwen-VL triage (fail-safe, ≥0.8) | ✅ Net-new |
-| Interaction checks (reflow, keyboard trap) | ❌ (not in old flow) | ✅ `interactionScan` | ✅ Net-new |
-| Ownership / extensibility | ❌ upstream-controlled, MPL risk | ✅ clean-room, we own every rule | ✅ Core win |
+| Accessibility rule engine | axe-core (~105 rules) | In-house clean-room engine (58 rules) | ✅ Parity on A/AA SC breadth |
+| WCAG A/AA coverage | 28 SCs | 43 SCs | ✅ +15 SCs |
+| Section 508 | n/a | ✅ WCAG 2.0 A/AA mapping | ✅ Gained |
+| Best-practice (non-WCAG) checks | 32 (axe) | 0 | ⚠️ Dropped (not-now) |
+| Second-opinion engine | IBM Equal Access (~170 rules) | — (axe as dev/CI differential oracle) | ⚠️ Dropped |
+| Tiered verdicts (violation/potential/recommendation) | IBM | pass/fail/incomplete | ⚠️ Lost nuance |
+| Multi-tool corroboration | axe+IBM agree | — | ⚠️ Lost |
+| Real Lighthouse (perf/SEO/BP/PWA) | ❌ (derived score) | ✅ site-audit via browserless | ✅ Gained |
+| Manual-test guidance | ✅ `sc-manual-tests.ts` | ✅ unchanged | ✅ Parity |
+| Element + page screenshot evidence | ✅ | ✅ `captureEvidence` | ✅ Parity |
+| AI resolution of needs-review | ❌ | ✅ vision/audio triage (fail-safe ≥0.8) | ✅ Net-new |
+| Interaction checks (reflow, keyboard trap) | ❌ | ✅ `interactionScan` | ✅ Net-new |
+| Ownership / extensibility | ❌ upstream-controlled | ✅ clean-room | ✅ Core win |
 
 ---
 
@@ -63,36 +74,53 @@ The new design **fully owns the scanner** and adds two net-new capabilities (AI 
 
 | Path | Before | After |
 |---|---|---|
-| Page scan (rules only) | axe ~1–2 s (105 rules) | engine ~sub-second (38 rules) |
-| Accessibility "Lighthouse" score | derived, ~0 ms (re-weighted axe IDs) | real site-audit HTTP run, **10–30 s/page** |
-| Second opinion | IBM +30–60 s (off by default) | removed |
+| Page scan (rules only) | axe ~1–2 s | engine ~sub-second |
+| Site-audit (perf/SEO/BP/PWA) | derived ~0 ms | real run **10–30 s/page** (on by default) |
+| Second opinion | IBM +30–60 s | removed |
 | Interaction (reflow/keyboard) | n/a | ~2–5 s/page |
-| Default per-page cost | **~1–2 s** | **~12–35 s** (site-audit is on by default) |
+| Default per-page cost | ~1–2 s | ~12–35 s (site-audit on by default) |
 
-⚠️ The new default is slower per page **only because real Lighthouse is now on by default** (the old "Lighthouse" score was a free re-weighting of axe IDs, not a real run). If parity of latency matters more than real perf/SEO data, gate `SITE_AUDIT` off or make it opt-in.
+Site-audit latency is configurable via `SITE_AUDIT_TIMEOUT_MS`; disable/opt-in if
+per-page latency is the priority.
 
 ---
 
-## 4. What has been missed (the answer)
+## 4. What has been missed (the answer, current)
 
-1. **Rule breadth — the largest gap.** 14 WCAG SCs that axe machine-tests are not yet covered by the engine (9 are A/AA and should be prioritised): 1.2.1, 1.4.1, 1.4.2, 2.2.2, 2.5.3 (A) and 1.3.4, 1.3.5, 1.4.12, 3.1.2 (AA). These are mostly static/computed-style and implementable clean-room.
-2. **Best-practice (non-WCAG) rules.** axe's 32 best-practice checks (landmark-one-main, duplicate-id-aria, aria-allowed-role, etc.) were dropped. The engine maps a few to SCs but does not cover the rest.
-3. **IBM Equal Access.** Its independent rule set, its `potentialviolation`/`recommendation` tiers, and its corroboration signal (which upgraded findings to "confirmed") are gone. The AI triage partially compensates for judgment, but the machine-level second opinion is not replaced.
-4. **Impact-mapping drift.** axe rates `image-alt`, `button-name`, `label` as `critical`; the engine uses `serious`. Same issue → a higher score (critical −10 vs serious −5). This inflates scores relative to the old tool.
-5. **Incomplete/cantTell breadth.** axe flags many more "cannot determine" cases (feeding manual review); the engine's `incomplete` is limited to contrast and focus-visible inspection.
+1. **Best-practice (non-WCAG) rules.** axe's 32 best-practice checks
+   (landmark-one-main, duplicate-id-aria, aria-allowed-role, …) are not covered.
+   The engine maps a few to SCs but has no non-WCAG rule set.
+2. **Second-opinion / corroboration signal.** IBM Equal Access is gone; the
+   differential harness (`tests/differential/parity.ts`) runs axe only as a
+   dev/CI oracle, not a runtime second opinion. AI triage partially compensates
+   for judgement but does not replace a machine-level second opinion.
+3. **AAA-only SCs.** 2.4.12/2.4.13 (Focus Not Obscured Enhanced / Focus
+   Appearance) remain AI/vision or human; 2.1.3, 2.2.4, 2.2.5, 2.3.2, 2.5.1,
+   2.5.4, 2.5.6, 3.1.6, 3.2.3–3.2.5, 3.3.4, 3.3.6, 3.3.9 remain manual.
+4. **Incomplete/cantTell breadth.** The engine's `incomplete` set is conservative
+   (contrast, focus-visible, and the presence-based SCs); axe flags more
+   "cannot determine" cases. Acceptable given the AI/human escalation path.
+
+Resolved since the original report: impact mapping is now aligned (image-alt,
+button-name, label are `critical`, matching axe); Section 508 is functional.
+
+---
 
 ## 5. What the new design gained
 
-- **Clean-room ownership** — every rule is ours to extend, correct, and explain; no MPL-2.0 entanglements.
-- **Real site audit** — actual performance/SEO/best-practices/PWA data (the old "Lighthouse" score was fabricated from axe IDs).
-- **AI-assisted review** — resolves machine-untestable SCs with a hard fail-safe (default `needs-review`, promote only at confidence ≥ 0.8). This raises effective coverage beyond any deterministic engine.
-- **Interaction checks** — reflow (1.4.10) and keyboard-trap (2.1.2) driven directly in the browser.
+- **Clean-room ownership** — every rule is ours to extend, correct, and explain.
+- **Real site audit** — actual performance/SEO/best-practices/PWA data.
+- **AI-assisted review** — resolves machine-untestable SCs with a hard fail-safe
+  (default `needs-review`, promote only at confidence ≥ 0.8).
+- **Interaction checks** — reflow (1.4.10) and keyboard-trap (2.1.2) in-browser.
+- **Section 508** — selectable standard that actually runs WCAG 2.0 A/AA rules.
 
 ---
 
-## 6. Recommendations (to close the gap)
+## 6. Recommendations (to close the remaining gap)
 
-1. Implement the 9 missing A/AA SCs (order: 2.5.3 label-in-name, 1.4.1 use-of-color, 1.3.5 autocomplete, 1.4.12 text-spacing, 3.1.2 lang-of-parts, 1.3.4 orientation, 2.2.2 pause/stop/hide, 1.4.2 audio control, 1.2.1 transcript).
-2. Re-align impact mapping for name/alt/label rules to `critical` to match the old tool's severity (or document the intentional change).
-3. Decide whether to reintroduce a second-opinion signal — the cleanest path is the differential harness running axe as a **dev/CI oracle** (already scaffolded in `tests/differential/parity.ts`), not a runtime dependency.
-4. Make site-audit latency configurable (already possible via `SITE_AUDIT_TIMEOUT_MS`; consider an off switch if per-page latency is the priority).
+1. Add a best-practice (non-WCAG) rule set for the highest-value axe checks
+   (landmark-one-main, aria-allowed-role, duplicate-id-aria).
+2. Consider a runtime second-opinion signal, or keep axe strictly as a dev/CI
+   differential oracle (documented decision).
+3. Make site-audit opt-in/off-switch if per-page latency is the priority.

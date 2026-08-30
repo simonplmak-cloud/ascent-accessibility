@@ -40,7 +40,7 @@ export default async function AssessPage({
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16">
+    <div className="mx-auto max-w-4xl px-4 py-10">
       <h1 className="font-display text-3xl font-bold text-terminal-fg">{t("heading")}</h1>
       <p className="mt-2 font-sans leading-7 text-terminal-muted">{t("intro")}</p>
       <div className="mt-3">
