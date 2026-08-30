@@ -6,7 +6,7 @@ import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 import { MutedText } from "@/components/ui/text";
 import { InlineLink } from "@/components/ui/inline-link";
 import { StandardsView, type StandardTree } from "@/components/standards/standards-view";
-import { DEFAULT_STANDARD_ID, listStandards, type Standard } from "@/lib/standards/catalog";
+import { DEFAULT_STANDARD_ID, listStandards, wcagReference, type Standard } from "@/lib/standards/catalog";
 import { scsForStandard } from "@/lib/standards/version";
 import { understandingFor, understandingHref } from "@/lib/standards/understanding";
 import {
@@ -35,9 +35,9 @@ export async function generateMetadata({
 }
 
 function scsFor(standard: Standard): WcagSc[] {
-  // Section 508 maps to WCAG 2.0 AA.
-  if (standard.version === "508") return scsForStandard("2.0", "AA");
-  return scsForStandard(standard.version, standard.level ?? "AA");
+  // Section 508 maps to WCAG 2.0 AA (see wcagReference).
+  const ref = wcagReference(standard);
+  return scsForStandard(ref.version, ref.level);
 }
 
 function buildTree(standard: Standard, locale: string): StandardTree {

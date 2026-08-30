@@ -15,7 +15,7 @@ import {
   mergeFeatures,
   type PageFeatures,
 } from "@/lib/standards/sc-applicability";
-import type { Standard } from "@/lib/standards/catalog";
+import { wcagReference, type Standard } from "@/lib/standards/catalog";
 import type { AiBudget, AiReview, VisionModel, VisionReviewTools } from "@/lib/ai-review/types";
 import { toolImplByName } from "@/lib/ai-review/tools";
 import type { AudioModel } from "@/lib/ai-review/audio";
@@ -241,8 +241,8 @@ export async function runAssessment(
 
     const evaluated = await evaluateStandard(
       {
-        version: standard.version,
-        level: standard.level ?? "AA",
+        version: wcagReference(standard).version,
+        level: wcagReference(standard).level,
         findings: output.findings,
         passedScs: output.passedScs,
         matchedScs: output.matchedScs,

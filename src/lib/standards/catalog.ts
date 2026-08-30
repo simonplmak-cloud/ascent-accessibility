@@ -18,21 +18,21 @@ export const STANDARDS: Standard[] = [
     name: "WCAG 2.2 AA",
     version: "2.2",
     level: "AA",
-    tags: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"],
+    tags: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"],
   },
   {
     id: "wcag22a",
     name: "WCAG 2.2 A",
     version: "2.2",
     level: "A",
-    tags: ["wcag2a", "wcag21a"],
+    tags: ["wcag2a", "wcag21a", "wcag22a"],
   },
   {
     id: "wcag22aaa",
     name: "WCAG 2.2 AAA",
     version: "2.2",
     level: "AAA",
-    tags: ["wcag2a", "wcag2aa", "wcag2aaa", "wcag21a", "wcag21aa", "wcag22aa"],
+    tags: ["wcag2a", "wcag2aa", "wcag2aaa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"],
   },
   {
     id: "wcag21aa",
@@ -81,7 +81,9 @@ export const STANDARDS: Standard[] = [
     name: "Section 508",
     version: "508",
     level: null,
-    tags: ["section508"],
+    // Section 508 (2017 refresh, 36 CFR 1194) incorporates WCAG 2.0 A + AA by
+    // reference, so the rule-selection tags are the WCAG 2.0 A/AA set.
+    tags: ["wcag2a", "wcag2aa"],
   },
 ];
 
@@ -103,4 +105,13 @@ export function getDefaultStandard(): Standard {
     throw new Error(`Default standard "${DEFAULT_STANDARD_ID}" is missing from the catalog`);
   }
   return standard;
+}
+
+// The WCAG version/level a standard evaluates against. Section 508 (2017
+// refresh) maps to WCAG 2.0 AA; everything else uses its own version/level.
+// Used by both the conformance evaluator and the standards tree so the mapping
+// lives in one place.
+export function wcagReference(standard: Standard): { version: string; level: WcagLevel } {
+  if (standard.id === "section508") return { version: "2.0", level: "AA" };
+  return { version: standard.version, level: standard.level ?? "AA" };
 }

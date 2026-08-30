@@ -39,16 +39,16 @@ describe("StandardsCatalog", () => {
   });
 
   it.each<[string, string[]]>([
-    ["wcag22aa", ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]],
-    ["wcag22a", ["wcag2a", "wcag21a"]],
+    ["wcag22aa", ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"]],
+    ["wcag22a", ["wcag2a", "wcag21a", "wcag22a"]],
     [
       "wcag22aaa",
-      ["wcag2a", "wcag2aa", "wcag2aaa", "wcag21a", "wcag21aa", "wcag22aa"],
+      ["wcag2a", "wcag2aa", "wcag2aaa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"],
     ],
     ["wcag21aa", ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]],
     ["wcag21a", ["wcag2a", "wcag21a"]],
     ["wcag20aa", ["wcag2a", "wcag2aa"]],
-    ["section508", ["section508"]],
+    ["section508", ["wcag2a", "wcag2aa"]],
   ])("maps %s to the correct rule tags", (id, expectedTags) => {
     const standard = getStandard(id);
     expect(standard).toBeDefined();
