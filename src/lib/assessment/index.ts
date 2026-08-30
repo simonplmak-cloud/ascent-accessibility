@@ -340,7 +340,7 @@ export async function runAssessment(
 // hung operation is actually torn down.
 const PAGE_TIMEOUT_MS = Number(process.env.WORKER_PAGE_TIMEOUT_MS ?? 180_000);
 
-class PageTimeoutError extends Error {
+export class PageTimeoutError extends Error {
   constructor(label: string, ms: number) {
     super(`${label} timed out after ${ms}ms`);
     this.name = "PageTimeoutError";
@@ -369,6 +369,32 @@ async function withTimeout<T>(
 function scsOf(item: { wcagSc?: string[]; tags?: string[] }): string[] {
   const source = item.wcagSc && item.wcagSc.length > 0 ? item.wcagSc : scsForTags(item.tags ?? []);
   return source.filter(isValidSc);
+}
+
+// Map a scan failure to a concise, user-facing reason. `ScanFailedError` wraps
+// the HTTP status ("HTTP 403") or the navigation error; classify the common
+// bot-protection / rate-limit / server-error signatures so the live log reads
+// as a clear diagnosis instead of a bare "failed to load".
+export function describeScanFailure(error: unknown): string {
+  if (error instanceof PageTimeoutError) return "timed out";
+  if (error instanceof ScanFailedError) {
+    const message = error.message;
+    const http = message.match(/HTTP (\d{3})/);
+    if (http) {
+      const code = http[1]!;
+      if (code === "403") return "blocked (HTTP 403 — bot/WAF protection)";
+      if (code === "429") return "rate limited (HTTP 429)";
+      if (code === "404" || code === "410") return `not found (HTTP ${code})`;
+      if (code === "500" || code === "502" || code === "503" || code === "504") {
+        return `server error (HTTP ${code})`;
+      }
+      return `HTTP ${code}`;
+    }
+    const netErr = message.match(/net::(ERR_[A-Z_]+)/);
+    if (netErr) return `network error (${netErr[1]})`;
+    return "load failed";
+  }
+  return error instanceof Error ? error.message : String(error);
 }
 
 async function scanAndConsolidate(
@@ -543,14 +569,9 @@ async function scanAndConsolidate(
             // A single bad page (browser crash, scan timeout, or load failure)
             // must not fail the whole assessment — restart the browser and
             // continue with the next page.
-            const reason =
-              error instanceof PageTimeoutError
-                ? "timed out"
-                : error instanceof ScanFailedError
-                  ? "failed to load"
-                  : `errored (${error instanceof Error ? error.message : String(error)})`;
+            const reason = describeScanFailure(error);
             log("warn", `page scan ${reason} — restarting browser: ${url}`);
-            pages.push({ url, title: "", status: "failed", scanTimeMs: Date.now() - startedAt });
+            pages.push({ url, title: "", status: "failed", scanTimeMs: Date.now() - startedAt, error: reason });
             try {
               await scanner.discard();
             } catch {

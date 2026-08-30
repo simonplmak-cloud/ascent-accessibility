@@ -165,12 +165,19 @@ function discoverChildren(
   return result;
 }
 
+// A realistic browser UA by default: a self-declared bot UA ("Scanner/1.0") is
+// a trivial block trigger for WAFs/bot protection. Override via CRAWL_USER_AGENT
+// if you prefer to advertise the scanner's identity.
+const DEFAULT_USER_AGENT =
+  process.env.CRAWL_USER_AGENT ??
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+
 const defaultDeps: CrawlerDeps = {
   async fetchHtml(url) {
     const res = await fetch(url, {
       redirect: "follow",
       signal: AbortSignal.timeout(30_000),
-      headers: { "user-agent": "APF-AccessibilityScanner/1.0" },
+      headers: { "user-agent": DEFAULT_USER_AGENT },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.text();
@@ -178,6 +185,7 @@ const defaultDeps: CrawlerDeps = {
   async fetchRobots(origin) {
     const res = await fetch(`${origin}/robots.txt`, {
       signal: AbortSignal.timeout(30_000),
+      headers: { "user-agent": DEFAULT_USER_AGENT },
     });
     if (!res.ok) return null;
     return res.text();
@@ -195,7 +203,7 @@ export async function crawl(
   const maxDepth = options.maxDepth ?? 3;
   const maxPages = options.maxPages ?? 100;
   const delayMs = options.politenessDelayMs ?? Number(process.env.CRAWL_DELAY_MS ?? 200);
-  const userAgent = options.userAgent ?? "APF-AccessibilityScanner/1.0";
+  const userAgent = options.userAgent ?? DEFAULT_USER_AGENT;
 
   const origin = new URL(seed.origin);
   const log: string[] = [];

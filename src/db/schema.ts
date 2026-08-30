@@ -49,6 +49,7 @@ export interface ScannedPage {
   title: string;
   status: "scanned" | "failed" | "skipped";
   scanTimeMs: number;
+  error?: string;
 }
 
 export interface Assessment {

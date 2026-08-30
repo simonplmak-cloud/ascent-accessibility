@@ -19,6 +19,21 @@ export interface PageScanner {
   discard: () => Promise<void>;
 }
 
+// Mask the most obvious automation signals. Injected via addInitScript (CDP
+// level), so it runs before any page script — the exact thing Cloudflare-style
+// challenges probe. The engine injection rides along the same channel.
+const STEALTH_SOURCE = `
+Object.defineProperty(navigator, "webdriver", { get: () => undefined });
+Object.defineProperty(navigator, "languages", { get: () => ["en-US", "en"] });
+Object.defineProperty(navigator, "plugins", { get: () => [1, 2, 3, 4, 5] });
+window.chrome = window.chrome || { runtime: {} };
+`;
+
+// A realistic browser UA for the page context (override via SCAN_USER_AGENT).
+const BROWSER_USER_AGENT =
+  process.env.SCAN_USER_AGENT ??
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+
 async function launchBrowser(): Promise<Browser> {
   const token = process.env.BROWSERLESS_TOKEN;
   if (token) {
@@ -35,6 +50,9 @@ async function launchBrowser(): Promise<Browser> {
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
       "--disable-gpu",
+      "--disable-blink-features=AutomationControlled",
+      "--no-first-run",
+      "--no-default-browser-check",
       "--js-flags=--max-old-space-size=512",
     ],
   });
@@ -107,11 +125,12 @@ export async function warmBrowserPool(): Promise<void> {
 
 export async function createPageScanner(): Promise<PageScanner> {
   const browser = await acquireBrowser();
-  const context = await browser.newContext();
+  const context = await browser.newContext({ userAgent: BROWSER_USER_AGENT });
   const page = await context.newPage();
   // Inject the Ascent Accessibility engine before navigation (addInitScript runs via
   // CDP and is not blocked by the target page's Content-Security-Policy).
   await page.addInitScript({ content: buildEngineSource(ALL_RULES) });
+  await page.addInitScript({ content: STEALTH_SOURCE });
   const scannerPage = asScannerPage(page);
   let disposed = false;
 
