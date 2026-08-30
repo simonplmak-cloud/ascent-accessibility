@@ -36,7 +36,7 @@
     "db:migrate:auth-unification": "tsx src/db/migrate-auth-unification.ts",
     "db:set-reviewer": "tsx src/db/set-reviewer.ts",
     "worker": "tsx src/worker/index.ts",
-    "worker:build": "esbuild src/worker/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/worker.js --tsconfig=tsconfig.json --packages=external"
+    "worker:build": "esbuild src/worker/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/worker.js --tsconfig=tsconfig.json --jsx=automatic --packages=external"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.8.1",

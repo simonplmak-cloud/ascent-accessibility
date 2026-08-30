@@ -27,7 +27,9 @@ export type { SeverityCounts, SeverityGroup, AffectedSc } from "./report-data";
 
 async function fetchLogo(): Promise<Buffer | null> {
   try {
-    const res = await fetch(`${getSiteUrl()}${BRANDING.logoUrl}`);
+    const res = await fetch(`${getSiteUrl()}${BRANDING.logoUrl}`, {
+      signal: AbortSignal.timeout(5000),
+    });
     if (!res.ok) return null;
     return Buffer.from(await res.arrayBuffer());
   } catch {
