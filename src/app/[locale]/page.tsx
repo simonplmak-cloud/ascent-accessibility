@@ -72,7 +72,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-16">
+    <div className="mx-auto max-w-5xl px-4 py-10">
       {/* 1 · Hero */}
       <section className="max-w-2xl">
         <h1 className="font-display text-4xl font-bold tracking-tight text-terminal-fg">
@@ -110,7 +110,7 @@ export default async function Home() {
       </section>
 
       {/* 2 · The difference */}
-      <section className="mt-20" aria-labelledby="difference">
+      <section className="mt-14" aria-labelledby="difference">
         <h2 id="difference" className="font-display text-2xl font-semibold text-terminal-fg">
           {t("differenceTitle")}
         </h2>
@@ -120,7 +120,7 @@ export default async function Home() {
       </section>
 
       {/* 3 · How it works */}
-      <section className="mt-20" aria-labelledby="how">
+      <section className="mt-14" aria-labelledby="how">
         <h2 id="how" className="font-display text-2xl font-semibold text-terminal-fg">
           {t("howTitle")}
         </h2>
@@ -138,7 +138,7 @@ export default async function Home() {
       </section>
 
       {/* 4 · Sample report */}
-      <section id="sample-report" className="mt-20 scroll-mt-24" aria-labelledby="sample">
+      <section id="sample-report" className="mt-14 scroll-mt-24" aria-labelledby="sample">
         <h2 id="sample" className="font-display text-2xl font-semibold text-terminal-fg">
           {t("sampleTitle")}
         </h2>
@@ -170,7 +170,7 @@ export default async function Home() {
       </section>
 
       {/* 5 · Who it's for */}
-      <section className="mt-20" aria-labelledby="who">
+      <section className="mt-14" aria-labelledby="who">
         <h2 id="who" className="font-display text-2xl font-semibold text-terminal-fg">
           {t("whoTitle")}
         </h2>
@@ -192,7 +192,7 @@ export default async function Home() {
       </section>
 
       {/* 6 · What you get */}
-      <section className="mt-20" aria-labelledby="outcomes">
+      <section className="mt-14" aria-labelledby="outcomes">
         <h2 id="outcomes" className="font-display text-2xl font-semibold text-terminal-fg">
           {t("outcomesTitle")}
         </h2>
@@ -209,7 +209,7 @@ export default async function Home() {
       </section>
 
       {/* 7 · Why you can trust it */}
-      <section className="mt-20" aria-labelledby="trust">
+      <section className="mt-14" aria-labelledby="trust">
         <h2 id="trust" className="font-display text-2xl font-semibold text-terminal-fg">
           {t("trustTitle")}
         </h2>
@@ -224,7 +224,7 @@ export default async function Home() {
       </section>
 
       {/* 8 · From our founder */}
-      <section className="mt-20 rounded border border-terminal-border bg-terminal-surface/40 p-6" aria-labelledby="founder">
+      <section className="mt-14 rounded border border-terminal-border bg-terminal-surface/40 p-6" aria-labelledby="founder">
         <h2 id="founder" className="font-display text-2xl font-semibold text-terminal-fg">
           {t("founderTitle")}
         </h2>
@@ -248,7 +248,7 @@ export default async function Home() {
       </section>
 
       {/* 9 · Trust strip + closing CTA */}
-      <section className="mt-20 border-t border-terminal-border pt-10" aria-labelledby="learn-more">
+      <section className="mt-14 border-t border-terminal-border pt-10" aria-labelledby="learn-more">
         <h2 id="learn-more" className="sr-only">
           {t("learnMoreStart")}
         </h2>
