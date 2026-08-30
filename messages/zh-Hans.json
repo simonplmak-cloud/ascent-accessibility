@@ -1091,7 +1091,9 @@
     "signalSeo": "SEO",
     "signalBestPractices": "最佳实践",
     "signalPwa": "PWA",
-    "logTruncated": "显示最后 {count} 条日志。"
+    "logTruncated": "显示最后 {count} 条日志。",
+    "findingsTruncated": "显示前 {shown} / {total} 个问题（完整列表见在线报告）。",
+    "instancesTruncated": "… 及另外 {count} 个实例。"
   },
   "acr": {
     "title": "无障碍合规报告 (ACR)",

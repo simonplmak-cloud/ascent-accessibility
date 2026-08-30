@@ -1103,7 +1103,9 @@
     "signalSeo": "SEO",
     "signalBestPractices": "Best practices",
     "signalPwa": "PWA",
-    "logTruncated": "Showing the last {count} log entries."
+    "logTruncated": "Showing the last {count} log entries.",
+    "findingsTruncated": "Showing the top {shown} of {total} findings (full list in the online report).",
+    "instancesTruncated": "… and {count} more instances."
   },
   "acr": {
     "title": "Accessibility Conformance Report (ACR)",

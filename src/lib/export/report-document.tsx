@@ -25,7 +25,6 @@ import {
   outcomeColor,
   severityColor,
   severityCounts,
-  severityRank,
   topIssues,
   SEVERITY_ORDER,
   type SeverityCounts,
@@ -168,6 +167,13 @@ function Row({ label, children }: { label?: string; children: ReactNode }) {
 
 const LOG_LIMIT = 200;
 
+// Bound the PDF: a large scan can produce hundreds of findings and thousands of
+// instances, which makes react-pdf's synchronous layout spin for minutes (and
+// blocks the event loop, so even a render timeout can't fire). Render only the
+// most-severe findings (and a few instances each); the full list is on-screen.
+const MAX_REPORT_FINDINGS = 50;
+const MAX_INSTANCES_PER_FINDING = 5;
+
 export function AccessibilityReportDocument({
   report,
   logo,
@@ -180,12 +186,14 @@ export function AccessibilityReportDocument({
   const { t, tAcr, tBeta, locale } = strings;
   const counts = severityCounts(report.findings);
   const bandColor = outcomeColor(report.outcome);
-  const grouped = groupFindingsBySeverity(report.findings);
+  const renderedFindings = topIssues(report.findings, MAX_REPORT_FINDINGS);
+  const grouped = groupFindingsBySeverity(renderedFindings);
   const top = topIssues(report.findings, 5);
   const affected = affectedSuccessCriteria(report.findings);
   const conformance = report.comparison?.conformance;
   const comparison = report.comparison;
   const totalFindings = report.findings.length;
+  const truncatedFindings = totalFindings - renderedFindings.length;
 
   const methodRows = conformance?.rows ?? [];
   const machine = machineResults(methodRows);
@@ -515,6 +523,9 @@ export function AccessibilityReportDocument({
 
         <View id="findings" style={styles.section}>
           <Text style={styles.h2}>{t("sectionFindings")}</Text>
+          {truncatedFindings > 0 ? (
+            <Text style={styles.muted}>{t("findingsTruncated", { shown: renderedFindings.length, total: totalFindings })}</Text>
+          ) : null}
           {totalFindings === 0 ? (
             <Text style={styles.empty}>{t("noViolations")}</Text>
           ) : (
@@ -536,9 +547,7 @@ export function AccessibilityReportDocument({
           {totalFindings === 0 ? (
             <Text style={styles.empty}>{t("noRemediation")}</Text>
           ) : (
-            [...report.findings]
-              .sort((a, b) => severityRank(a.impact) - severityRank(b.impact))
-              .map((f, i) => (
+            renderedFindings.map((f, i) => (
                 <Text key={i} style={{ marginTop: 3 }}>
                   <Text style={{ fontWeight: 700 }}>{(f.wcagSc ?? []).join(" ") || f.ruleId}</Text> — {f.recommendation} <Text style={styles.muted}>({f.pageUrl})</Text>
                 </Text>
@@ -697,7 +706,9 @@ function FindingBlock({
 }) {
   const { t } = strings;
   const sc = finding.wcagSc?.[0];
-  const instances = finding.instances ?? [];
+  const allInstances = finding.instances ?? [];
+  const instances = allInstances.slice(0, MAX_INSTANCES_PER_FINDING);
+  const hiddenInstances = allInstances.length - instances.length;
   return (
     <View style={{ marginTop: 6, borderTopWidth: 1, borderTopColor: "#e5e7eb", paddingTop: 6 }}>
       <Text>
@@ -727,6 +738,9 @@ function FindingBlock({
           </View>
         );
       })}
+      {hiddenInstances > 0 ? (
+        <Text style={styles.muted}>{t("instancesTruncated", { count: hiddenInstances })}</Text>
+      ) : null}
       <Text style={{ marginTop: 4 }}>
         <Text style={{ color: "#8a3b00" }}>{t("fixLabel")} </Text>
         {finding.recommendation}
