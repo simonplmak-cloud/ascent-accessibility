@@ -7,7 +7,10 @@ const pages = [
   { path: "/", name: "landing" },
   { path: "/about", name: "about" },
   { path: "/standards", name: "standards" },
-  { path: "/methodology", name: "methodology" },
+  { path: "/guides", name: "guides" },
+  { path: "/learn", name: "learn" },
+  { path: "/legal", name: "legal" },
+  { path: "/who-we-serve", name: "who-we-serve" },
 ];
 
 function contrastScript() {
