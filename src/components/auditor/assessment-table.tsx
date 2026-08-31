@@ -251,7 +251,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
                   <td className="max-w-[260px] truncate px-3 py-2 text-terminal-fg" title={item.url}>
                     {item.url}
                   </td>
-                  <td className="px-3 py-2 text-terminal-muted">{item.standardLabel ?? standardName(item.standard, locale)}</td>
+                  <td className="px-3 py-2 text-terminal-muted">{standardName(item.standard, locale)}</td>
                   <td className="px-3 py-2">
                     <span className={statusClass(item.status)}>{statusLabel(item.status, t)}</span>
                   </td>

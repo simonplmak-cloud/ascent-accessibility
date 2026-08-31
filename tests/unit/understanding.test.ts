@@ -45,7 +45,7 @@ describe("standardName", () => {
   it("uses the English term in parentheses", () => {
     expect(standardName("wcag22aa", "zh-Hans")).toBe("网页内容无障碍指南 2.2 AA（WCAG 2.2 AA）");
     expect(standardName("section508", "zh-Hans")).toContain("Section 508");
-    expect(standardName("wcag22aa", "en")).toBe("wcag22aa");
+    expect(standardName("wcag22aa", "en")).toBe("WCAG 2.2 AA");
   });
 });
 

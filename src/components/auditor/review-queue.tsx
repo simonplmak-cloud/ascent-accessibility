@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { standardName } from "@/lib/standards/standards-locales";
 import { MasterDetail, type MasterDetailItem } from "@/components/efficiency/master-detail";
 import { StateBlock } from "@/components/ui/state-block";
 import { HUMAN_DECISION_CATEGORIES, humanDecisionFor } from "@/lib/standards/human-decision";
@@ -35,6 +36,7 @@ const MAX_VISIBLE = 20;
 
 export function ReviewQueue() {
   const t = useTranslations("reviewQueue");
+  const locale = useLocale();
   const [items, setItems] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<ConformanceRow[]>([]);
@@ -211,7 +213,7 @@ export function ReviewQueue() {
             >
               {item.url}
             </Link>
-            <p className="font-sans text-xs text-terminal-muted">{item.standard}</p>
+            <p className="font-sans text-xs text-terminal-muted">{standardName(item.standard, locale)}</p>
           </div>
           <div className="flex items-center gap-3">
             {item.status === "completed" && (
