@@ -126,7 +126,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                 <Link
                   href={child.href}
                   onClick={() => setDropdown(null)}
-                  className="block rounded px-3 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-bg"
+                  className="block min-h-11 rounded px-3 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-bg"
                 >
                   {t(child.label)}
                 </Link>
@@ -264,7 +264,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                       <Link
                         href={child.href}
                         onClick={() => setMobileOpen(false)}
-                        className="block px-2 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
+                        className="block min-h-11 px-2 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
                       >
                         {t(child.label)}
                       </Link>
@@ -286,7 +286,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                     <Link
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
-                      className="block px-4 py-3 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
+                      className="block min-h-11 px-4 py-3 font-sans text-sm text-terminal-fg hover:bg-terminal-surface"
                     >
                       {t(item.label)}
                     </Link>
@@ -300,7 +300,7 @@ export function SiteHeader({ authState }: { authState: HeaderAuthState }) {
                       void signOut();
                     }}
                     disabled={signingOut}
-                    className="block w-full rounded border border-terminal-border px-4 py-2 text-center font-sans text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
+                    className="block min-h-11 w-full rounded border border-terminal-border px-4 py-2 text-center font-sans text-sm text-terminal-fg hover:bg-terminal-surface disabled:opacity-50"
                   >
                     {signingOut ? `${t("signOut")}…` : t("signOut")}
                   </button>

@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { LegalNote } from "@/components/legal/legal-note";
+import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 
 export async function generateMetadata({
   params,
@@ -29,6 +30,8 @@ export default async function RefundPage() {
 
   return (
     <PageShell>
+      <PageBreadcrumbs path="/refund" title={t("heading")} />
+
       <PageHeading>{t("heading")}</PageHeading>
 
       <Section title={t("cancelTitle")}>

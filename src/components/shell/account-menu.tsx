@@ -95,7 +95,7 @@ export function AccountMenu({
                     <Link
                       href={item.href}
                       onClick={() => setOpen(false)}
-                      className="block rounded px-2 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-bg"
+                      className="block rounded px-2 py-2 min-h-11 font-sans text-sm text-terminal-fg hover:bg-terminal-bg"
                     >
                       {tnav(item.label)}
                     </Link>
@@ -107,7 +107,7 @@ export function AccountMenu({
             <Link
               href="/sign-in"
               onClick={() => setOpen(false)}
-              className="block rounded px-2 py-2 font-sans text-sm text-terminal-fg hover:bg-terminal-bg"
+              className="block rounded px-2 py-2 min-h-11 font-sans text-sm text-terminal-fg hover:bg-terminal-bg"
             >
               {tnav("signIn")}
             </Link>
@@ -130,7 +130,7 @@ export function AccountMenu({
                   onSignOut();
                 }}
                 disabled={signingOut}
-                className="block w-full rounded px-2 py-2 text-left font-sans text-sm text-terminal-fg hover:bg-terminal-bg disabled:opacity-50"
+                className="block min-h-11 w-full rounded px-2 py-2 text-left font-sans text-sm text-terminal-fg hover:bg-terminal-bg disabled:opacity-50"
               >
                 {signingOut ? t("signingOut") : t("signOut")}
               </button>

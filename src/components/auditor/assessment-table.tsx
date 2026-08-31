@@ -167,7 +167,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as HistoryStatusFilter)}
-            className="rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-sans text-sm text-terminal-fg"
+            className="min-h-11 rounded border border-terminal-border bg-terminal-surface px-2 py-1 font-sans text-sm text-terminal-fg"
           >
             <option value="all">{t("allStatuses")}</option>
             <option value="queued">{t("statusQueued")}</option>

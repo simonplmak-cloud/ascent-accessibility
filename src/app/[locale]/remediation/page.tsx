@@ -5,6 +5,7 @@ import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
 import { WCAG_SCS, principleName, scTitle } from "@/lib/standards/wcag-sc";
 import { getScRemediation } from "@/lib/standards/sc-remediation";
+import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 
 export async function generateMetadata({
   params,
@@ -29,6 +30,8 @@ export default async function RemediationPage({
 
   return (
     <PageShell width="4xl">
+      <PageBreadcrumbs path="/remediation" title={t("heading")} />
+
       <PageHeading>{t("heading")}</PageHeading>
       <MutedText className="mt-4">{t("intro")}</MutedText>
 

@@ -160,7 +160,7 @@ export function AssessmentForm({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com"
-            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-terminal-fg placeholder:text-terminal-muted"
+            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 min-h-11 font-sans text-terminal-fg placeholder:text-terminal-muted"
           />
         </div>
         <div>
@@ -171,7 +171,7 @@ export function AssessmentForm({
             id="standard"
             value={standard}
             onChange={(e) => setStandard(e.target.value)}
-            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-terminal-fg"
+            className="mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 min-h-11 font-sans text-terminal-fg"
           >
             {standards.map((s) => (
               <option key={s.id} value={s.id}>

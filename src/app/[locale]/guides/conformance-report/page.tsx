@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { MutedText } from "@/components/ui/text";
 import { ButtonLink } from "@/components/ui/button-link";
 import { FaqJsonLd } from "@/components/seo/faq-json-ld";
+import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 
 export async function generateMetadata({
   params,
@@ -41,6 +42,8 @@ export default async function ConformanceReportGuide() {
     <PageShell width="3xl">
       <FaqJsonLd faqs={faqs} />
       <Breadcrumbs trail={[{ href: "/guides", label: tn("guides") }, { label: t("heading") }]} />
+      <PageBreadcrumbs path="/guides/conformance-report" title={t("heading")} />
+
       <PageHeading>{t("heading")}</PageHeading>
       <MutedText className="mt-4">{t("intro")}</MutedText>
 

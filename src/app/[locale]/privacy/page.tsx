@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { LegalNote } from "@/components/legal/legal-note";
+import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 
 export async function generateMetadata({
   params,
@@ -25,6 +26,8 @@ export default async function PrivacyPage() {
 
   return (
     <PageShell>
+      <PageBreadcrumbs path="/privacy" title={t("heading")} />
+
       <PageHeading>{t("heading")}</PageHeading>
       <p className="mt-3 font-sans text-sm text-terminal-muted">{t("lastUpdated")}</p>
 

@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { courseFaqFor } from "@/lib/training/faq";
 import { curriculumFor } from "@/lib/training/curriculum";
+import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 
 export async function generateMetadata({
   params,
@@ -31,6 +32,8 @@ export default async function TrainingFaqPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
+      <PageBreadcrumbs path="/training/faq" title={t("faqHeading")} />
+
       <h1 className="font-display text-3xl font-bold text-terminal-fg">{t("faqHeading")}</h1>
       <p className="mt-2 font-sans text-sm text-terminal-muted">
         {t("faqAbout", { path: path.title })}{" "}
