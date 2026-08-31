@@ -42,10 +42,7 @@ export const SITE_SECTIONS: SiteSection[] = [
     children: [
       { href: "/guides", label: "guidesOverview" },
       { href: "/guide-articles", label: "guideArticles" },
-      { href: "/methodology", label: "methodology" },
       { href: "/remediation", label: "remediation" },
-      { href: "/compliance", label: "compliance" },
-      { href: "/faq", label: "faq" },
     ],
   },
   {
