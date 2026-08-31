@@ -4,7 +4,6 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Conformance, ConformanceRow } from "./types";
 import { principleName, scTitle } from "@/lib/standards/wcag-sc";
 import { verdictLabel } from "@/lib/site/labels";
-import { Disclosure } from "@/components/ui/disclosure";
 
 // A10 provenance: how each criterion was resolved. Machine = the rule engine
 // decided it; AI = the AI-assisted review resolved it (not proof of conformance);
@@ -73,20 +72,14 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
       </p>
       <p className="mt-1 font-sans text-xs text-terminal-muted">{t("testedByNote")}</p>
 
-      <div className="mt-4 space-y-2">
+      <div className="mt-4 space-y-6">
         {[...grouped.entries()].map(([principle, rows]) => (
-          <Disclosure
-            key={principle}
-            as="h3"
-            size="md"
-            title={
-              <>
-                {t("principleLabel", { principle })} — {principleName(Number(principle), locale)}{" "}
-                <span className="font-normal text-terminal-muted">({rows.length})</span>
-              </>
-            }
-          >
-            <div className="overflow-x-auto">
+          <section key={principle} aria-labelledby={`principle-${principle}`}>
+            <h3 id={`principle-${principle}`} className="font-display text-base font-semibold text-terminal-fg">
+              {t("principleLabel", { principle })} — {principleName(Number(principle), locale)}{" "}
+              <span className="font-normal text-terminal-muted">({rows.length})</span>
+            </h3>
+            <div className="mt-2 overflow-x-auto rounded border border-terminal-border">
               <table className="w-full border-collapse font-sans text-sm">
               <thead>
                 <tr className="border-b border-terminal-border text-left text-terminal-muted">
@@ -117,7 +110,7 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
               </tbody>
             </table>
             </div>
-          </Disclosure>
+          </section>
         ))}
       </div>
     </section>

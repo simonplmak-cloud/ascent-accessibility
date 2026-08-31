@@ -16,7 +16,6 @@ import { impactColor } from "./severity";
 import { impactLabel } from "@/lib/site/labels";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
-import { Disclosure } from "@/components/ui/disclosure";
 import type { AssessmentResult } from "./types";
 
 export function Report({ result }: { result: AssessmentResult }) {
@@ -217,15 +216,11 @@ export function Report({ result }: { result: AssessmentResult }) {
       </div>
 
       <div id="methodology" className="scroll-mt-24">
-        <Disclosure title={t("navMethodology")} as="h2" size="lg">
-          <Methodology result={result} />
-        </Disclosure>
+        <Methodology result={result} />
       </div>
 
       <div id="log" className="mt-6 scroll-mt-24">
-        <Disclosure title={t("navLog")} as="h2" size="lg">
-          <LogPanel entries={result.log ?? []} />
-        </Disclosure>
+        <LogPanel entries={result.log ?? []} />
       </div>
     </section>
   );

@@ -2,7 +2,6 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { Disclosure } from "@/components/ui/disclosure";
 import { aiResults, cannotTellReason, humanReviewPending, machineResults, type CannotTellReason } from "@/lib/report/report-methods";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import { scTitle } from "@/lib/standards/wcag-sc";
@@ -16,8 +15,8 @@ function verdictClass(result: string): string {
 }
 
 // Transparent three-way breakdown of how each success criterion was decided:
-// machine (rule engine), AI-assisted, or still pending human review. The same
-// structure is mirrored in the PDF report.
+// machine (rule engine), AI-assisted, or still pending human review. All three
+// sections are expanded (no accordions). The same structure is mirrored in the PDF.
 export function ReviewMethods({
   conformance,
   ai,
@@ -58,141 +57,131 @@ export function ReviewMethods({
 
       <div className="mt-4 space-y-2">
         {/* Machine review */}
-        <Disclosure
-          as="h3"
-          size="md"
-          defaultOpen
-          title={
-            <>
-              {t("machineTitle")}{" "}
-              <span className="font-normal text-terminal-muted">
-                {t("machineSummary", { passed: machine.passed, failed: machine.failed })}
-              </span>
-            </>
-          }
-        >
-          <p className="font-sans text-xs text-terminal-muted">
-            {t("machineBody")}
-          </p>
-          <ul className="mt-2 divide-y divide-terminal-border rounded border border-terminal-border">
-            {machine.rows.map((row) => (
-              <li key={row.num} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2">
-                <span className="font-sans text-sm text-terminal-fg">{row.num}</span>
-                <span className="font-sans text-sm text-terminal-muted">{scTitle(row.num, locale)}</span>
-                <span className="ml-auto font-sans text-xs text-terminal-muted">{t("levelLabel", { level: row.level })}</span>
-                <span className={`font-sans text-xs font-semibold ${verdictClass(row.machineResult ?? "")}`}>
-                  {verdictLabel(row.machineResult ?? "", locale)}
-                </span>
-              </li>
-            ))}
-            {machine.rows.length === 0 && (
-              <li className="px-3 py-2 font-sans text-sm text-terminal-muted">
-                {t("machineEmpty")}
-              </li>
-            )}
-          </ul>
-        </Disclosure>
+        <section aria-labelledby="rm-machine" className="rounded border border-terminal-border bg-terminal-surface/40">
+          <h3 id="rm-machine" className="m-0 px-3 py-2 font-sans text-sm font-semibold text-terminal-fg">
+            {t("machineTitle")}{" "}
+            <span className="font-normal text-terminal-muted">
+              {t("machineSummary", { passed: machine.passed, failed: machine.failed })}
+            </span>
+          </h3>
+          <div className="border-t border-terminal-border px-3 py-3">
+            <p className="font-sans text-xs text-terminal-muted">
+              {t("machineBody")}
+            </p>
+            <ul className="mt-2 divide-y divide-terminal-border rounded border border-terminal-border">
+              {machine.rows.map((row) => (
+                <li key={row.num} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2">
+                  <span className="font-sans text-sm text-terminal-fg">{row.num}</span>
+                  <span className="font-sans text-sm text-terminal-muted">{scTitle(row.num, locale)}</span>
+                  <span className="ml-auto font-sans text-xs text-terminal-muted">{t("levelLabel", { level: row.level })}</span>
+                  <span className={`font-sans text-xs font-semibold ${verdictClass(row.machineResult ?? "")}`}>
+                    {verdictLabel(row.machineResult ?? "", locale)}
+                  </span>
+                </li>
+              ))}
+              {machine.rows.length === 0 && (
+                <li className="px-3 py-2 font-sans text-sm text-terminal-muted">
+                  {t("machineEmpty")}
+                </li>
+              )}
+            </ul>
+          </div>
+        </section>
 
         {/* AI-assisted review */}
-        <Disclosure
-          as="h3"
-          size="md"
-          title={
-            <>
-              {t("aiTitle")}{" "}
-              <span className="font-normal text-terminal-muted">
-                {t("aiSummary", { passed: aiRes.passed, failed: aiRes.failed, cannotTell: aiRes.cannotTell })}
-              </span>
-            </>
-          }
-        >
-          <p className="font-sans text-xs text-terminal-muted">
-            {t("aiBody")}
-          </p>
-          {!aiRan ? (
-            <div className="mt-2 rounded border border-terminal-border p-3">
-              <p className="font-sans text-sm text-terminal-muted">{t("aiNotRun")}</p>
-              <Link
-                href="/account"
-                className="mt-2 inline-block font-sans text-sm text-brandLink underline underline-offset-4 hover:text-brand"
-              >
-                {t("aiAddKeyCta")}
-              </Link>
-            </div>
-          ) : aiRes.verdicts.length === 0 ? (
-            <p className="mt-2 font-sans text-sm text-terminal-muted">
-              {t("aiEmpty")}
+        <section aria-labelledby="rm-ai" className="rounded border border-terminal-border bg-terminal-surface/40">
+          <h3 id="rm-ai" className="m-0 px-3 py-2 font-sans text-sm font-semibold text-terminal-fg">
+            {t("aiTitle")}{" "}
+            <span className="font-normal text-terminal-muted">
+              {t("aiSummary", { passed: aiRes.passed, failed: aiRes.failed, cannotTell: aiRes.cannotTell })}
+            </span>
+          </h3>
+          <div className="border-t border-terminal-border px-3 py-3">
+            <p className="font-sans text-xs text-terminal-muted">
+              {t("aiBody")}
             </p>
-          ) : (
-            <div className="mt-2 overflow-x-auto rounded border border-terminal-border">
-              <table className="w-full border-collapse font-sans text-sm">
-                <thead>
-                  <tr className="border-b border-terminal-border text-left text-terminal-muted">
-                    <th scope="col" className="px-3 py-2 font-medium">{t("thSc")}</th>
-                    <th scope="col" className="px-3 py-2 font-medium">{t("thVerdict")}</th>
-                    <th scope="col" className="px-3 py-2 font-medium">{t("thConfidence")}</th>
-                    <th scope="col" className="px-3 py-2 font-medium">{t("thReasoning")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {aiRes.verdicts.map((v) => (
-                    <tr key={v.sc} className="border-b border-terminal-border last:border-b-0">
-                      <td className="px-3 py-2 text-terminal-fg">{v.sc}</td>
-                      <td className="px-3 py-2">
-                        <span className={verdictClass(v.verdict)}>{verdictLabel(v.verdict, locale)}</span>
-                      </td>
-                      <td className="px-3 py-2 text-terminal-fg">{Math.round(v.confidence * 100)}%</td>
-                      <td className="px-3 py-2 text-terminal-muted">{v.reasoning}</td>
+            {!aiRan ? (
+              <div className="mt-2 rounded border border-terminal-border p-3">
+                <p className="font-sans text-sm text-terminal-muted">{t("aiNotRun")}</p>
+                <Link
+                  href="/account"
+                  className="mt-2 inline-block font-sans text-sm text-brandLink underline underline-offset-4 hover:text-brand"
+                >
+                  {t("aiAddKeyCta")}
+                </Link>
+              </div>
+            ) : aiRes.verdicts.length === 0 ? (
+              <p className="mt-2 font-sans text-sm text-terminal-muted">
+                {t("aiEmpty")}
+              </p>
+            ) : (
+              <div className="mt-2 overflow-x-auto rounded border border-terminal-border">
+                <table className="w-full border-collapse font-sans text-sm">
+                  <thead>
+                    <tr className="border-b border-terminal-border text-left text-terminal-muted">
+                      <th scope="col" className="px-3 py-2 font-medium">{t("thSc")}</th>
+                      <th scope="col" className="px-3 py-2 font-medium">{t("thVerdict")}</th>
+                      <th scope="col" className="px-3 py-2 font-medium">{t("thConfidence")}</th>
+                      <th scope="col" className="px-3 py-2 font-medium">{t("thReasoning")}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Disclosure>
+                  </thead>
+                  <tbody>
+                    {aiRes.verdicts.map((v) => (
+                      <tr key={v.sc} className="border-b border-terminal-border last:border-b-0">
+                        <td className="px-3 py-2 text-terminal-fg">{v.sc}</td>
+                        <td className="px-3 py-2">
+                          <span className={verdictClass(v.verdict)}>{verdictLabel(v.verdict, locale)}</span>
+                        </td>
+                        <td className="px-3 py-2 text-terminal-fg">{Math.round(v.confidence * 100)}%</td>
+                        <td className="px-3 py-2 text-terminal-muted">{v.reasoning}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* Human review (pending) */}
-        <Disclosure
-          as="h3"
-          size="md"
-          title={
-            <>
-              {t("humanTitle")}{" "}
-              <span className="font-normal text-terminal-muted">{t("humanSummary", { count: human.count })}</span>
-            </>
-          }
-        >
-          <p className="font-sans text-xs text-terminal-muted">
-            {t("humanBody")}
-          </p>
-          <ul className="mt-2 space-y-3">
-            {human.rows.map((row) => (
-              <li key={row.num} className="rounded border border-terminal-border p-3">
-                <p className="font-sans text-sm text-terminal-fg">
-                  <span className="font-semibold">{row.num} {scTitle(row.num, locale)}</span>{" "}
-                  <span className="text-terminal-muted">{t("levelLabel", { level: row.level })}</span>{" "}
-                  <span className="font-sans text-xs text-terminal-muted">
-                    {reasonLabel(cannotTellReason(row.num, ai?.verdicts ?? []))}
-                  </span>
-                </p>
-                <p className="mt-1 font-sans text-sm text-terminal-muted">{getManualTest(row.num, locale)}</p>
-              </li>
-            ))}
-            {human.rows.length === 0 && (
-              <li className="rounded border border-terminal-border p-3 font-sans text-sm text-terminal-muted">
-                {t("humanEmpty")}
-              </li>
-            )}
-          </ul>
-          <p className="mt-3">
-            <Link
-              href="/human-review"
-              className="font-sans text-sm text-brandLink underline underline-offset-4 hover:text-brand"
-            >
-              {t("humanComingSoon")}
-            </Link>
-          </p>
-        </Disclosure>
+        <section aria-labelledby="rm-human" className="rounded border border-terminal-border bg-terminal-surface/40">
+          <h3 id="rm-human" className="m-0 px-3 py-2 font-sans text-sm font-semibold text-terminal-fg">
+            {t("humanTitle")}{" "}
+            <span className="font-normal text-terminal-muted">{t("humanSummary", { count: human.count })}</span>
+          </h3>
+          <div className="border-t border-terminal-border px-3 py-3">
+            <p className="font-sans text-xs text-terminal-muted">
+              {t("humanBody")}
+            </p>
+            <ul className="mt-2 space-y-3">
+              {human.rows.map((row) => (
+                <li key={row.num} className="rounded border border-terminal-border p-3">
+                  <p className="font-sans text-sm text-terminal-fg">
+                    <span className="font-semibold">{row.num} {scTitle(row.num, locale)}</span>{" "}
+                    <span className="text-terminal-muted">{t("levelLabel", { level: row.level })}</span>{" "}
+                    <span className="font-sans text-xs text-terminal-muted">
+                      {reasonLabel(cannotTellReason(row.num, ai?.verdicts ?? []))}
+                    </span>
+                  </p>
+                  <p className="mt-1 font-sans text-sm text-terminal-muted">{getManualTest(row.num, locale)}</p>
+                </li>
+              ))}
+              {human.rows.length === 0 && (
+                <li className="rounded border border-terminal-border p-3 font-sans text-sm text-terminal-muted">
+                  {t("humanEmpty")}
+                </li>
+              )}
+            </ul>
+            <p className="mt-3">
+              <Link
+                href="/human-review"
+                className="font-sans text-sm text-brandLink underline underline-offset-4 hover:text-brand"
+              >
+                {t("humanComingSoon")}
+              </Link>
+            </p>
+          </div>
+        </section>
       </div>
     </section>
   );
