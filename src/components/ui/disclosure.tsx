@@ -37,7 +37,7 @@ export function Disclosure({
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-controls={open ? id : undefined}
-          className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left font-sans ${TITLE_SIZES[size]} text-terminal-fg hover:bg-terminal-surface`}
+          className={`flex min-h-11 w-full items-center justify-between gap-3 px-3 py-2 text-left font-sans ${TITLE_SIZES[size]} text-terminal-fg hover:bg-terminal-surface`}
         >
           <span>{title}</span>
           <span aria-hidden="true" className="shrink-0 text-terminal-muted">

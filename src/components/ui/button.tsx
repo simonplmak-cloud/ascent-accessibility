@@ -13,9 +13,10 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "px-3 py-1.5",
-  md: "px-4 py-2",
-  lg: "px-6 py-3",
+  // min-h-11 (44px) satisfies WCAG 2.5.5 Target Size (Enhanced, AAA).
+  sm: "px-3 py-1.5 min-h-11",
+  md: "px-4 py-2 min-h-11",
+  lg: "px-6 py-3 min-h-11",
 };
 
 export function Button({

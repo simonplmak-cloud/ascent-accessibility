@@ -148,7 +148,7 @@ export function ProfileForm() {
   }
 
   const inputClass =
-    "mt-1 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-sm text-terminal-fg focus:outline-none focus:ring-2 focus:ring-terminal-fg";
+    "mt-1 min-h-11 w-full rounded border border-terminal-border bg-terminal-surface px-3 py-2 font-sans text-sm text-terminal-fg focus:outline-none focus:ring-2 focus:ring-terminal-fg";
 
   return (
     <div className="space-y-6">

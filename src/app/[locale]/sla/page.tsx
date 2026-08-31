@@ -5,6 +5,7 @@ import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
 import { LegalNote } from "@/components/legal/legal-note";
+import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 
 export async function generateMetadata({
   params,
@@ -30,6 +31,8 @@ export default async function SlaPage() {
 
   return (
     <PageShell>
+      <PageBreadcrumbs path="/sla" title={t("heading")} />
+
       <PageHeading>{t("heading")}</PageHeading>
       <MutedText className="mt-4">{t("intro")}</MutedText>
 

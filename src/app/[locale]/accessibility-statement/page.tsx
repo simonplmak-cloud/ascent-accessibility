@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { MutedText } from "@/components/ui/text";
+import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 
 export async function generateMetadata({
   params,
@@ -20,6 +21,8 @@ export default async function AccessibilityStatementPage() {
 
   return (
     <PageShell>
+      <PageBreadcrumbs path="/accessibility-statement" title={t("heading")} />
+
       <PageHeading>{t("heading")}</PageHeading>
       <MutedText className="mt-4">{t("intro")}</MutedText>
 
