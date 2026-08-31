@@ -1346,7 +1346,8 @@
     "selectedCount": "已选取 {count} 项",
     "undo": "撤销",
     "detail": "详细",
-    "relatedPages": "相关内容"
+    "relatedPages": "相关内容",
+    "tocLabel": "本页内容"
   },
   "legal": {
     "title": "法律",

@@ -1346,7 +1346,8 @@
     "selectedCount": "已選取 {count} 項",
     "undo": "復原",
     "detail": "詳細",
-    "relatedPages": "相關內容"
+    "relatedPages": "相關內容",
+    "tocLabel": "本頁內容"
   },
   "legal": {
     "title": "法律",

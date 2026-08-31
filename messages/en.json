@@ -1358,7 +1358,8 @@
     "selectedCount": "{count} selected",
     "undo": "Undo",
     "detail": "Detail",
-    "relatedPages": "Related"
+    "relatedPages": "Related",
+    "tocLabel": "On this page"
   },
   "legal": {
     "title": "Legal",

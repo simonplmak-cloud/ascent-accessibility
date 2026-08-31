@@ -16,7 +16,8 @@ export interface SiteSection {
 // Two-tier site structure. Five first-tier intents, each with related
 // second-tier pages. "Scan your site" is deliberately NOT here — it is the
 // header CTA. `understanding/[sc]` and per-SC remediation are deep-linked from
-// `/standards` and findings, not navigation.
+// `/standards` and findings, not navigation. (Flat redesign: consolidated hubs
+// replace the former per-topic pages.)
 export const SITE_SECTIONS: SiteSection[] = [
   {
     label: "product",
@@ -33,14 +34,14 @@ export const SITE_SECTIONS: SiteSection[] = [
     children: [
       { href: "/training", label: "training" },
       { href: "/standards", label: "standards" },
-      { href: "/what-is-accessibility", label: "whatIsAccessibility" },
-      { href: "/glossary", label: "glossary" },
+      { href: "/learn", label: "learnBasics" },
     ],
   },
   {
     label: "guides",
     children: [
       { href: "/guides", label: "guidesOverview" },
+      { href: "/guide-articles", label: "guideArticles" },
       { href: "/methodology", label: "methodology" },
       { href: "/remediation", label: "remediation" },
       { href: "/compliance", label: "compliance" },
@@ -49,11 +50,7 @@ export const SITE_SECTIONS: SiteSection[] = [
   },
   {
     label: "whoWeServe",
-    children: [
-      { href: "/for-government", label: "forGovernment" },
-      { href: "/for-ngos", label: "forNgos" },
-      { href: "/esg", label: "esgMapping" },
-    ],
+    children: [{ href: "/who-we-serve", label: "whoWeServe" }],
   },
   {
     label: "company",
