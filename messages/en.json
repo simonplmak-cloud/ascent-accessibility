@@ -1357,7 +1357,8 @@
     "deleteView": "Delete view {name}",
     "selectedCount": "{count} selected",
     "undo": "Undo",
-    "detail": "Detail"
+    "detail": "Detail",
+    "relatedPages": "Related"
   },
   "criterionPage": {
     "normativeLabel": "Normative requirement",

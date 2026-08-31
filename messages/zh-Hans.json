@@ -1345,7 +1345,8 @@
     "deleteView": "删除视图 {name}",
     "selectedCount": "已选取 {count} 项",
     "undo": "撤销",
-    "detail": "详细"
+    "detail": "详细",
+    "relatedPages": "相关内容"
   },
   "criterionPage": {
     "normativeLabel": "规范要求",

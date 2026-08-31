@@ -1345,7 +1345,8 @@
     "deleteView": "刪除檢視 {name}",
     "selectedCount": "已選取 {count} 項",
     "undo": "復原",
-    "detail": "詳細"
+    "detail": "詳細",
+    "relatedPages": "相關內容"
   },
   "criterionPage": {
     "normativeLabel": "規範要求",
