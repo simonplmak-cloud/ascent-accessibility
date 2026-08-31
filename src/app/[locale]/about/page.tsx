@@ -4,6 +4,7 @@ import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 import { InlineLink } from "@/components/ui/inline-link";
+import { RelatedLinks } from "@/components/ui/related-links";
 
 export async function generateMetadata({
   params,
@@ -47,6 +48,7 @@ export default async function AboutPage() {
       <p className="mt-4 font-sans text-sm text-terminal-fg">
         <InlineLink href="/contact">{t("getInTouch")}</InlineLink>
       </p>
+          <RelatedLinks path="/about" />
     </PageShell>
   );
 }

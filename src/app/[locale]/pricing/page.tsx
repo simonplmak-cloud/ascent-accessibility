@@ -8,6 +8,7 @@ import { MutedText } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button-link";
 import { BetaBadge } from "@/components/ui/beta-badge";
+import { RelatedLinks } from "@/components/ui/related-links";
 
 export async function generateMetadata({
   params,
@@ -127,6 +128,7 @@ export default async function PricingPage() {
           ),
         })}
       </p>
+          <RelatedLinks path="/pricing" />
     </PageShell>
   );
 }

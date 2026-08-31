@@ -10,6 +10,7 @@ import { listStandards, wcagReference } from "@/lib/standards/catalog";
 import { scsForStandard } from "@/lib/standards/version";
 import { standardName } from "@/lib/standards/standards-locales";
 import { MACHINE_SCS } from "@/lib/standards/sc-coverage";
+import { RelatedLinks } from "@/components/ui/related-links";
 
 export async function generateMetadata({
   params,
@@ -115,6 +116,7 @@ export default async function StandardsPage({
           {t("citationLink")}
         </a>
       </p>
+          <RelatedLinks path="/standards" />
     </PageShell>
   );
 }

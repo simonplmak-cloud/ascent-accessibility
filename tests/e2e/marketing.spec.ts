@@ -13,8 +13,7 @@ test("landing page exposes a skip link", async ({ page }) => {
 
 test("about page is reachable from the header", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: /About Us/ }).click();
-  await page.locator("#dd-company").getByRole("link", { name: "Who we are" }).click();
+  await page.getByRole("link", { name: "Who we are" }).first().click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("About");
 });
 

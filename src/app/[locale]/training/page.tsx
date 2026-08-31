@@ -7,6 +7,7 @@ import { trainingRepository } from "@/db/repository";
 import type { Credential, LearnerProgress } from "@/db/repository/training-repository";
 import { getSessionUser } from "@/server/auth";
 import { ClaimCertificateButton } from "@/components/training/claim-certificate-button";
+import { RelatedLinks } from "@/components/ui/related-links";
 
 export async function generateMetadata({
   params,
@@ -131,6 +132,7 @@ export default async function TrainingDashboardPage({
           {t("courseFaq")}
         </Link>
       </p>
+          <RelatedLinks path="/training" />
     </div>
   );
 }

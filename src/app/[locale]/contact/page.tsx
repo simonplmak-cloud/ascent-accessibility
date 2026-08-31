@@ -4,6 +4,7 @@ import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 import { MutedText } from "@/components/ui/text";
+import { RelatedLinks } from "@/components/ui/related-links";
 
 export async function generateMetadata({
   params,
@@ -42,6 +43,7 @@ export default async function ContactPage() {
           </a>
         </p>
       </address>
+          <RelatedLinks path="/contact" />
     </PageShell>
   );
 }

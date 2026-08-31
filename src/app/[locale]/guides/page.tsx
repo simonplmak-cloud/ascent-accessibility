@@ -6,6 +6,7 @@ import { PageHeading } from "@/components/ui/page-heading";
 import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 import { MutedText } from "@/components/ui/text";
 import { ButtonLink } from "@/components/ui/button-link";
+import { RelatedLinks } from "@/components/ui/related-links";
 
 export async function generateMetadata({
   params,
@@ -62,6 +63,7 @@ export default async function GuidesPage() {
           {t("courseCta")}
         </ButtonLink>
       </div>
+          <RelatedLinks path="/guides" />
     </PageShell>
   );
 }

@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
+import { RelatedLinks } from "@/components/ui/related-links";
 
 export async function generateMetadata({
   params,
@@ -44,6 +45,7 @@ export default async function RoadmapPage() {
         <Link href="/methodology" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("validation")}</Link>{" · "}
         <Link href="/contact" className="text-brandLink underline underline-offset-4 hover:text-brand">{t("contact")}</Link>
       </p>
+          <RelatedLinks path="/roadmap" />
     </PageShell>
   );
 }
