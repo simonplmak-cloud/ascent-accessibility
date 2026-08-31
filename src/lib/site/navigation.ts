@@ -84,13 +84,9 @@ export function tierOf(path: string): string | undefined {
   return undefined;
 }
 
-export const LEGAL_LINKS: NavLink[] = [
-  { href: "/terms", label: "terms" },
-  { href: "/privacy", label: "privacy" },
-  { href: "/sla", label: "serviceCommitment" },
-  { href: "/refund", label: "refunds" },
-  { href: "/accessibility-statement", label: "accessibilityStatement" },
-];
+// Legal links are consolidated onto /legal (flat redesign); the footer shows a
+// single "Legal" entry (the page itself carries the anchor TOC).
+export const LEGAL_LINKS: NavLink[] = [{ href: "/legal", label: "legal" }];
 
 // Flat primary navigation (visible, labelled, no dropdowns). "Assess" is the
 // conversion path; the rest are the top-level content hubs.

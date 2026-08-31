@@ -1348,6 +1348,17 @@
     "detail": "詳細",
     "relatedPages": "相關內容"
   },
+  "legal": {
+    "title": "法律",
+    "heading": "法律",
+    "intro": "我們的使用條款、隱私政策、服務承諾、退款政策及無障礙聲明——全部彙整於此。",
+    "tocLabel": "本頁內容",
+    "termsTitle": "使用條款",
+    "privacyTitle": "隱私政策",
+    "slaTitle": "服務承諾",
+    "refundTitle": "退款",
+    "a11yTitle": "無障礙聲明"
+  },
   "criterionPage": {
     "normativeLabel": "規範要求",
     "intentLabel": "為何重要",

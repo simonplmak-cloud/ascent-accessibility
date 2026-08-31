@@ -1360,6 +1360,17 @@
     "detail": "Detail",
     "relatedPages": "Related"
   },
+  "legal": {
+    "title": "Legal",
+    "heading": "Legal",
+    "intro": "Our terms of use, privacy policy, service commitment, refund policy, and accessibility statement — all in one place.",
+    "tocLabel": "On this page",
+    "termsTitle": "Terms of use",
+    "privacyTitle": "Privacy policy",
+    "slaTitle": "Service commitment",
+    "refundTitle": "Refunds",
+    "a11yTitle": "Accessibility statement"
+  },
   "criterionPage": {
     "normativeLabel": "Normative requirement",
     "intentLabel": "Why it matters",
