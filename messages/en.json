@@ -1183,7 +1183,14 @@
     "citationLink": "W3C authorized translation",
     "understanding": "Understanding",
     "opensNewWindow": " (opens in a new window)",
-    "tabsLabel": "WCAG standard"
+    "tabsLabel": "WCAG standard",
+    "thStandard": "Standard",
+    "thLevel": "Level",
+    "thScs": "Success criteria",
+    "thMachine": "Machine-tested",
+    "viewAllScs": "View all SCs",
+    "backToStandards": "Back to all standards",
+    "jump": "Jump to"
   },
   "reviewQueue": {
     "title": "Review queue",

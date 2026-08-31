@@ -17,6 +17,16 @@
 - **Every control labelled** (no icon-only); native `<select>` kept for long lists.
 - **Bloomberg-terminal cues**: dense color-coded tables, ⌘K command palette, split panels where list + detail are both visible.
 
+### Intuitive + marketable, without text overload
+The core resolution: **visibility ≠ verbosity** — everything is *reachable* (visible, labelled) without being *repeated*.
+
+- **Hierarchy over dumping** — each page = one primary message + supporting detail. Critical info is visible up front; secondary info sits behind a *visible, self-describing* "Read more →" link (that's prioritization, not hiding).
+- **DRY content (kill repetition)** — one canonical explanation per concept, referenced via cross-links instead of re-explained. The 28→12 grouping already does this at page level; extend it to sentences (never re-define "WCAG" — link to the Standards hub). Shared boilerplate (e.g. the Legal "effective date" paragraph) appears once, not five times.
+- **One primary CTA per page** — a single clear action (usually "Assess your site — free"); everything else is a secondary, quieter link. Reduces decision fatigue and the "wall of buttons".
+- **Beauty within AAA** — typographic scale (display headings + mono data), generous whitespace, and the *semantic* accent palette (pass/serious/moderate colors) for visual interest. Icons are allowed only as decorative accents *beside* visible text. No low-contrast accents, no text-in-image banners (1.4.9), no autoplay motion (2.2.2).
+- **Consistency = intuitiveness** — the same header/footer/Related pattern and the same "summary → detail" rhythm on every page, so users predict where things are.
+- **Measured, not felt** — axe AAA (0 violations) + `ax-tree.mjs` (0 unnamed controls), plus a duplicate-prose review (grep for repeated sentences) and a per-hub content-length budget.
+
 ## 3. Information architecture (optimized)
 
 | Hub page | Contains (anchors/sections) | From |

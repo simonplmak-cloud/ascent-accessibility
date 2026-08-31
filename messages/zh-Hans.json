@@ -1171,7 +1171,14 @@
     "citationLink": "W3C 授权翻译",
     "understanding": "准则解读",
     "opensNewWindow": "（在新窗口打开）",
-    "tabsLabel": "WCAG 标准"
+    "tabsLabel": "WCAG 标准",
+    "thStandard": "标准",
+    "thLevel": "级别",
+    "thScs": "成功标准",
+    "thMachine": "机器测试",
+    "viewAllScs": "查看所有成功标准",
+    "backToStandards": "返回所有标准",
+    "jump": "跳转到"
   },
   "reviewQueue": {
     "title": "审核队列",

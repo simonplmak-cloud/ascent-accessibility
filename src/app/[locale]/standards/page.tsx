@@ -1,24 +1,15 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { PageShell } from "@/components/ui/page-shell";
 import { PageHeading } from "@/components/ui/page-heading";
 import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 import { MutedText } from "@/components/ui/text";
 import { InlineLink } from "@/components/ui/inline-link";
-import { StandardsView, type StandardTree } from "@/components/standards/standards-view";
-import { DEFAULT_STANDARD_ID, listStandards, wcagReference, type Standard } from "@/lib/standards/catalog";
+import { listStandards, wcagReference } from "@/lib/standards/catalog";
 import { scsForStandard } from "@/lib/standards/version";
-import { understandingFor, understandingHref } from "@/lib/standards/understanding";
-import {
-  WCAG_GUIDELINES,
-  guidelineName,
-  guidelineOf,
-  guidelinePrinciple,
-  principleName,
-  scTitle,
-  specUrl,
-  type WcagSc,
-} from "@/lib/standards/wcag-sc";
+import { standardName } from "@/lib/standards/standards-locales";
+import { MACHINE_SCS } from "@/lib/standards/sc-coverage";
 
 export async function generateMetadata({
   params,
@@ -34,53 +25,8 @@ export async function generateMetadata({
   };
 }
 
-function scsFor(standard: Standard): WcagSc[] {
-  // Section 508 maps to WCAG 2.0 AA (see wcagReference).
-  const ref = wcagReference(standard);
-  return scsForStandard(ref.version, ref.level);
-}
-
-function buildTree(standard: Standard, locale: string): StandardTree {
-  const byGuideline = new Map<string, WcagSc[]>();
-  for (const sc of scsFor(standard)) {
-    const guideline = guidelineOf(sc.num);
-    const list = byGuideline.get(guideline) ?? [];
-    list.push(sc);
-    byGuideline.set(guideline, list);
-  }
-
-  const principles = [1, 2, 3, 4]
-    .map((principle) => {
-      const guidelines = WCAG_GUIDELINES.filter(
-        (g) => guidelinePrinciple(g.num) === principle && byGuideline.has(g.num),
-      );
-      return {
-        num: principle,
-        name: principleName(principle, locale),
-        guidelines: guidelines.map((g) => ({
-          num: g.num,
-          name: guidelineName(g.num, locale),
-          scs: byGuideline.get(g.num)!.map((sc) => ({
-            num: sc.num,
-            title: scTitle(sc.num, locale),
-            level: sc.level,
-            specUrl: specUrl(sc),
-            understandingUrl: understandingHref(sc.num, locale),
-            helps: understandingFor(sc.num, locale)?.benefits[0],
-          })),
-        })),
-      };
-    })
-    .filter((principle) => principle.guidelines.length > 0);
-
-  return {
-    id: standard.id,
-    name: standard.name,
-    version: standard.version,
-    principles,
-  };
-}
-
+// Dense summary table: every standard on one screen, each row a visible link to
+// its fully-expanded detail page (/standards/[id]).
 export default async function StandardsPage({
   params,
 }: {
@@ -89,7 +35,19 @@ export default async function StandardsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("standards");
-  const standards = listStandards().map((s) => buildTree(s, locale));
+
+  const standards = listStandards().map((s) => {
+    const ref = wcagReference(s);
+    const scs = scsForStandard(ref.version, ref.level);
+    const machine = scs.filter((sc) => MACHINE_SCS.has(sc.num)).length;
+    return {
+      id: s.id,
+      name: standardName(s.id, locale),
+      level: ref.level,
+      total: scs.length,
+      machine,
+    };
+  });
 
   return (
     <PageShell width="4xl">
@@ -97,7 +55,39 @@ export default async function StandardsPage({
       <PageHeading>{t("heading")}</PageHeading>
       <MutedText className="mt-4">{t("intro")}</MutedText>
 
-      <StandardsView standards={standards} defaultId={DEFAULT_STANDARD_ID} />
+      <div className="mt-8 overflow-x-auto rounded border border-terminal-border">
+        <table className="w-full border-collapse font-sans text-sm">
+          <thead>
+            <tr className="border-b border-terminal-border text-left text-terminal-muted">
+              <th scope="col" className="px-3 py-2 font-medium">{t("thStandard")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thLevel")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thScs")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">{t("thMachine")}</th>
+              <th scope="col" className="px-3 py-2 font-medium">
+                <span className="sr-only">{t("viewAllScs")}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {standards.map((s) => (
+              <tr key={s.id} className="border-b border-terminal-border last:border-b-0">
+                <td className="px-3 py-2 font-medium text-terminal-fg">{s.name}</td>
+                <td className="px-3 py-2 text-terminal-muted">{s.level}</td>
+                <td className="px-3 py-2 text-terminal-fg">{s.total}</td>
+                <td className="px-3 py-2 text-terminal-fg">{s.machine}</td>
+                <td className="px-3 py-2">
+                  <Link
+                    href={`/standards/${s.id}`}
+                    className="inline-flex min-h-6 items-center text-terminal-fg underline underline-offset-4 hover:text-brand"
+                  >
+                    {t("viewAllScs")}
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <p className="mt-10 font-sans text-sm text-terminal-muted">
         {t.rich("source", {
