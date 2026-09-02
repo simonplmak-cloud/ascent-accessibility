@@ -11,6 +11,8 @@
 //   - zh-Hant: no authorized Traditional translation exists for any WCAG
 //     version; titles are DERIVED from the official Simplified (non-official).
 
+import { getStandard } from "@/lib/standards/catalog";
+
 export interface StandardStrings {
   sc: Record<string, string>;
   guidelines: Record<string, string>;
@@ -289,5 +291,5 @@ const STANDARD_NAMES: Record<string, Record<string, string>> = {
 };
 
 export function standardName(id: string, locale?: string): string {
-  return STANDARD_NAMES[locale ?? ""]?.[id] ?? id;
+  return STANDARD_NAMES[locale ?? ""]?.[id] ?? getStandard(id)?.name ?? id;
 }
