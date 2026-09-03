@@ -5,6 +5,7 @@ import { runEngine } from "@/lib/engine/runner";
 import { runInteractionScan } from "@/lib/engine/interaction-scan";
 import { ALL_RULES } from "@/lib/engine/rules";
 import { buildEngineSource } from "@/lib/engine/registry";
+import type { CrawlerDeps } from "@/lib/crawler";
 
 export interface PageScanner {
   scan: (url: string, tags: string[]) => Promise<ScanResult>;
@@ -22,11 +23,61 @@ export interface PageScanner {
 // Mask the most obvious automation signals. Injected via addInitScript (CDP
 // level), so it runs before any page script — the exact thing Cloudflare-style
 // challenges probe. The engine injection rides along the same channel.
+//
+// Namespace safety: the in-house engine owns `window.__apf*`; this script only
+// patches navigator/window/chrome/WebGL and never touches __apf*.
 const STEALTH_SOURCE = `
-Object.defineProperty(navigator, "webdriver", { get: () => undefined });
-Object.defineProperty(navigator, "languages", { get: () => ["en-US", "en"] });
-Object.defineProperty(navigator, "plugins", { get: () => [1, 2, 3, 4, 5] });
-window.chrome = window.chrome || { runtime: {} };
+(() => {
+  try {
+    // navigator.webdriver — the #1 automation flag (Cloudflare/DataDome probe it).
+    Object.defineProperty(Navigator.prototype, "webdriver", {
+      get: () => undefined,
+      configurable: true,
+    });
+    // navigator.languages — headless can report a bare list.
+    Object.defineProperty(Navigator.prototype, "languages", {
+      get: () => ["en-US", "en"],
+      configurable: true,
+    });
+    // navigator.plugins — an empty PluginArray is a headless tell.
+    Object.defineProperty(Navigator.prototype, "plugins", {
+      get: () => [1, 2, 3, 4, 5],
+      configurable: true,
+    });
+    // window.chrome — real Chrome exposes chrome.runtime; headless may not.
+    window.chrome = window.chrome || { runtime: {} };
+    // navigator.permissions.query — some challenges gate on notification state.
+    const perms = window.navigator.permissions;
+    const originalQuery = perms && perms.query ? perms.query.bind(perms) : null;
+    if (originalQuery) {
+      Object.defineProperty(window.navigator.permissions, "query", {
+        value: (parameters) =>
+          parameters && parameters.name === "notifications"
+            ? Promise.resolve({ state: Notification.permission })
+            : originalQuery(parameters),
+        configurable: true,
+      });
+    }
+    // WebGL vendor/renderer — headless reports "Google"/"Google SwiftShader".
+    const getParam = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function (param) {
+      if (param === 37445) return "Intel Inc.";              // UNMASKED_VENDOR_WEBGL
+      if (param === 37446) return "Intel Iris OpenGL Engine"; // UNMASKED_RENDERER_WEBGL
+      return getParam.call(this, param);
+    };
+    // window.outerWidth/outerHeight — headless reports 0.
+    Object.defineProperty(window, "outerWidth", {
+      get: () => window.innerWidth,
+      configurable: true,
+    });
+    Object.defineProperty(window, "outerHeight", {
+      get: () => window.innerHeight,
+      configurable: true,
+    });
+  } catch (e) {
+    /* ignore — stealth is best-effort and must never break the page */
+  }
+})();
 `;
 
 // A realistic browser UA for the page context (override via SCAN_USER_AGENT).
@@ -194,6 +245,61 @@ export async function createPageScanner(): Promise<PageScanner> {
         /* ignore */
       }
       await discardBrowser(browser);
+    },
+  };
+}
+
+export interface BrowserCrawler {
+  deps: CrawlerDeps;
+  close: () => Promise<void>;
+}
+
+// A real-browser crawler: the same headless Chrome that powers the scan engine,
+// used to fetch pages + robots.txt through a real browser context. A real Chrome
+// renders JavaScript and carries a genuine browser fingerprint, so it passes most
+// WAFs that block the raw `fetch` crawler. Single page → serial by design; call
+// crawl(..., { crawlConcurrency: 1 }, deps).
+export async function createBrowserCrawler(): Promise<BrowserCrawler> {
+  const browser = await acquireBrowser();
+  const context = await browser.newContext({ userAgent: BROWSER_USER_AGENT });
+  const page = await context.newPage();
+  await page.addInitScript({ content: STEALTH_SOURCE });
+
+  const fetchHtml = async (url: string): Promise<string> => {
+    const res = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    const status = res?.status() ?? 0;
+    if (status >= 400) throw new Error(`HTTP ${status}`);
+    return page.content();
+  };
+
+  const fetchRobots = async (origin: string): Promise<string | null> => {
+    try {
+      const res = await page.goto(`${origin}/robots.txt`, {
+        waitUntil: "domcontentloaded",
+        timeout: 30_000,
+      });
+      const status = res?.status() ?? 0;
+      if (status >= 400) return null;
+      const body = await page.evaluate(() => document.body?.innerText ?? "");
+      return body || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const delay = async (ms: number): Promise<void> => {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  };
+
+  return {
+    deps: { fetchHtml, fetchRobots, delay },
+    close: async () => {
+      try {
+        await context.close();
+      } catch {
+        /* ignore */
+      }
+      releaseBrowser(browser);
     },
   };
 }

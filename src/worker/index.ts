@@ -2,7 +2,7 @@ import { runAssessment } from "@/lib/assessment";
 import { crawl } from "@/lib/crawler";
 import { getStandard } from "@/lib/standards/catalog";
 import { assessmentRepository, evidenceRepository, metricsRepository } from "@/db/repository";
-import { createPageScanner, warmBrowserPool } from "@/server/scanner-factory";
+import { createPageScanner, createBrowserCrawler, warmBrowserPool } from "@/server/scanner-factory";
 import { runSiteAudit } from "@/lib/comparison/site-audit";
 import { createAudioModel, createVisionModel } from "@/lib/ai-review/factory";
 import { DEFAULT_AUDIO_MODEL, DEFAULT_VISION_MODEL, getProvider } from "@/lib/ai-review/providers";
@@ -47,7 +47,33 @@ async function processQueued() {
       try {
         await runAssessment(assessment.id, {
           repository: assessmentRepository,
-          crawlSite: (seed, options) => crawl(seed, options),
+          crawlSite: async (seed, options) => {
+            const result = await crawl(seed, options);
+            if (result.urls.length > 0) return result;
+            // Server-side fetch found no pages (blocked or empty) — escalate to a
+            // real-browser crawl before giving up. A real Chrome renders JS and
+            // carries a genuine fingerprint, passing most WAFs that block fetch.
+            if (process.env.CRAWL_BROWSER_FALLBACK === "0") return result;
+            const crawler = await createBrowserCrawler();
+            try {
+              const browserResult = await crawl(
+                seed,
+                { ...options, crawlConcurrency: 1 },
+                crawler.deps,
+              );
+              if (browserResult.urls.length > 0) {
+                browserResult.log?.unshift(
+                  "crawl escalated to browser (server-side fetch found no pages)",
+                );
+                return browserResult;
+              }
+            } catch (error) {
+              logger.warn({ err: error }, "browser crawl escalation failed");
+            } finally {
+              await crawler.close();
+            }
+            return result;
+          },
           createScanner: () => createPageScanner(),
           resolveStandard: getStandard,
           evidenceStore: {
