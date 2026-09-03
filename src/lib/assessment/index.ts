@@ -72,6 +72,7 @@ export interface AssessmentRepositoryPort {
     },
   ): Promise<void>;
   fail(id: string): Promise<void>;
+  block(id: string, input: { reason: string; pages: ScannedPage[] }): Promise<void>;
   insertFindings(id: string, findings: Finding[]): Promise<void>;
   insertComparison(id: string, comparison: ComparisonData): Promise<void>;
   appendLog(id: string, entries: LogEntry[]): Promise<void>;
@@ -126,6 +127,7 @@ interface ConsolidateOutput {
   pageSnapshots: Record<string, { screenshotEvidenceId: string | null; htmlEvidenceId: string | null }>;
   pages: ScannedPage[];
   detectedLanguages: string[];
+  blockedReason: string | null;
 }
 
 export async function runAssessment(
@@ -198,19 +200,33 @@ export async function runAssessment(
         await log("info", message);
       }
       if (crawlResult.urls.length === 0) {
-        await log("error", "no pages could be crawled");
-        await deps.repository.fail(assessmentId);
-        return;
+        await log("info", "crawl found no pages — falling back to single-page scan");
+        urls = [seed.href];
+        pagesScanned = 1;
+        partial = false;
+        sitemapUrls = [];
+      } else {
+        await log("info", `crawl complete: ${crawlResult.urls.length} page(s) to scan`);
+        urls = crawlResult.urls;
+        pagesScanned = crawlResult.pagesScanned;
+        partial = crawlResult.partial;
+        sitemapUrls = crawlResult.sitemapUrls;
       }
-      await log("info", `crawl complete: ${crawlResult.urls.length} page(s) to scan`);
-      urls = crawlResult.urls;
-      pagesScanned = crawlResult.pagesScanned;
-      partial = crawlResult.partial;
-      sitemapUrls = crawlResult.sitemapUrls;
     }
 
     const output = await scanAndConsolidate(urls, standard, deps, assessmentId, assessment.ownerId, log);
     firstScanner = output.firstScanner;
+
+    // Every attempted page was rejected by bot/WAF protection — surface a
+    // truthful `blocked` terminal state instead of a misleading "completed" 0%.
+    if (output.blockedReason) {
+      clearInterval(flushTimer);
+      await flushLogs();
+      await deps.repository.block(assessmentId, { reason: output.blockedReason, pages: output.pages });
+      await log("info", `scan blocked — every page was rejected by bot/WAF protection (${output.blockedReason})`);
+      await flushLogs();
+      return;
+    }
 
     await log(
       "info",
@@ -397,6 +413,28 @@ export function describeScanFailure(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+// Classify a page-load error as a deliberate bot/WAF block (as opposed to a
+// timeout, DNS failure, or server 5xx). Used to decide the terminal `blocked`
+// state when every attempted page was rejected.
+function classifyBlock(error: unknown): "bot-protection" | "rate-limited" | null {
+  const message = String((error as { message?: string } | undefined)?.message ?? "");
+  if (/HTTP 403/.test(message)) return "bot-protection";
+  if (/HTTP 429/.test(message)) return "rate-limited";
+  return null;
+}
+
+function computeBlockedReason(
+  pages: ScannedPage[],
+  failedPageCount: number,
+  botProtectionSeen: boolean,
+  rateLimitedSeen: boolean,
+): string | null {
+  if (pages.length === 0 || failedPageCount !== pages.length) return null;
+  if (botProtectionSeen) return "bot-protection";
+  if (rateLimitedSeen) return "rate-limited";
+  return null;
+}
+
 async function scanAndConsolidate(
   urls: string[],
   standard: Standard,
@@ -420,6 +458,9 @@ async function scanAndConsolidate(
   const pages: ScannedPage[] = [];
   const concurrency = Math.max(1, deps.concurrency ?? 4);
   const queue = [...urls];
+  let failedPageCount = 0;
+  let botProtectionSeen = false;
+  let rateLimitedSeen = false;
 
   const workers = Array.from(
     { length: Math.min(concurrency, queue.length) },
@@ -572,6 +613,10 @@ async function scanAndConsolidate(
             const reason = describeScanFailure(error);
             log("warn", `page scan ${reason} — restarting browser: ${url}`);
             pages.push({ url, title: "", status: "failed", scanTimeMs: Date.now() - startedAt, error: reason });
+            failedPageCount += 1;
+            const block = classifyBlock(error);
+            if (block === "bot-protection") botProtectionSeen = true;
+            else if (block === "rate-limited") rateLimitedSeen = true;
             try {
               await scanner.discard();
             } catch {
@@ -611,6 +656,7 @@ async function scanAndConsolidate(
     pageSnapshots,
     pages,
     detectedLanguages: [...detectedLanguages],
+    blockedReason: computeBlockedReason(pages, failedPageCount, botProtectionSeen, rateLimitedSeen),
   };
 }
 

@@ -59,6 +59,7 @@ export default async function ShareableReportPage({
           {assessment.status === "queued" && t("statusQueued")}
           {assessment.status === "running" && t("statusRunning")}
           {assessment.status === "failed" && t("statusFailed")}
+          {assessment.status === "blocked" && t("statusBlocked")}
         </p>
         <p className="mt-4">
           <Link

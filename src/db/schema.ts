@@ -1,6 +1,6 @@
 import type { Impact, ConformanceOutcome } from "@/lib/scoring";
 
-export type AssessmentStatus = "queued" | "running" | "completed" | "failed";
+export type AssessmentStatus = "queued" | "running" | "completed" | "failed" | "blocked";
 export type PassBand = "pass" | "partial" | "fail";
 export type ApiKeyStatus = "active" | "revoked";
 export type FindingConfidence = "confirmed" | "single-source";
@@ -77,6 +77,7 @@ export interface Assessment {
   pagesScanned: number;
   attempts: number;
   lastError: string | null;
+  blockReason: string | null;
   findings: Finding[];
   log: LogEntry[];
   ownerId: string | null;
@@ -216,6 +217,7 @@ DEFINE FIELD pageCap ON assessment TYPE int DEFAULT 100;
 DEFINE FIELD pagesScanned ON assessment TYPE int DEFAULT 0;
 DEFINE FIELD attempts ON assessment TYPE int DEFAULT 0;
 DEFINE FIELD lastError ON assessment TYPE option<string>;
+DEFINE FIELD blockReason ON assessment TYPE option<string> DEFAULT NONE;
 DEFINE FIELD findings ON assessment TYPE option<string> DEFAULT "";
 DEFINE FIELD log ON assessment TYPE option<string> DEFAULT "";
 DEFINE FIELD comparison ON assessment TYPE option<string> DEFAULT "";

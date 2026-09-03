@@ -127,6 +127,23 @@ export async function createPageScanner(): Promise<PageScanner> {
   const browser = await acquireBrowser();
   const context = await browser.newContext({ userAgent: BROWSER_USER_AGENT });
   const page = await context.newPage();
+  // Optional verification header allowlist (AC-5): a site owner can whitelist
+  // the scanner by configuring SCAN_VERIFY_HEADER/SCAN_VERIFY_VALUE. The header
+  // is attached ONLY to same-origin requests (the target's own origin), never
+  // to cross-origin subresources or redirects to other hosts.
+  const verifyHeader = process.env.SCAN_VERIFY_HEADER;
+  const verifyValue = process.env.SCAN_VERIFY_VALUE;
+  let targetOrigin: string | null = null;
+  if (verifyHeader && verifyValue) {
+    await page.route(
+      (url) => targetOrigin !== null && url.origin === targetOrigin,
+      async (route) => {
+        const headers = { ...route.request().headers() };
+        headers[verifyHeader] = verifyValue;
+        await route.continue({ headers });
+      },
+    );
+  }
   // Inject the Ascent Accessibility engine before navigation (addInitScript runs via
   // CDP and is not blocked by the target page's Content-Security-Policy).
   await page.addInitScript({ content: buildEngineSource(ALL_RULES) });
@@ -135,7 +152,10 @@ export async function createPageScanner(): Promise<PageScanner> {
   let disposed = false;
 
   return {
-    scan: (url: string, tags: string[]) => runEngine(url, tags, scannerPage),
+    scan: (url: string, tags: string[]) => {
+      targetOrigin = new URL(url).origin;
+      return runEngine(url, tags, scannerPage);
+    },
     captureEvidence: (result: ScanResult) => captureEvidence(scannerPage, result),
     screenshotPage: () => page.screenshot({ type: "jpeg", quality: 60 }),
     snapshotPage: async () => ({

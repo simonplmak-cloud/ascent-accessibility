@@ -13,6 +13,7 @@ export interface CrawlResult {
   sitemapUsed: boolean;
   sitemapUrlCount: number;
   sitemapUrls: string[];
+  blocked: boolean;
   log?: string[];
 }
 
@@ -172,9 +173,39 @@ const DEFAULT_USER_AGENT =
   process.env.CRAWL_USER_AGENT ??
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
+const MAX_FETCH_RETRIES = 3;
+
+// Retry transient HTTP 429 (rate-limit) responses with bounded exponential
+// backoff, honoring a `Retry-After` header (seconds) when present. 403 is a
+// deliberate bot/WAF block — not retried; it surfaces as a block signal instead.
+// `fetchFn` is injectable so the retry policy is unit-testable without network.
+export async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  fetchFn: typeof fetch = fetch,
+): Promise<Response> {
+  let attempt = 0;
+  for (;;) {
+    const res = await fetchFn(url, init);
+    if (res.status !== 429 || attempt >= MAX_FETCH_RETRIES) return res;
+    const retryAfter = Number(res.headers.get("retry-after"));
+    const waitMs =
+      Number.isFinite(retryAfter) && retryAfter > 0
+        ? retryAfter * 1000
+        : 100 * 2 ** attempt;
+    attempt += 1;
+    await new Promise((r) => setTimeout(r, waitMs + Math.random() * 100));
+  }
+}
+
+function isBlockHttpError(error: unknown): boolean {
+  const message = String((error as { message?: string } | undefined)?.message ?? "");
+  return /HTTP 403|HTTP 429/.test(message);
+}
+
 const defaultDeps: CrawlerDeps = {
   async fetchHtml(url) {
-    const res = await fetch(url, {
+    const res = await fetchWithRetry(url, {
       redirect: "follow",
       signal: AbortSignal.timeout(30_000),
       headers: { "user-agent": DEFAULT_USER_AGENT },
@@ -183,7 +214,7 @@ const defaultDeps: CrawlerDeps = {
     return res.text();
   },
   async fetchRobots(origin) {
-    const res = await fetch(`${origin}/robots.txt`, {
+    const res = await fetchWithRetry(`${origin}/robots.txt`, {
       signal: AbortSignal.timeout(30_000),
       headers: { "user-agent": DEFAULT_USER_AGENT },
     });
@@ -244,6 +275,7 @@ export async function crawl(
   }
   let capped = false;
   let stopped = false;
+  let blocked = false;
 
   const crawlConcurrency = Math.max(
     1,
@@ -271,8 +303,9 @@ export async function crawl(
         try {
           log.push(`crawling ${url.href}`);
           html = await deps.fetchHtml(url.href);
-        } catch {
+        } catch (error) {
           log.push(`crawl failed (unreachable): ${url.href}`);
+          if (url.href === seed.href && isBlockHttpError(error)) blocked = true;
           continue;
         }
 
@@ -313,5 +346,5 @@ export async function crawl(
 
   if (queue.length > 0) capped = true;
 
-  return { urls, pagesScanned: urls.length, partial: capped, sitemapUsed, sitemapUrlCount, sitemapUrls, log };
+  return { urls, pagesScanned: urls.length, partial: capped, sitemapUsed, sitemapUrlCount, sitemapUrls, blocked, log };
 }

@@ -6,6 +6,7 @@ import {
   type AssessmentRepositoryPort,
 } from "@/lib/assessment";
 import { getStandard } from "@/lib/standards/catalog";
+import { ScanFailedError } from "@/lib/scanner";
 import type { Finding } from "@/db/schema";
 import type { Impact } from "@/lib/scoring";
 
@@ -15,6 +16,7 @@ interface RepoState {
   completed: { conformance: string; scsMet: number; scsApplicable: number; pagesScanned: number; partial: boolean } | null;
   comparison: unknown;
   backfillComparison: unknown;
+  blockReason: string | null;
 }
 
 function makeRepo(assessment: AssessmentRecord) {
@@ -24,6 +26,7 @@ function makeRepo(assessment: AssessmentRecord) {
     completed: null,
     comparison: undefined,
     backfillComparison: undefined,
+    blockReason: null,
   };
   const repo: AssessmentRepositoryPort = {
     async findById() {
@@ -44,6 +47,10 @@ function makeRepo(assessment: AssessmentRecord) {
     },
     async fail() {
       state.status = "failed";
+    },
+    async block(_id, input) {
+      state.status = "blocked";
+      state.blockReason = input.reason;
     },
     async insertFindings(_id, items) {
       state.findings = items;
@@ -107,6 +114,7 @@ const emptyCrawl = async () => ({
   sitemapUsed: false,
   sitemapUrlCount: 0,
   sitemapUrls: [],
+  blocked: false,
 });
 
 const createScanner = async () => ({
@@ -151,6 +159,7 @@ describe("runAssessment", () => {
       sitemapUsed: false,
       sitemapUrlCount: 0,
   sitemapUrls: [],
+  blocked: false,
     }));
 
     await runAssessment("a1", deps);
@@ -176,10 +185,37 @@ describe("runAssessment", () => {
     expect(state.status).toBe("failed");
   });
 
-  it("fails when nothing is crawled", async () => {
+  it("falls back to a single-page scan when nothing is crawled (AC-1)", async () => {
     const { repo, state } = makeRepo(assessment);
     await runAssessment("a1", makeDeps(repo, emptyCrawl));
-    expect(state.status).toBe("failed");
+    expect(state.status).toBe("completed");
+    expect(state.completed?.pagesScanned).toBe(1);
+  });
+
+  it("marks blocked when every page is rejected by bot protection (AC-2)", async () => {
+    const { repo, state } = makeRepo(assessment);
+    const blockedScanner = async () => {
+      const base = await createScanner();
+      return {
+        ...base,
+        scan: async () => {
+          throw new ScanFailedError("Could not load https://example.com/: HTTP 403");
+        },
+      };
+    };
+    const deps = makeDeps(repo, async () => ({
+      urls: ["https://example.com/"],
+      pagesScanned: 1,
+      partial: false,
+      sitemapUsed: false,
+      sitemapUrlCount: 0,
+      sitemapUrls: [],
+      blocked: false,
+    }));
+    deps.createScanner = blockedScanner;
+    await runAssessment("a1", deps);
+    expect(state.status).toBe("blocked");
+    expect(state.blockReason).toBe("bot-protection");
   });
 
   it("propagates the partial flag from the crawl (AC-E5)", async () => {
@@ -193,6 +229,7 @@ describe("runAssessment", () => {
         sitemapUsed: false,
         sitemapUrlCount: 0,
   sitemapUrls: [],
+  blocked: false,
       })),
     );
     expect(state.completed?.partial).toBe(true);
@@ -219,6 +256,7 @@ describe("runAssessment", () => {
         sitemapUsed: false,
         sitemapUrlCount: 0,
   sitemapUrls: [],
+  blocked: false,
       })),
       siteAudit: async () => ({
         score: 81,
@@ -252,6 +290,7 @@ describe("runAssessment", () => {
         sitemapUsed: false,
         sitemapUrlCount: 0,
   sitemapUrls: [],
+  blocked: false,
       })),
       siteAudit: async () => {
         throw new Error("browserless down");

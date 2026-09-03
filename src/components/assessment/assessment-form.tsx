@@ -262,6 +262,12 @@ export function AssessmentForm({
         </p>
       )}
 
+      {result?.status === "blocked" && (
+        <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
+          {t("blockedNote")}
+        </p>
+      )}
+
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         {result?.status === "completed" && (
           <p>

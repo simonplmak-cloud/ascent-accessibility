@@ -28,6 +28,8 @@ function statusLabel(status: HistoryItem["status"], t: T): string {
       return t("labelRunning");
     case "completed":
       return t("labelCompleted");
+    case "blocked":
+      return t("labelBlocked");
     default:
       return t("labelFailed");
   }
@@ -41,6 +43,8 @@ function statusClass(status: HistoryItem["status"]): string {
       return "text-terminal-pass";
     case "failed":
       return "text-terminal-fail";
+    case "blocked":
+      return "text-terminal-serious";
     case "running":
       return "text-terminal-serious";
     default:
@@ -174,6 +178,7 @@ export function AssessmentTable({ items, busyIds, onReRun, onDelete }: Assessmen
             <option value="running">{t("statusRunning")}</option>
             <option value="completed">{t("statusCompleted")}</option>
             <option value="failed">{t("statusFailed")}</option>
+            <option value="blocked">{t("statusBlocked")}</option>
           </select>
         </label>
       </div>

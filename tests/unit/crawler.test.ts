@@ -3,6 +3,7 @@ import {
   crawl,
   extractLinks,
   fetchSitemapUrls,
+  fetchWithRetry,
   isAllowedByRobots,
   isSameOrigin,
   parseRobotsDisallow,
@@ -177,6 +178,91 @@ describe("crawl", () => {
     };
     const result = await crawl(new URL("https://example.com/"), {}, deps(pages));
     expect(result.urls).toEqual(["https://example.com/", "https://example.com/ok"]);
+  });
+
+  it("flags blocked when the seed is rate-limited (429)", async () => {
+    const d: CrawlerDeps = {
+      fetchHtml: async () => {
+        throw new Error("HTTP 429");
+      },
+      fetchRobots: noRobots,
+      delay: noDelay,
+    };
+    const result = await crawl(new URL("https://example.com/"), {}, d);
+    expect(result.urls).toEqual([]);
+    expect(result.blocked).toBe(true);
+  });
+
+  it("flags blocked when the seed is bot-protected (403)", async () => {
+    const d: CrawlerDeps = {
+      fetchHtml: async () => {
+        throw new Error("HTTP 403");
+      },
+      fetchRobots: noRobots,
+      delay: noDelay,
+    };
+    const result = await crawl(new URL("https://example.com/"), {}, d);
+    expect(result.blocked).toBe(true);
+  });
+
+  it("does not flag blocked for a non-block failure (500)", async () => {
+    const d: CrawlerDeps = {
+      fetchHtml: async () => {
+        throw new Error("HTTP 500");
+      },
+      fetchRobots: noRobots,
+      delay: noDelay,
+    };
+    const result = await crawl(new URL("https://example.com/"), {}, d);
+    expect(result.blocked).toBe(false);
+  });
+
+  it("does not flag blocked for a genuinely empty site", async () => {
+    const result = await crawl(
+      new URL("https://example.com/"),
+      {},
+      deps({ "https://example.com/": "<html></html>" }),
+    );
+    expect(result.urls).toEqual(["https://example.com/"]);
+    expect(result.blocked).toBe(false);
+  });
+});
+
+describe("fetchWithRetry", () => {
+  const ok = (status = 200) => new Response("<html></html>", { status });
+  const rateLimited = () => new Response("", { status: 429, headers: { "retry-after": "0" } });
+
+  it("retries 429 with backoff until success", async () => {
+    let calls = 0;
+    const fetchFn = async () => {
+      calls += 1;
+      return calls < 3 ? rateLimited() : ok();
+    };
+    const res = await fetchWithRetry("https://example.com/", {}, fetchFn as typeof fetch);
+    expect(res.status).toBe(200);
+    expect(calls).toBe(3);
+  });
+
+  it("gives up after MAX_FETCH_RETRIES and returns the 429", async () => {
+    let calls = 0;
+    const fetchFn = async () => {
+      calls += 1;
+      return rateLimited();
+    };
+    const res = await fetchWithRetry("https://example.com/", {}, fetchFn as typeof fetch);
+    expect(res.status).toBe(429);
+    expect(calls).toBe(4); // initial + 3 retries
+  });
+
+  it("does not retry non-429 responses (403 is a block)", async () => {
+    let calls = 0;
+    const fetchFn = async () => {
+      calls += 1;
+      return new Response("", { status: 403 });
+    };
+    const res = await fetchWithRetry("https://example.com/", {}, fetchFn as typeof fetch);
+    expect(res.status).toBe(403);
+    expect(calls).toBe(1);
   });
 });
 

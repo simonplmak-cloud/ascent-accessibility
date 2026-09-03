@@ -1,4 +1,4 @@
-export type HistoryStatus = "queued" | "running" | "completed" | "failed";
+export type HistoryStatus = "queued" | "running" | "completed" | "failed" | "blocked";
 export type HistoryStatusFilter = "all" | HistoryStatus;
 export type HistorySortKey = "createdAt" | "conformance";
 export type SortDirection = "asc" | "desc";

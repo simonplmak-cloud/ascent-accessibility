@@ -21,12 +21,13 @@ export interface AssessmentSummary {
   scsApplicable: number | null;
   pagesScanned: number;
   partial: boolean;
+  blockReason: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 const SUMMARY_PROJECTION =
-  "id, url, standard, standardLabel, status, score, passBand, conformance, scsMet, scsApplicable, pagesScanned, partial, createdAt, updatedAt";
+  "id, url, standard, standardLabel, status, score, passBand, conformance, scsMet, scsApplicable, pagesScanned, partial, blockReason, createdAt, updatedAt";
 
 function mapSummary(raw: Record<string, unknown>): AssessmentSummary {
   return {
@@ -42,6 +43,7 @@ function mapSummary(raw: Record<string, unknown>): AssessmentSummary {
     scsApplicable: raw.scsApplicable == null ? null : Number(raw.scsApplicable),
     pagesScanned: Number(raw.pagesScanned ?? 0),
     partial: Boolean(raw.partial),
+    blockReason: (raw.blockReason as string | null) ?? null,
     createdAt: String(raw.createdAt),
     updatedAt: String(raw.updatedAt),
   };
@@ -145,6 +147,16 @@ export const assessmentRepository = {
     await query(
       "UPDATE assessment SET status = 'failed', updatedAt = time::now() WHERE id = type::record($id)",
       { id },
+    );
+  },
+
+  // Terminal "blocked" state: every attempted page was blocked by bot/WAF
+  // protection (403/429), so the scan could not proceed. Distinct from `failed`
+  // (an orchestration/engine error) — blocked means the target denied access.
+  async block(id: string, input: { reason: string; pages: ScannedPage[] }): Promise<void> {
+    await query(
+      "UPDATE assessment SET status = 'blocked', blockReason = $reason, pages = $pages, pagesScanned = 0, partial = false, updatedAt = time::now() WHERE id = type::record($id)",
+      { id, reason: input.reason, pages: JSON.stringify(input.pages) },
     );
   },
 
