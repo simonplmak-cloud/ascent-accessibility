@@ -828,6 +828,8 @@
   "account": {
     "heading": "账户",
     "viewHistory": "查看您的评估历史",
+    "verifyTokenTitle": "验证令牌",
+    "verifyTokenBody": "在您的网站上添加此令牌作为 meta 标签（ascent-verify），以便我们确认您已授权扫描。",
     "provisionTitle": "启用 AI 审查（推荐）",
     "provisionBody": "充值后我们为你创建安全的 AI 密钥 — 无需自行申请。你的信用卡信息由 Stripe 处理；我们只存储加密的密钥。",
     "topupNote": "充值",

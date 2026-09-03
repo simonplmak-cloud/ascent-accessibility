@@ -828,6 +828,8 @@
   "account": {
     "heading": "帳戶",
     "viewHistory": "查看您的評估歷史",
+    "verifyTokenTitle": "驗證權杖",
+    "verifyTokenBody": "在您的網站上新增此權杖作為 meta 標籤（ascent-verify），以便我們確認您已授權掃描。",
     "provisionTitle": "啟用 AI 審查（推薦）",
     "provisionBody": "增值後我們會為你建立安全的 AI 金鑰 — 無需自行申請。你的信用卡資料由 Stripe 處理；我們只儲存加密的金鑰。",
     "topupNote": "增值",
