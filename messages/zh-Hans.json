@@ -10,6 +10,8 @@
     "remediation": "修复指引",
     "regulations": "法规",
     "faq": "常见问题",
+    "allowScanner": "允许我们的扫描器",
+    "bot": "扫描器身份",
     "about": "关于",
     "whoWeAre": "我们是谁",
     "forGovernment": "政府机构",
@@ -793,6 +795,8 @@
     "cancelledNote": "已停止观看此评估 — 它仍可能在背景完成。请在审计员工作区查看结果。",
     "failedNote": "无法完成评估。请确认网址可达并再试。",
     "blockedNote": "该网站阻止了自动扫描。请稍后再试，或联系网站负责人。",
+    "blockedGuideLink": "如何允许我们的扫描器",
+    "rescan": "重新扫描",
     "completeNote": "评估完成。{count} 项发现。",
     "stageQueued": "排队中",
     "stageCrawling": "爬取中",
@@ -1362,5 +1366,39 @@
     "esgLink": "ESG 与报告对应",
     "humanReview": "人工审查",
     "validation": "验证方式"
+  },
+
+  "bot":   {
+    "title": "扫描器身份 — Ascent Accessibility",
+    "description": "Ascent Accessibility 扫描器的 User-Agent、IP 范围与行为说明，供希望将其加入白名单的网站负责人使用。",
+    "heading": "扫描器身份",
+    "intro": "将 Ascent Accessibility 扫描器加入白名单，以便它抓取和审计您的网站。我们的扫描器对自身身份和行为保持透明。",
+    "uaTitle": "User-Agent",
+    "ipTitle": "IP 范围",
+    "ipBody": "我们的扫描器从以下出口 IP 范围进行抓取。请将其加入您的白名单。",
+    "ipEmpty": "（尚未公布 IP 范围）",
+    "behaviorTitle": "行为",
+    "behaviorRobots": "遵守 robots.txt 的禁止规则。",
+    "behaviorDelay": "遵守 crawl-delay 和速率限制。",
+    "behaviorNoAuth": "绝不抓取登录、结账或管理区域。",
+    "verifyTitle": "验证令牌",
+    "verifyBody": "在您的网站上放置带有验证令牌的 meta 标签（{meta}），以证明您已授权扫描。您的令牌显示在您的账户页面。"
+  },
+  "allowScanner":   {
+    "title": "允许我们的扫描器",
+    "description": "让 Ascent Accessibility 扫描器通过您的 WAF 或机器人防护的说明。",
+    "heading": "允许 Ascent Accessibility 扫描器",
+    "intro": "如果扫描结果显示“被拦截”，说明您的网站防护正在阻止我们的扫描器。请按以下步骤允许它，然后重新扫描。",
+    "identityNote": "我们的扫描器标识为",
+    "ipNote": "并从以下范围抓取",
+    "robotsTitle": "robots.txt",
+    "robotsBody": "将我们的扫描器加入您的 robots.txt，以允许其抓取。",
+    "cloudflareTitle": "Cloudflare",
+    "cloudflareBody": "为我们的 User-Agent 添加 WAF 跳过规则，让 Cloudflare 放行扫描器。",
+    "nginxTitle": "nginx / Apache",
+    "nginxBody": "在服务器层面允许来自我们 User-Agent 的请求。",
+    "verifyTitle": "验证令牌",
+    "verifyBody": "作为额外信号，请将您的验证令牌添加到网站，以便我们确认您已授权扫描。",
+    "verifyLink": "您的令牌在扫描器身份页面和您的账户页面上。"
   }
 }

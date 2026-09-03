@@ -10,6 +10,8 @@
     "remediation": "Remediation",
     "regulations": "Regulations",
     "faq": "FAQ",
+    "allowScanner": "Allow our scanner",
+    "bot": "Scanner identity",
     "about": "About",
     "whoWeAre": "Who we are",
     "forGovernment": "For government",
@@ -805,6 +807,8 @@
     "cancelledNote": "Stopped watching this assessment — it may still complete in the background. Check your auditor workspace for the result.",
     "failedNote": "The assessment could not be completed. Please verify the URL is reachable and try again.",
     "blockedNote": "This site is blocking automated scans. Please try again later or contact the site owner.",
+    "blockedGuideLink": "How to allow our scanner",
+    "rescan": "Rescan",
     "completeNote": "Assessment complete. {count} findings.",
     "stageQueued": "Queued",
     "stageCrawling": "Crawling",
@@ -1362,5 +1366,39 @@
     "disclaimer": "This page is a translation provided by Ascent Accessibility, not an official W3C translation. The authoritative version is the English W3C text.",
     "unofficialNote": "This success criterion has no official W3C Chinese translation yet; this translation is unofficial.",
     "backToStandards": "Back to standards"
+  },
+
+  "bot":   {
+    "title": "Scanner identity — Ascent Accessibility",
+    "description": "The User-Agent, IP ranges, and behavior of the Ascent Accessibility scanner, for site owners who want to allowlist it.",
+    "heading": "Scanner identity",
+    "intro": "Allowlist the Ascent Accessibility scanner so it can crawl and audit your site. Our scanner is transparent about who it is and how it behaves.",
+    "uaTitle": "User-Agent",
+    "ipTitle": "IP ranges",
+    "ipBody": "Our scanner crawls from the following egress IP range(s). Add these to your allowlist.",
+    "ipEmpty": "(IP ranges not published yet)",
+    "behaviorTitle": "Behavior",
+    "behaviorRobots": "Obey robots.txt disallow rules.",
+    "behaviorDelay": "Honor crawl-delay and rate limits.",
+    "behaviorNoAuth": "Never crawl login, checkout, or admin areas.",
+    "verifyTitle": "Verification token",
+    "verifyBody": "Place a meta tag ({meta}) with your verification token on your site to prove you authorized the scan. Your token is shown on your account page."
+  },
+  "allowScanner":   {
+    "title": "Allow our scanner",
+    "description": "Instructions for letting the Ascent Accessibility scanner through your WAF or bot protection.",
+    "heading": "Allow the Ascent Accessibility scanner",
+    "intro": "If a scan came back \"blocked\", your site's bot protection is stopping our scanner. Follow the steps below to allow it, then rescan.",
+    "identityNote": "Our scanner identifies as",
+    "ipNote": "and crawls from",
+    "robotsTitle": "robots.txt",
+    "robotsBody": "Add our scanner to your robots.txt so it is allowed to crawl.",
+    "cloudflareTitle": "Cloudflare",
+    "cloudflareBody": "Add a WAF skip rule for our User-Agent so Cloudflare lets the scanner through.",
+    "nginxTitle": "nginx / Apache",
+    "nginxBody": "Allow requests from our User-Agent at the server level.",
+    "verifyTitle": "Verification token",
+    "verifyBody": "For an extra signal, add your verification token to your site so we can confirm you authorized the scan.",
+    "verifyLink": "Your token is on the scanner identity page and your account page."
   }
 }

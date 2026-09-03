@@ -44,6 +44,7 @@ export const SITE_SECTIONS: SiteSection[] = [
       { href: "/methodology", label: "methodology" },
       { href: "/remediation", label: "remediation" },
       { href: "/compliance", label: "compliance" },
+      { href: "/guides/allow-scanner", label: "allowScanner" },
       { href: "/faq", label: "faq" },
     ],
   },
@@ -89,4 +90,5 @@ export const LEGAL_LINKS: NavLink[] = [
   { href: "/sla", label: "serviceCommitment" },
   { href: "/refund", label: "refunds" },
   { href: "/accessibility-statement", label: "accessibilityStatement" },
+  { href: "/bot", label: "bot" },
 ];

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Report } from "./report";
 import { LogPanel } from "./log-panel";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ export function AssessmentForm({
   const [cancelled, setCancelled] = useState(false);
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   function startTimer() {
     const start = Date.now();
@@ -148,7 +150,7 @@ export function AssessmentForm({
 
   return (
     <div>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="url" className="block font-sans text-sm text-terminal-fg">
             {t("urlLabel")}
@@ -263,9 +265,20 @@ export function AssessmentForm({
       )}
 
       {result?.status === "blocked" && (
-        <p role="alert" className="mt-4 font-sans text-sm text-terminal-critical">
-          {t("blockedNote")}
-        </p>
+        <div role="alert" className="mt-4 rounded border border-terminal-border bg-terminal-surface/40 p-4">
+          <p className="font-sans text-sm text-terminal-critical">{t("blockedNote")}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <Link
+              href="/guides/allow-scanner"
+              className="font-sans text-sm text-terminal-fg underline-offset-4 hover:underline"
+            >
+              {t("blockedGuideLink")}
+            </Link>
+            <Button variant="outline" size="sm" onClick={() => formRef.current?.requestSubmit()}>
+              {t("rescan")}
+            </Button>
+          </div>
+        </div>
       )}
 
       <div aria-live="polite" aria-atomic="true" className="sr-only">

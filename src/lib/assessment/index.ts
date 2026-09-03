@@ -21,6 +21,7 @@ import { toolImplByName } from "@/lib/ai-review/tools";
 import type { AudioModel } from "@/lib/ai-review/audio";
 import { evaluateStandard } from "@/lib/assessment/evaluate";
 import { resolveDetectedLanguages } from "@/lib/standards/language-detect";
+import { verifyTokenFor, VERIFY_META_NAME } from "@/lib/site/bot-identity";
 import type { Finding, LogEntry, LogLevel, NewEvidence, ScannedPage } from "@/db/schema";
 import { logger } from "@/lib/observability/logger";
 
@@ -491,6 +492,25 @@ async function scanAndConsolidate(
                   for (const l of resolveDetectedLanguages(lang, text)) detectedLanguages.add(l);
                 } catch {
                   /* detection optional — never fails the scan */
+                }
+
+                // Best-effort authorization check: a site owner proves the scan is
+                // authorized by placing a meta tag with their per-owner verify token.
+                if (ownerId) {
+                  try {
+                    const meta = (await scanner.evaluate(
+                      (name) => {
+                        const el = document.querySelector(`meta[name="${name}"]`);
+                        return el ? el.getAttribute("content") : null;
+                      },
+                      VERIFY_META_NAME,
+                    )) as string | null;
+                    if (meta === verifyTokenFor(ownerId)) {
+                      log("info", "site verified — owner authorized this scan");
+                    }
+                  } catch {
+                    /* optional — never fails the scan */
+                  }
                 }
 
                 // Freeze a point-in-time snapshot (full-page HTML + screenshot) so

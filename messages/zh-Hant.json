@@ -10,6 +10,8 @@
     "remediation": "修復指引",
     "regulations": "法規",
     "faq": "常見問題",
+    "allowScanner": "允許我們的掃描器",
+    "bot": "掃描器身分",
     "about": "關於",
     "whoWeAre": "我們是誰",
     "forGovernment": "政府機構",
@@ -793,6 +795,8 @@
     "cancelledNote": "已停止觀看此評估 — 它仍可能在背景完成。請在審計員工作區查看結果。",
     "failedNote": "無法完成評估。請確認網址可達並再試。",
     "blockedNote": "該網站阻止了自動掃描。請稍後再試，或聯絡網站負責人。",
+    "blockedGuideLink": "如何允許我們的掃描器",
+    "rescan": "重新掃描",
     "completeNote": "評估完成。{count} 項發現。",
     "stageQueued": "排隊中",
     "stageCrawling": "爬取中",
@@ -1362,5 +1366,39 @@
     "esgLink": "ESG 與報告對應",
     "humanReview": "人工審查",
     "validation": "驗證方式"
+  },
+
+  "bot":   {
+    "title": "掃描器身分 — Ascent Accessibility",
+    "description": "Ascent Accessibility 掃描器的 User-Agent、IP 範圍與行為說明，供希望將其加入白名單的網站負責人使用。",
+    "heading": "掃描器身分",
+    "intro": "將 Ascent Accessibility 掃描器加入白名單，以便它抓取和稽核您的網站。我們的掃描器對自身身分和行為保持透明。",
+    "uaTitle": "User-Agent",
+    "ipTitle": "IP 範圍",
+    "ipBody": "我們的掃描器從以下出口 IP 範圍進行抓取。請將其加入您的白名單。",
+    "ipEmpty": "（尚未公布 IP 範圍）",
+    "behaviorTitle": "行為",
+    "behaviorRobots": "遵守 robots.txt 的禁止規則。",
+    "behaviorDelay": "遵守 crawl-delay 和速率限制。",
+    "behaviorNoAuth": "絕不抓取登入、結帳或管理區域。",
+    "verifyTitle": "驗證權杖",
+    "verifyBody": "在您的網站上放置帶有驗證權杖的 meta 標籤（{meta}），以證明您已授權掃描。您的權杖顯示在您的帳戶頁面。"
+  },
+  "allowScanner":   {
+    "title": "允許我們的掃描器",
+    "description": "讓 Ascent Accessibility 掃描器通過您的 WAF 或機器人防護的說明。",
+    "heading": "允許 Ascent Accessibility 掃描器",
+    "intro": "如果掃描結果顯示「被封鎖」，說明您的網站防護正在阻止我們的掃描器。請按以下步驟允許它，然後重新掃描。",
+    "identityNote": "我們的掃描器標識為",
+    "ipNote": "並從以下範圍抓取",
+    "robotsTitle": "robots.txt",
+    "robotsBody": "將我們的掃描器加入您的 robots.txt，以允許其抓取。",
+    "cloudflareTitle": "Cloudflare",
+    "cloudflareBody": "為我們的 User-Agent 新增 WAF 略過規則，讓 Cloudflare 放行掃描器。",
+    "nginxTitle": "nginx / Apache",
+    "nginxBody": "在伺服器層面允許來自我們 User-Agent 的請求。",
+    "verifyTitle": "驗證權杖",
+    "verifyBody": "作為額外訊號，請將您的驗證權杖加入網站，以便我們確認您已授權掃描。",
+    "verifyLink": "您的權杖在掃描器身分頁面和您的帳戶頁面上。"
   }
 }

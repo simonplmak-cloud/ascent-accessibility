@@ -1,3 +1,5 @@
+import { BOT_USER_AGENT } from "@/lib/site/bot-identity";
+
 export interface CrawlOptions {
   maxDepth?: number;
   maxPages?: number;
@@ -166,12 +168,9 @@ function discoverChildren(
   return result;
 }
 
-// A realistic browser UA by default: a self-declared bot UA ("Scanner/1.0") is
-// a trivial block trigger for WAFs/bot protection. Override via CRAWL_USER_AGENT
-// if you prefer to advertise the scanner's identity.
-const DEFAULT_USER_AGENT =
-  process.env.CRAWL_USER_AGENT ??
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+// A self-identifying bot UA by default so site owners can allowlist us by name
+// (the "proper" path). Override via CRAWL_USER_AGENT if you prefer a browser UA.
+const DEFAULT_USER_AGENT = process.env.CRAWL_USER_AGENT ?? BOT_USER_AGENT;
 
 const MAX_FETCH_RETRIES = 3;
 
