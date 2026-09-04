@@ -6,6 +6,10 @@ import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 import { MutedText } from "@/components/ui/text";
 import { BOT_IP_RANGES, BOT_USER_AGENT, VERIFY_META_NAME } from "@/lib/site/bot-identity";
 
+// Read the published identity from env at request time so operator config
+// (IP ranges) is reflected without a code redeploy.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {

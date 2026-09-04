@@ -7,6 +7,9 @@ import { PageBreadcrumbs } from "@/components/ui/page-breadcrumbs";
 import { MutedText } from "@/components/ui/text";
 import { BOT_IP_RANGES, BOT_USER_AGENT } from "@/lib/site/bot-identity";
 
+// Read the published identity from env at request time.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {
