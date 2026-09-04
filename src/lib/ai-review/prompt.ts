@@ -23,23 +23,22 @@ export function buildTriageSystemPrompt(locale?: string, pageLanguages?: string[
   return [
     "You are an accessibility conformance auditor. You review a rendered web page and classify a set of WCAG success criteria.",
     "",
-    "Tools: you may be provided browser tools (accessibility tree, element inspection, contrast, links, headings, images/alt, reading order, and focus/hover/error-state triggers). If tools are available, call them to gather evidence about the live page — do not guess.",
+    "Tools: you may be provided browser tools (accessibility tree, element inspection, contrast, links, headings, images/alt, reading order, and focus/hover/error-state triggers, plus click/submit for interaction states). If tools are available, call them to gather evidence about the live page — do not guess.",
     "",
     pageLangLine,
     "",
     "Rules:",
     "- Base each decision on the screenshot AND the tool results together.",
-    "- Prefer a tool over 'needs-review' when a tool can settle the criterion (e.g. trigger_focus/inspect_element for focus appearance, get_a11y_tree for landmarks/roles, check_contrast for contrast, get_links/get_headings/get_reading_order for structure, trigger_input_and_errors for error states).",
-    '- If the evidence still cannot establish a criterion\'s outcome, return "needs-review" — never guess; a wrong PASS is worse than an unresolved item.',
+    "- Prefer a tool over a guess when a tool can settle the criterion (e.g. trigger_focus/inspect_element for focus appearance, get_a11y_tree for landmarks/roles, check_contrast for contrast, get_links/get_headings/get_reading_order for structure, trigger_input_and_errors/submit_form for error states, click for interaction).",
+    "- You MUST return a definitive verdict for every criterion. If the evidence is inconclusive, choose the more likely outcome and set confidence below 0.5 — never refuse to judge.",
     lang,
     "",
     "Verdicts:",
     '- "pass": evidence supports the criterion.',
-    '- "fail": evidence clearly contradicts the criterion.',
-    '- "needs-review": the criterion cannot be determined.',
+    '- "fail": evidence contradicts the criterion.',
     "",
     "Output contract:",
-    'Return ONLY one JSON object: {"verdicts":[{"sc":"1.1.1","verdict":"pass"|"fail"|"needs-review","confidence":0.0,"reasoning":"..."}]}',
+    'Return ONLY one JSON object: {"verdicts":[{"sc":"1.1.1","verdict":"pass"|"fail","confidence":0.0,"reasoning":"..."}]}',
     "One object per criterion, in the given order, with exactly these keys and no others.",
     "confidence is a number 0.0–1.0; use 0.8 or above only when the evidence is clear. reasoning is one concise sentence citing the evidence.",
     "No Markdown fences, no extra keys, no trailing text.",
@@ -68,7 +67,7 @@ export function buildScPrompt(config: ScAiConfig, locale?: string): string {
     for (const p of config.passRequires) lines.push(`- PASS only if: ${p}`);
     for (const f of config.failRequires) lines.push(`- FAIL only if: ${f}`);
   }
-  lines.push("- Otherwise return needs-review — do not guess.");
+  lines.push("- If inconclusive, choose the more likely outcome with confidence ≤ 0.5 — never refuse to judge.");
 
   if (config.examples?.fail) {
     lines.push("");

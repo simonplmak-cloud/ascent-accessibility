@@ -40,7 +40,7 @@ const getConfig =
   async (sc: string): Promise<ScAiConfig> =>
     map[sc] ?? cfg(sc, { judgeable: false });
 
-describe("resolveVerdict (fail-safe)", () => {
+describe("resolveVerdict (always-emit)", () => {
   it("promotes a high-confidence pass", () => {
     expect(
       resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "Passed", confidence: 0.9, reasoning: "r" }]),
@@ -53,20 +53,23 @@ describe("resolveVerdict (fail-safe)", () => {
     ).toMatchObject({ verdict: "Failed" });
   });
 
-  it("degrades a below-threshold verdict to CannotTell", () => {
+  it("keeps a below-threshold verdict as-is (single-source, never CannotTell)", () => {
     expect(
       resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "Passed", confidence: 0.5, reasoning: "r" }]),
-    ).toMatchObject({ verdict: "CannotTell" });
+    ).toMatchObject({ verdict: "Passed" });
   });
 
-  it("keeps an explicit CannotTell as CannotTell regardless of confidence", () => {
+  it("leans a model 'CannotTell' toward the more likely outcome", () => {
     expect(
       resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "CannotTell", confidence: 0.99, reasoning: "r" }]),
-    ).toMatchObject({ verdict: "CannotTell" });
+    ).toMatchObject({ verdict: "Passed" });
+    expect(
+      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "CannotTell", confidence: 0.1, reasoning: "r" }]),
+    ).toMatchObject({ verdict: "Failed" });
   });
 
-  it("defaults to CannotTell when no verdict is returned", () => {
-    expect(resolveVerdict("1.1.1", [])).toMatchObject({ verdict: "CannotTell" });
+  it("defaults to Failed when no verdict is returned", () => {
+    expect(resolveVerdict("1.1.1", [])).toMatchObject({ verdict: "Failed" });
   });
 });
 
@@ -131,14 +134,14 @@ describe("runTriage (one call per judgeable criterion)", () => {
     expect(result.reviews[0]).toMatchObject({ sc: "2.4.4", verdict: "CannotTell" });
   });
 
-  it("degrades a below-threshold pass to CannotTell", async () => {
+  it("degrades a below-threshold pass to a single-source Passed (never CannotTell)", async () => {
     const result = await runTriage({
       model: model([{ sc: "2.4.4", verdict: "Passed", confidence: 0.5, reasoning: "r" }]),
       image: Buffer.alloc(0),
       unresolvedScs: ["2.4.4"],
       getConfig: getConfig({ "2.4.4": cfg("2.4.4") }),
     });
-    expect(result.reviews[0]).toMatchObject({ verdict: "CannotTell" });
+    expect(result.reviews[0]).toMatchObject({ verdict: "Passed" });
   });
 
   it("short-circuits with no call when there is nothing to review", async () => {

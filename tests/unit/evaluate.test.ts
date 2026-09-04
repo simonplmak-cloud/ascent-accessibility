@@ -108,7 +108,7 @@ describe("evaluateStandard", () => {
     expect(out.conformance.rows.find((r) => r.num === "1.3.2")?.result).toBe("Passed");
   });
 
-  it("leaves AI-uncertain verdicts as CannotTell (AC-8)", async () => {
+  it("keeps a low-confidence AI verdict as a single-source Passed (AC-8)", async () => {
     const m = model([{ sc: "1.3.2", verdict: "Passed", confidence: 0.5, reasoning: "r" }]);
     const out = await evaluateStandard(
       input,
@@ -118,7 +118,7 @@ describe("evaluateStandard", () => {
         getConfig: getConfig({ "1.3.2": cfg("1.3.2") }),
       },
     );
-    expect(out.conformance.rows.find((r) => r.num === "1.3.2")?.result).toBe("CannotTell");
+    expect(out.conformance.rows.find((r) => r.num === "1.3.2")?.result).toBe("Passed");
   });
 
   it("never dispatches manual-only SCs to AI (AC-7)", async () => {

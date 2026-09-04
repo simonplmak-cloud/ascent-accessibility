@@ -14,13 +14,23 @@ export type GetConfig = (sc: string) => Promise<ScAiConfig>;
 export function resolveVerdict(
   sc: string,
   verdicts: readonly AiReview[],
-  threshold: number = AI_CONFIDENCE_THRESHOLD,
+  _threshold: number = AI_CONFIDENCE_THRESHOLD,
 ): AiReview {
   const found = verdicts.find((v) => v.sc === sc);
-  if (!found) return { sc, verdict: "CannotTell", confidence: 0, reasoning: "no verdict returned" };
-  if (found.verdict === "CannotTell") return found;
-  if (found.confidence < threshold) return { ...found, verdict: "CannotTell" };
-  return found;
+  if (!found) return { sc, verdict: "Failed", confidence: 0, reasoning: "no verdict returned" };
+  if (found.verdict === "Passed" || found.verdict === "Failed") {
+    // The agentic backstop always asserts a verdict — keep the model's judgment
+    // regardless of confidence (single-source provenance, never "cannot tell").
+    return found;
+  }
+  // The model refused ("CannotTell"): lean toward the more likely outcome.
+  const lean = found.confidence >= 0.5 ? "Passed" : "Failed";
+  return {
+    sc,
+    verdict: lean,
+    confidence: found.confidence,
+    reasoning: found.reasoning || `model did not decide; leaning ${lean}`,
+  };
 }
 
 export function impactForScLevel(sc: string): Impact {

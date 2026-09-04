@@ -201,6 +201,69 @@ export const AI_TOOL_IMPL: Record<string, ToolImpl> = {
     }).length;
     return { focusableCount: els.length, order, clickOnly, positiveTabindex };
   },
+
+  get_active_element: () => {
+    const active = document.activeElement as HTMLElement | null;
+    if (!active) return { found: false };
+    const cs = getComputedStyle(active);
+    return {
+      found: true,
+      tag: active.tagName.toLowerCase(),
+      role: active.getAttribute("role"),
+      ariaLabel: active.getAttribute("aria-label"),
+      text: (active.textContent || "").trim().slice(0, 80),
+      outlineStyle: cs.outlineStyle,
+      outlineWidth: cs.outlineWidth,
+    };
+  },
+
+  click: (args) => {
+    const sel = String(args.selector ?? "a[href], button");
+    const el = document.querySelector<HTMLElement>(sel);
+    if (!el) return { found: false };
+    el.click();
+    const active = document.activeElement as HTMLElement | null;
+    const live = Array.from(document.querySelectorAll<HTMLElement>("[aria-live], [role='alert']"))
+      .map((e) => (e.textContent || "").trim())
+      .filter(Boolean)
+      .slice(0, 5);
+    return {
+      found: true,
+      clickedTag: el.tagName.toLowerCase(),
+      activeTag: active?.tagName.toLowerCase() ?? null,
+      activeText: (active?.textContent || "").trim().slice(0, 80),
+      liveRegions: live,
+    };
+  },
+
+  set_value: (args) => {
+    const sel = String(args.selector ?? "input, select, textarea");
+    const el = document.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(sel);
+    if (!el) return { found: false };
+    const value = String(args.value ?? "");
+    el.value = value;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+    return { found: true, value };
+  },
+
+  submit_form: (args) => {
+    const sel = String(args.selector ?? "form");
+    const form = document.querySelector<HTMLFormElement>(sel);
+    if (!form) return { found: false };
+    form.requestSubmit();
+    const errors = Array.from(
+      document.querySelectorAll<HTMLElement>("[role='alert'], [aria-invalid='true'], .error, [class*='error']"),
+    )
+      .slice(0, 10)
+      .map((e) => (e.textContent || "").trim().slice(0, 120));
+    return {
+      found: true,
+      action: form.getAttribute("action") || "",
+      method: (form.getAttribute("method") || "get").toLowerCase(),
+      errors,
+    };
+  },
 };
 
 // OpenAI function-calling definitions (JSON Schema).
@@ -264,6 +327,26 @@ export const AI_TOOLS: AiToolDef[] = [
     name: "trigger_keyboard_traversal",
     description: "Enumerate the keyboard focus order and flag focusability issues (non-focusable click targets, positive tabindex) for keyboard/focus-context criteria.",
     parameters: { type: "object", properties: {} },
+  },
+  {
+    name: "get_active_element",
+    description: "Report the currently focused element (tag, role, aria-label, text, outline) for focus-visible/focus-appearance criteria.",
+    parameters: { type: "object", properties: {} },
+  },
+  {
+    name: "click",
+    description: "Click a matched element and report the resulting focus, text, and any live-region/alert announcements (for interaction/keyboard/focus criteria).",
+    parameters: { type: "object", properties: { selector: { type: "string" } }, required: ["selector"] },
+  },
+  {
+    name: "set_value",
+    description: "Set a form field's value and dispatch input/change (for error-identification / redundant-entry criteria).",
+    parameters: { type: "object", properties: { selector: { type: "string" }, value: { type: "string" } }, required: ["selector", "value"] },
+  },
+  {
+    name: "submit_form",
+    description: "Submit a form and report the resulting error messages / aria-invalid (for error-prevention / status-message criteria).",
+    parameters: { type: "object", properties: { selector: { type: "string" } }, required: ["selector"] },
   },
 ];
 

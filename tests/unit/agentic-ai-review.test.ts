@@ -26,15 +26,15 @@ function toolJudgedCfg(sc: string, judgeable: boolean): ScAiConfig {
 }
 
 describe("AI tool catalog", () => {
-  it("exposes 12 tools, each with a name, description, JSON schema, and impl", () => {
-    expect(AI_TOOLS).toHaveLength(12);
+  it("exposes 16 tools, each with a name, description, JSON schema, and impl", () => {
+    expect(AI_TOOLS).toHaveLength(16);
     for (const t of AI_TOOLS) {
       expect(t.name).toBeTruthy();
       expect(t.description).toBeTruthy();
       expect(t.parameters).toHaveProperty("type", "object");
       expect(toolImplByName(t.name), `${t.name} has no impl`).toBeTruthy();
     }
-    expect(Object.keys(AI_TOOL_IMPL)).toHaveLength(12);
+    expect(Object.keys(AI_TOOL_IMPL)).toHaveLength(16);
   });
 });
 
@@ -255,5 +255,24 @@ describe("runTriage tool-aware judgeability", () => {
     expect(review).not.toHaveBeenCalled();
     expect(out.reviews[0]).toMatchObject({ verdict: "CannotTell" });
     expect(out.budget.calls).toBe(0);
+  });
+
+  it("always emits Passed/Failed — a model 'CannotTell' leans toward the more likely outcome", async () => {
+    const review = vi.fn(async (): Promise<AiReview[]> => [
+      { sc: "2.4.11", verdict: "CannotTell", confidence: 0.3, reasoning: "unclear" },
+      { sc: "2.4.12", verdict: "CannotTell", confidence: 0.7, reasoning: "likely ok" },
+      { sc: "1.3.3", verdict: "Passed", confidence: 0.4, reasoning: "looks fine" },
+    ]);
+    const out = await runTriage({
+      model: { review },
+      image: Buffer.alloc(0),
+      unresolvedScs: ["2.4.11", "2.4.12", "1.3.3"],
+      getConfig: async (sc) => toolJudgedCfg(sc, true),
+    });
+    const bySc = Object.fromEntries(out.reviews.map((r) => [r.sc, r]));
+    expect(bySc["2.4.11"]?.verdict).toBe("Failed"); // confidence < 0.5
+    expect(bySc["2.4.12"]?.verdict).toBe("Passed"); // confidence >= 0.5
+    expect(bySc["1.3.3"]?.verdict).toBe("Passed"); // low confidence but still a verdict
+    expect(out.reviews.some((r) => r.verdict === "CannotTell")).toBe(false);
   });
 });
