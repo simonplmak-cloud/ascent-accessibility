@@ -136,7 +136,7 @@ export function computeAiParity(ai: LabeledVerdict[], oracle: LabeledVerdict[]):
   return { perSc, gatePassed: failures.length === 0, failures };
 }
 
-function reviewToParity(verdict?: "Passed" | "Failed" | "CannotTell"): AiParityVerdict {
+function reviewToParity(verdict?: "Passed" | "Failed" | "NotTested"): AiParityVerdict {
   if (verdict === "Passed") return "pass";
   if (verdict === "Failed") return "fail";
   return "needs-review";

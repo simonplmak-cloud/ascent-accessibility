@@ -1,8 +1,6 @@
-// Transparent three-way results (machine / AI / human review) + a combined result.
+// Transparent three-way results (machine / AI / not-tested) + a combined result.
 // Pure, deterministic derivations from the conformance rows + AI verdicts — the
 // same logic drives both the web UI report and the PDF report.
-
-export { cannotTellReason, type CannotTellReason, type AiVerdictLike } from "@/lib/standards/review-reason";
 
 export interface MethodRow {
   num: string;
@@ -22,7 +20,7 @@ export interface AiVerdict {
 // Machine review: SCs the rule engine decided (a substantive pass/fail verdict).
 // "NotPresent" (no relevant content) and "Unresolved" (couldn't decide) are not
 // substantive machine verdicts — the former is counted in the combined summary,
-// the latter is where AI/human review take over.
+// the latter is where the agentic AI review takes over.
 export function machineResults(rows: MethodRow[]): {
   passed: number;
   failed: number;
@@ -39,28 +37,29 @@ export function machineResults(rows: MethodRow[]): {
 }
 
 // AI-assisted review: what the AI concluded per SC it attempted (pass/fail/
-// cannot-tell + confidence + reasoning). AI "cannot tell" escalates to human review.
+// not-tested + confidence + reasoning). "NotTested" means the AI could not run
+// (e.g. no key configured) rather than an ambiguous verdict.
 export function aiResults(verdicts: AiVerdict[]): {
   passed: number;
   failed: number;
-  cannotTell: number;
+  notTested: number;
   verdicts: AiVerdict[];
 } {
   return {
     passed: verdicts.filter((v) => v.verdict === "Passed").length,
     failed: verdicts.filter((v) => v.verdict === "Failed").length,
-    cannotTell: verdicts.filter((v) => v.verdict === "CannotTell").length,
+    notTested: verdicts.filter((v) => v.verdict === "NotTested").length,
     verdicts,
   };
 }
 
-// Human review (pending): SCs that still need human judgement (result CannotTell).
-export function humanReviewPending(rows: MethodRow[]): {
+// Not-tested: SCs neither the machine nor the agentic AI resolved (no AI key).
+export function notTestedRows(rows: MethodRow[]): {
   count: number;
   rows: MethodRow[];
 } {
-  const pending = rows.filter((r) => r.result === "CannotTell");
-  return { count: pending.length, rows: pending };
+  const untested = rows.filter((r) => r.result === "NotTested");
+  return { count: untested.length, rows: untested };
 }
 
 // Combined result: the merged outcome across all methods.
@@ -69,7 +68,7 @@ export function combinedSummary(conformance: {
   passed: number;
   failed: number;
   notPresent: number;
-  cannotTell: number;
+  notTested: number;
   coverage: number;
   levelAttained: string;
   outcome: string;
@@ -78,7 +77,7 @@ export function combinedSummary(conformance: {
   passed: number;
   failed: number;
   notPresent: number;
-  cannotTell: number;
+  notTested: number;
   coverage: number;
   levelAttained: string;
   outcome: string;

@@ -56,7 +56,7 @@ function buildLargeReport(): ReportData {
         passed: 30,
         failed: 10,
         notPresent: 5,
-        cannotTell: 5,
+        notTested: 5,
         coverage: 80,
         levelAttained: "AA",
         outcome: "does-not-conform",

@@ -40,7 +40,7 @@ describe("finalizeConformance (outcome + SC counts)", () => {
     expect(result.scsApplicable).toBe(1);
   });
 
-  it("is does-not-conform when any applicable SC fails and none are Cannot tell", () => {
+  it("is does-not-conform when any applicable SC fails and none are Not tested", () => {
     const result = finalizeConformance(
       machine([
         { num: "1.1.1", result: "Passed" },
@@ -53,7 +53,7 @@ describe("finalizeConformance (outcome + SC counts)", () => {
     expect(result.scsApplicable).toBe(2);
   });
 
-  it("is undetermined when any applicable SC is Cannot tell (AC-7)", () => {
+  it("is undetermined when any applicable SC is Not tested (AC-7)", () => {
     const result = finalizeConformance(
       machine([
         { num: "1.1.1", result: "Passed" },

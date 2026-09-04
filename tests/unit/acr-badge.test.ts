@@ -37,14 +37,14 @@ describe("vpatLevelOf", () => {
   });
 
   it("maps unresolved CannotTell → not-evaluated", () => {
-    expect(vpatLevelOf(row("CannotTell"))).toBe("not-evaluated");
+    expect(vpatLevelOf(row("NotTested"))).toBe("not-evaluated");
   });
 
   it("maps a resolved CannotTell to the resolved verdict's level", () => {
     const resolved: ReportReviewResult = { verdict: "Passed", reviewedBy: "a", reviewedAt: "t" };
-    expect(vpatLevelOf(row("CannotTell"), resolved)).toBe("supports");
-    expect(vpatLevelOf(row("CannotTell"), { ...resolved, verdict: "Failed" })).toBe("does-not-support");
-    expect(vpatLevelOf(row("CannotTell"), { ...resolved, verdict: "NotPresent" })).toBe("not-applicable");
+    expect(vpatLevelOf(row("NotTested"), resolved)).toBe("supports");
+    expect(vpatLevelOf(row("NotTested"), { ...resolved, verdict: "Failed" })).toBe("does-not-support");
+    expect(vpatLevelOf(row("NotTested"), { ...resolved, verdict: "NotPresent" })).toBe("not-applicable");
   });
 });
 
@@ -75,8 +75,8 @@ describe("acrRemarks", () => {
 
   it("uses the reviewer note when a CannotTell was resolved", () => {
     const resolved: ReportReviewResult = { verdict: "Failed", note: "audited manually", reviewedBy: "a", reviewedAt: "t" };
-    expect(acrRemarks({ num: "1.1.1", result: "CannotTell", findings: [], reviewResult: resolved, t })).toBe("audited manually");
-    expect(acrRemarks({ num: "1.1.1", result: "CannotTell", findings: [], reviewResult: { verdict: "Failed", reviewedBy: "a", reviewedAt: "t" }, t })).toBe("resolved");
+    expect(acrRemarks({ num: "1.1.1", result: "NotTested", findings: [], reviewResult: resolved, t })).toBe("audited manually");
+    expect(acrRemarks({ num: "1.1.1", result: "NotTested", findings: [], reviewResult: { verdict: "Failed", reviewedBy: "a", reviewedAt: "t" }, t })).toBe("resolved");
   });
 });
 
@@ -96,7 +96,7 @@ describe("buildAcrHtml (draft ACR)", () => {
   const rows: ConformanceRow[] = [
     { num: "1.1.1", title: "Non-text Content", level: "A", result: "Passed", machineResult: "Passed" },
     { num: "1.4.3", title: "Contrast (Minimum)", level: "AA", result: "Failed", machineResult: "Failed" },
-    { num: "2.4.7", title: "Focus Visible", level: "AA", result: "CannotTell" },
+    { num: "2.4.7", title: "Focus Visible", level: "AA", result: "NotTested" },
   ];
   const input: AcrInput = {
     url: "https://example.com",
@@ -113,7 +113,7 @@ describe("buildAcrHtml (draft ACR)", () => {
     total: 3,
     passed: 1,
     failed: 1,
-    cannotTell: 1,
+    notTested: 1,
     rows,
   };
 
@@ -149,7 +149,7 @@ describe("buildAcrHtml (draft ACR)", () => {
 
 describe("buildAcrHtml (reviewed ACR)", () => {
   const rows: ConformanceRow[] = [
-    { num: "1.1.1", title: "Non-text Content", level: "A", result: "CannotTell" },
+    { num: "1.1.1", title: "Non-text Content", level: "A", result: "NotTested" },
   ];
   const reviewResults: Record<string, ReportReviewResult> = {
     "1.1.1": { verdict: "Passed", note: "verified with NVDA", reviewedBy: "jane@acme.test", reviewedAt: "t" },
@@ -169,7 +169,7 @@ describe("buildAcrHtml (reviewed ACR)", () => {
     total: 1,
     passed: 1,
     failed: 0,
-    cannotTell: 0,
+    notTested: 0,
     rows,
     reviewResults,
   };

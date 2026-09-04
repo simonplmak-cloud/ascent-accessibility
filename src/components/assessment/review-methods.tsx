@@ -3,7 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Disclosure } from "@/components/ui/disclosure";
-import { aiResults, cannotTellReason, humanReviewPending, machineResults, type CannotTellReason } from "@/lib/report/report-methods";
+import { aiResults, notTestedRows, machineResults } from "@/lib/report/report-methods";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import { scTitle } from "@/lib/standards/wcag-sc";
 import { verdictLabel } from "@/lib/site/labels";
@@ -32,20 +32,7 @@ export function ReviewMethods({
   const machine = machineResults(conformance.rows);
   const aiRes = aiResults(ai?.verdicts ?? []);
   const aiRan = ai !== undefined;
-  const human = humanReviewPending(conformance.rows);
-
-  function reasonLabel(reason: CannotTellReason): string {
-    switch (reason) {
-      case "manual-only":
-        return t("reasonManualOnly");
-      case "not-judgeable-from-screenshot":
-        return t("reasonNotJudgeable");
-      case "engine-rule-pending":
-        return t("reasonEnginePending");
-      case "ai-low-confidence":
-        return t("reasonAiLowConfidence");
-    }
-  }
+  const notTested = notTestedRows(conformance.rows);
 
   return (
     <section aria-labelledby="review-methods-heading" className="mt-8">
@@ -101,7 +88,7 @@ export function ReviewMethods({
             <>
               {t("aiTitle")}{" "}
               <span className="font-normal text-terminal-muted">
-                {t("aiSummary", { passed: aiRes.passed, failed: aiRes.failed, cannotTell: aiRes.cannotTell })}
+                {t("aiSummary", { passed: aiRes.passed, failed: aiRes.failed, notTested: aiRes.notTested })}
               </span>
             </>
           }
@@ -151,45 +138,42 @@ export function ReviewMethods({
           )}
         </Disclosure>
 
-        {/* Human review (pending) */}
+        {/* Not tested (no AI key) */}
         <Disclosure
           as="h3"
           size="md"
           title={
             <>
-              {t("humanTitle")}{" "}
-              <span className="font-normal text-terminal-muted">{t("humanSummary", { count: human.count })}</span>
+              {t("notTestedTitle")}{" "}
+              <span className="font-normal text-terminal-muted">{t("notTestedSummary", { count: notTested.count })}</span>
             </>
           }
         >
           <p className="font-sans text-xs text-terminal-muted">
-            {t("humanBody")}
+            {t("notTestedBody")}
           </p>
           <ul className="mt-2 space-y-3">
-            {human.rows.map((row) => (
+            {notTested.rows.map((row) => (
               <li key={row.num} className="rounded border border-terminal-border p-3">
                 <p className="font-sans text-sm text-terminal-fg">
                   <span className="font-semibold">{row.num} {scTitle(row.num, locale)}</span>{" "}
-                  <span className="text-terminal-muted">{t("levelLabel", { level: row.level })}</span>{" "}
-                  <span className="font-sans text-xs text-terminal-muted">
-                    {reasonLabel(cannotTellReason(row.num, ai?.verdicts ?? []))}
-                  </span>
+                  <span className="text-terminal-muted">{t("levelLabel", { level: row.level })}</span>
                 </p>
                 <p className="mt-1 font-sans text-sm text-terminal-muted">{getManualTest(row.num, locale)}</p>
               </li>
             ))}
-            {human.rows.length === 0 && (
+            {notTested.rows.length === 0 && (
               <li className="rounded border border-terminal-border p-3 font-sans text-sm text-terminal-muted">
-                {t("humanEmpty")}
+                {t("notTestedEmpty")}
               </li>
             )}
           </ul>
           <p className="mt-3">
             <Link
-              href="/human-review"
+              href="/account"
               className="font-sans text-sm text-brandLink underline underline-offset-4 hover:text-brand"
             >
-              {t("humanComingSoon")}
+              {t("aiAddKeyCta")}
             </Link>
           </p>
         </Disclosure>

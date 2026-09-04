@@ -121,7 +121,7 @@ export function Report({ result }: { result: AssessmentResult }) {
             {t("partialBody", {
               resolved: resolvedCount,
               total: conformance.total,
-              cannotTell: conformance.cannotTell,
+              notTested: conformance.notTested,
             })}
           </p>
         </div>

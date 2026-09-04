@@ -17,7 +17,7 @@ export type VpatLevel =
   | "not-applicable"
   | "not-evaluated";
 
-export type TestedBy = "machine" | "ai" | "human" | "dash";
+export type TestedBy = "machine" | "ai" | "human" | "notTested" | "dash";
 
 const VPAT_LABEL_KEYS: Record<VpatLevel, string> = {
   supports: "supports",
@@ -45,22 +45,22 @@ const TESTED_EN: Record<TestedBy, string> = {
   machine: "Machine (automated)",
   ai: "AI-assisted",
   human: "Human review",
+  notTested: "Not tested",
   dash: "—",
 };
 
 /**
- * VPAT conformance level for a per-criterion row. An unresolved "Cannot tell"
+ * VPAT conformance level for a per-criterion row. An unresolved "Not tested"
  * that a human later resolved is mapped to the resolved verdict's level;
- * otherwise it is honestly "not-evaluated" (the automated/AI review could not
- * determine it). "partially-supports" is part of the vocabulary but is not
- * auto-mapped — the engine produces binary per-SC verdicts, so a "partial"
- * claim would be fabricated.
+ * otherwise it is honestly "not-evaluated" (no AI testing was run). 
+ * "partially-supports" is part of the vocabulary but is not auto-mapped — the
+ * engine produces binary per-SC verdicts, so a "partial" claim would be fabricated.
  */
 export function vpatLevelOf(
   row: ConformanceRow,
   reviewResult?: ReportReviewResult,
 ): VpatLevel {
-  if (row.result === "CannotTell" && reviewResult) {
+  if (row.result === "NotTested" && reviewResult) {
     switch (reviewResult.verdict) {
       case "Passed":
         return "supports";
@@ -87,7 +87,7 @@ export function testedByOf(row: ConformanceRow): TestedBy {
   if (row.machineResult === "Passed" || row.machineResult === "Failed") {
     return "machine";
   }
-  if (row.result === "CannotTell") return "human";
+  if (row.result === "NotTested") return "notTested";
   if (row.result === "Passed" || row.result === "Failed") return "ai";
   return "dash";
 }
@@ -117,12 +117,12 @@ export function acrRemarks(input: AcrRemarksInput): string {
       return t("remarkPassed");
     case "NotPresent":
       return t("remarkNotApplicable");
-    case "CannotTell":
+    case "NotTested":
       return reviewResult
         ? reviewResult.note?.trim()
           ? reviewResult.note
           : t("remarkResolved")
-        : t("remarkNotEvaluated");
+        : t("remarkNotTested");
     default:
       return "";
   }
@@ -170,7 +170,7 @@ export interface AcrInput {
   total: number;
   passed: number;
   failed: number;
-  cannotTell: number;
+  notTested: number;
   rows: ConformanceRow[];
   reviewResults?: Record<string, ReportReviewResult> | undefined;
   findings?: ReadonlyArray<{ wcagSc?: string[]; description: string }> | undefined;
@@ -186,8 +186,8 @@ const EN_REMARKS = (key: string, vars?: Record<string, string | number>): string
       return "No automated violations detected for this criterion.";
     case "remarkNotApplicable":
       return "Not applicable — no relevant content detected.";
-    case "remarkNotEvaluated":
-      return "Not evaluated — automated and AI review could not determine; requires human review.";
+    case "remarkNotTested":
+      return "Not AI-tested — no AI key configured.";
     case "remarkResolved":
       return "Resolved by human review.";
     default:
@@ -263,7 +263,7 @@ export function buildAcrHtml(input: AcrInput): string {
     <dt>Report date</dt><dd>${esc(input.date)}</dd>
     <dt>Evaluator</dt><dd>${esc(input.evaluator)}</dd>
     <dt>Contact</dt><dd>${esc(input.contact)}</dd>
-    <dt>Coverage</dt><dd>${resolved} of ${input.total} criteria resolved by machine (${input.cannotTell} need human review)</dd>
+    <dt>Coverage</dt><dd>${resolved} of ${input.total} criteria resolved (${input.notTested} not AI-tested)</dd>
     <dt>Evaluation methods used</dt><dd>${methodItems}</dd>
     ${input.notes.length ? `<dt>Notes</dt><dd>${noteItems}</dd>` : ""}
   </dl>

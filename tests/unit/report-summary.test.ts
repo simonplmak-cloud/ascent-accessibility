@@ -21,7 +21,7 @@ function conformance(violatingRows: Array<{ num: string; title: string }>): Conf
     passed,
     failed,
     notPresent: 0,
-    cannotTell: 0,
+    notTested: 0,
     coverage: 100,
     levelAttained: "AA",
     outcome: failed > 0 ? "does-not-conform" : "conforms",
@@ -88,7 +88,7 @@ describe("buildReportSummary", () => {
           ...result().comparison!,
           conformance: {
             ...conformance([]),
-            cannotTell: 3,
+            notTested: 3,
             outcome: "undetermined",
             scsApplicable: 50,
             scsMet: 47,
@@ -96,7 +96,7 @@ describe("buildReportSummary", () => {
         },
       }),
     );
-    expect(s).toContain("3 cannot be determined and need human review");
+    expect(s).toContain("3 were not AI-tested and need review");
     expect(s).toContain("Conformance has not yet been determined.");
   });
 
@@ -107,7 +107,7 @@ describe("buildReportSummary", () => {
           ...result().comparison!,
           conformance: {
             ...conformance([{ num: "1.4.3", title: "Contrast (Minimum)" }]),
-            cannotTell: 3,
+            notTested: 3,
             outcome: "undetermined",
           },
         },

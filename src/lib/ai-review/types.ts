@@ -1,6 +1,6 @@
 import type { AiSettings } from "./settings";
 
-export type AiVerdict = "Passed" | "Failed" | "CannotTell";
+export type AiVerdict = "Passed" | "Failed" | "NotTested";
 
 export interface AiReview {
   sc: string;

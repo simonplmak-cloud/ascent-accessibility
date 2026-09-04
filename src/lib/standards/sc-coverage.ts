@@ -29,7 +29,7 @@ export const MACHINE_SCS: ReadonlySet<string> = new Set([
 
 // Machine SCs whose matcher is a complete enumeration of the SC's content type:
 // no match ⇒ the content is genuinely absent ⇒ "not applicable". Every other
-// machine SC defaults to partial coverage (no match ⇒ Cannot tell, never a
+// machine SC defaults to partial coverage (no match ⇒ Not tested, never a
 // false "not present").
 export const MATCHER_EXHAUSTIVE: ReadonlySet<string> = new Set([
   "1.2.1", // Audio-only / Video-only (Prerecorded) — matcher audio, video
@@ -56,7 +56,7 @@ export function isScApplicable(
   if (MATCHER_EXHAUSTIVE.has(sc)) {
     return matchedScs.has(sc) ? "applicable" : "not-applicable";
   }
-  if (MACHINE_SCS.has(sc)) return "applicable"; // partial → Cannot tell on absence
+  if (MACHINE_SCS.has(sc)) return "applicable"; // partial → Not tested on absence
   return checkScApplicability(sc, features);
 }
 

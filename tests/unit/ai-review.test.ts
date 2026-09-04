@@ -61,10 +61,10 @@ describe("resolveVerdict (always-emit)", () => {
 
   it("leans a model 'CannotTell' toward the more likely outcome", () => {
     expect(
-      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "CannotTell", confidence: 0.99, reasoning: "r" }]),
+      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "NotTested", confidence: 0.99, reasoning: "r" }]),
     ).toMatchObject({ verdict: "Passed" });
     expect(
-      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "CannotTell", confidence: 0.1, reasoning: "r" }]),
+      resolveVerdict("1.1.1", [{ sc: "1.1.1", verdict: "NotTested", confidence: 0.1, reasoning: "r" }]),
     ).toMatchObject({ verdict: "Failed" });
   });
 
@@ -93,7 +93,7 @@ describe("runTriage (one call per judgeable criterion)", () => {
     expect(result.reviews).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ sc: "2.4.4", verdict: "Passed" }),
-        expect.objectContaining({ sc: "1.3.2", verdict: "CannotTell" }),
+        expect.objectContaining({ sc: "1.3.2", verdict: "NotTested" }),
       ]),
     );
   });
@@ -113,7 +113,7 @@ describe("runTriage (one call per judgeable criterion)", () => {
       getConfig: getConfig({ "2.4.4": cfg("2.4.4", { enabled: false }) }),
     });
     expect(calls).toBe(0);
-    expect(result.reviews[0]).toMatchObject({ sc: "2.4.4", verdict: "CannotTell" });
+    expect(result.reviews[0]).toMatchObject({ sc: "2.4.4", verdict: "NotTested" });
   });
 
   it("retries once on model error, then fails safe to CannotTell (AC-14/AC-E3)", async () => {
@@ -131,7 +131,7 @@ describe("runTriage (one call per judgeable criterion)", () => {
       getConfig: getConfig({ "2.4.4": cfg("2.4.4") }),
     });
     expect(attempts).toBe(2);
-    expect(result.reviews[0]).toMatchObject({ sc: "2.4.4", verdict: "CannotTell" });
+    expect(result.reviews[0]).toMatchObject({ sc: "2.4.4", verdict: "NotTested" });
   });
 
   it("degrades a below-threshold pass to a single-source Passed (never CannotTell)", async () => {
@@ -177,7 +177,7 @@ describe("applyAiVerdicts", () => {
     const verdicts: AiReview[] = [
       { sc: "1.1.1", verdict: "Passed", confidence: 0.9, reasoning: "r" },
       { sc: "2.4.4", verdict: "Failed", confidence: 0.9, reasoning: "unclear links" },
-      { sc: "3.1.1", verdict: "CannotTell", confidence: 0.5, reasoning: "r" },
+      { sc: "3.1.1", verdict: "NotTested", confidence: 0.5, reasoning: "r" },
     ];
     const result = await applyAiVerdicts(
       [],

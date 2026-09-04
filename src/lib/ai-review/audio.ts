@@ -34,14 +34,13 @@ export async function runAudioReview(
       system: buildTriageSystemPrompt(locale),
       prompt:
         "Assess each WCAG time-based-media criterion against the provided media. " +
-        "Return Passed / Failed / Cannot tell with a confidence from 0.0 to 1.0 " +
-        "(promote only at confidence >= 0.8) and a reasoning.",
+        "Return Passed / Failed with a confidence from 0.0 to 1.0 and a reasoning — never refuse to judge.",
     });
   } catch {
-    // Fail-safe: media-analysis errors leave every media SC Cannot tell.
+    // Fail-safe: media-analysis errors leave every media SC not-tested.
     return scs.map((sc) => ({
       sc,
-      verdict: "CannotTell",
+      verdict: "NotTested",
       confidence: 0,
       reasoning: "audio model error",
     }));

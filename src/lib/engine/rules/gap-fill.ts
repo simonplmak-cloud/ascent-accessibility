@@ -6,7 +6,7 @@ type Rgba = [number, number, number, number];
 // marked `ruleId: "gap"` in nature.ts. Two kinds:
 //   - Deterministic (1.4.6, 2.5.5): fail on a measurable violation.
 //   - Presence-based (2.4.5, 2.4.8, 2.4.10, 3.3.5, 3.3.7, 2.2.3): pass when the
-//     mechanism is present; "incomplete" (→ Cannot tell) on absence — never a
+//     mechanism is present; "incomplete" (→ Not tested) on absence — never a
 //     speculative failure. Interaction/state SCs stay deferred to the agentic
 //     AI review.
 export const gapFillRules: Rule[] = [

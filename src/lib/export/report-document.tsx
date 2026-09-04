@@ -11,7 +11,7 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import { BRANDING } from "@/lib/site/branding";
-import { aiResults, cannotTellReason, humanReviewPending, machineResults } from "@/lib/report/report-methods";
+import { aiResults, notTestedRows, machineResults } from "@/lib/report/report-methods";
 import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import { principleName, scTitle } from "@/lib/standards/wcag-sc";
 import { impactLabel, outcomeLabel, verdictLabel } from "@/lib/site/labels";
@@ -35,6 +35,7 @@ const TESTED_BY_KEY: Record<TestedBy, string> = {
   machine: "machine",
   ai: "ai",
   human: "human",
+  notTested: "notTested",
   dash: "dash",
 };
 
@@ -119,15 +120,15 @@ function SeverityBars({ counts, locale }: { counts: SeverityCounts; locale: stri
   );
 }
 
-function ConformanceBar({ c }: { c: { passed: number; failed: number; notPresent: number; cannotTell: number } }) {
-  const total = c.passed + c.failed + c.notPresent + c.cannotTell;
+function ConformanceBar({ c }: { c: { passed: number; failed: number; notPresent: number; notTested: number } }) {
+  const total = c.passed + c.failed + c.notPresent + c.notTested;
   if (total <= 0) return <Text style={styles.empty}>—</Text>;
 
   const segments = [
     { label: "Passed", value: c.passed, color: "#1a7f37" },
     { label: "Failed", value: c.failed, color: "#d1242f" },
     { label: "Not present", value: c.notPresent, color: "#d0d7de" },
-    { label: "Cannot tell", value: c.cannotTell, color: "#9a6700" },
+    { label: "Not tested", value: c.notTested, color: "#9a6700" },
   ].filter((s) => s.value > 0);
 
   return (
@@ -190,7 +191,7 @@ export function AccessibilityReportDocument({
   const methodRows = conformance?.rows ?? [];
   const machine = machineResults(methodRows);
   const aiRes = aiResults(comparison?.ai?.verdicts ?? []);
-  const human = humanReviewPending(methodRows);
+  const notTested = notTestedRows(methodRows);
 
   const reviewed = report.reviewStatus === "reviewed";
   const reviewResults = report.reviewResults ?? {};
@@ -202,7 +203,7 @@ export function AccessibilityReportDocument({
   const reportOutcome = reviewed ? outcomeLabel(report.outcome, locale) : t("partialResult");
   const reportOutcomeColor = reviewed ? bandColor : outcomeColor("undetermined");
   const auditVersion = comparison?.audit?.auditVersion;
-  const resolvedHuman = human.rows.filter((r) => reviewResults[r.num]);
+  const resolvedNotTested = notTested.rows.filter((r) => reviewResults[r.num]);
 
 
   const pages = report.pages ?? [];
@@ -338,7 +339,7 @@ export function AccessibilityReportDocument({
                   passed: conformance.passed,
                   failed: conformance.failed,
                   notPresent: conformance.notPresent,
-                  cannotTell: conformance.cannotTell,
+                  notTested: conformance.notTested,
                   coverage: conformance.coverage,
                   level: conformance.levelAttained,
                 })}
@@ -435,7 +436,7 @@ export function AccessibilityReportDocument({
               </View>
             )}
 
-            <Text style={styles.h3}>{t("aiTitle")} — {t("aiSummary", { passed: aiRes.passed, failed: aiRes.failed, cannotTell: aiRes.cannotTell })}</Text>
+            <Text style={styles.h3}>{t("aiTitle")} — {t("aiSummary", { passed: aiRes.passed, failed: aiRes.failed, notTested: aiRes.notTested })}</Text>
             {aiRes.verdicts.length === 0 ? (
               <Text style={styles.empty}>{t("aiEmpty")}</Text>
             ) : (
@@ -458,22 +459,22 @@ export function AccessibilityReportDocument({
             )}
             <Text style={[styles.muted, { marginTop: 2 }]}>{t("aiAssistedNote")}</Text>
 
-            <Text style={styles.h3}>{t("humanTitle")} — {t("humanSummary", { count: human.count })}</Text>
-            {human.rows.length === 0 ? (
-              <Text style={styles.empty}>{t("humanEmpty")}</Text>
+            <Text style={styles.h3}>{t("notTestedTitle")} — {t("notTestedSummary", { count: notTested.count })}</Text>
+            {notTested.rows.length === 0 ? (
+              <Text style={styles.empty}>{t("notTestedEmpty")}</Text>
             ) : (
               <View>
                 <View style={styles.tableRow}>
                   <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>{t("thSc")}</Text>
                   <Text style={[styles.tableCell, styles.tableHead, { flex: 1.8 }]}>{t("thTitle")}</Text>
-                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.4 }]}>{t("thReasoning")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.4 }]}>{t("notTestedReason")}</Text>
                 </View>
-                {human.rows.map((row) => (
+                {notTested.rows.map((row) => (
                   <View key={row.num} style={styles.tableRow}>
                     <Text style={[styles.tableCell, { flex: 0.8 }]}>{row.num}</Text>
                     <Text style={[styles.tableCell, { flex: 1.8 }]}>{scTitle(row.num, locale)}</Text>
                     <Text style={[styles.tableCell, { flex: 1.4 }]}>
-                      {cannotTellReasonLabel(cannotTellReason(row.num, aiRes.verdicts), t)}{" "}
+                      {t("notTestedReasonBody")}{" "}
                       {getManualTest(row.num, locale)}
                     </Text>
                   </View>
@@ -500,7 +501,7 @@ export function AccessibilityReportDocument({
                 <Row label={t("signedAtLabel")}>{generatedDate(claim.signedAt)}</Row>
               </View>
             ) : null}
-            {resolvedHuman.length > 0 ? (
+            {resolvedNotTested.length > 0 ? (
               <View style={{ marginTop: 10 }}>
                 <Text style={styles.h3}>{t("reviewedResultsHeading")}</Text>
                 <View style={styles.tableRow}>
@@ -509,7 +510,7 @@ export function AccessibilityReportDocument({
                   <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>{t("reviewedVerdict")}</Text>
                   <Text style={[styles.tableCell, styles.tableHead, { flex: 1.8 }]}>{t("reviewedNote")}</Text>
                 </View>
-                {resolvedHuman.map((row) => {
+                {resolvedNotTested.map((row) => {
                   const r = reviewResults[row.num];
                   return (
                     <View key={row.num} style={styles.tableRow}>
@@ -661,7 +662,7 @@ export function AccessibilityReportDocument({
           <Text style={styles.h2}>{t("glossaryHeading")}</Text>
           <Text>{t("glossaryPassed")}</Text>
           <Text>{t("glossaryFailed")}</Text>
-          <Text>{t("glossaryCannotTell")}</Text>
+          <Text>{t("glossaryNotTested")}</Text>
           <Text>{t("glossaryNotPresent")}</Text>
         </View>
 
@@ -709,7 +710,7 @@ export function AccessibilityReportDocument({
               {tAcr("coverageBody", {
                 resolved: conformance.passed + conformance.failed,
                 total: conformance.total,
-                cannotTell: conformance.cannotTell,
+                notTested: conformance.notTested,
               })}
             </Row>
             <Row label={tAcr("evaluationMethod")}>
@@ -820,24 +821,10 @@ function testedByLabel(
   if (tested === "machine") base = t("machine");
   else if (tested === "ai") base = t("ai");
   else if (tested === "human") base = t("needsHuman");
+  else if (tested === "notTested") base = t("notTested");
   else base = "—";
   if (confidence === "single-source") base += ` · ${t("confidenceSingleSource")}`;
   return base;
-}
-
-function cannotTellReasonLabel(reason: string, t: ReportStrings["t"]): string {
-  switch (reason) {
-    case "manual-only":
-      return t("reasonManualOnly");
-    case "not-judgeable-from-screenshot":
-      return t("reasonNotJudgeable");
-    case "engine-rule-pending":
-      return t("reasonEnginePending");
-    case "ai-low-confidence":
-      return t("reasonAiLowConfidence");
-    default:
-      return "";
-  }
 }
 
 function FindingBlock({

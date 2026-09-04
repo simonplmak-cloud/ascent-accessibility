@@ -18,14 +18,14 @@ const VERDICT: Record<string, Record<string, string>> = {
   "zh-Hant": {
     Passed: "通過",
     Failed: "未通過",
-    CannotTell: "無法判斷",
+    NotTested: "未測試",
     NotPresent: "不存在",
     Unresolved: "未解決",
   },
   "zh-Hans": {
     Passed: "通过",
     Failed: "未通过",
-    CannotTell: "无法判断",
+    NotTested: "未测试",
     NotPresent: "不存在",
     Unresolved: "未解决",
   },
@@ -48,5 +48,6 @@ export function impactLabel(impact: string, locale?: string): string {
 }
 
 export function verdictLabel(verdict: string, locale?: string): string {
-  return VERDICT[locale ?? ""]?.[verdict] ?? verdict;
+  const known = verdict === "CannotTell" ? "NotTested" : verdict;
+  return VERDICT[locale ?? ""]?.[known] ?? known;
 }

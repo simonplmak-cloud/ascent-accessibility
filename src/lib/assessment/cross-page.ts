@@ -1,6 +1,5 @@
 import type { Finding } from "@/db/schema";
 import type { Impact } from "@/lib/scoring";
-import { getRecommendation } from "@/lib/recommendations";
 import { getSc } from "@/lib/standards/wcag-sc";
 
 // Cross-page structural analysis. The engine evaluates per-page, so criteria

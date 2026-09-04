@@ -65,7 +65,7 @@ export async function GET(
       total: conformance.total,
       passed: conformance.passed,
       failed: conformance.failed,
-      cannotTell: conformance.cannotTell,
+      notTested: conformance.notTested,
       rows: conformance.rows,
       reviewResults: report.reviewResults,
       findings: report.findings,

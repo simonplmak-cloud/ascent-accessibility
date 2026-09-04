@@ -1,5 +1,3 @@
-import type { CannotTellReason } from "@/lib/standards/review-reason";
-
 export interface FindingSource {
   tool: "engine" | "ai";
   ruleId: string;
@@ -41,9 +39,8 @@ export interface ConformanceRow {
   num: string;
   title: string;
   level: string;
-  result: "Passed" | "Failed" | "CannotTell" | "NotPresent";
+  result: "Passed" | "Failed" | "NotPresent" | "NotTested";
   machineResult?: "Passed" | "Failed" | "Unresolved" | "NotPresent";
-  reviewReason?: CannotTellReason;
   confidence?: "confirmed" | "single-source" | undefined;
 }
 
@@ -52,7 +49,7 @@ export interface Conformance {
   passed: number;
   failed: number;
   notPresent: number;
-  cannotTell: number;
+  notTested: number;
   coverage: number;
   levelAttained: string;
   outcome: string;
@@ -79,7 +76,7 @@ export interface ComparisonData {
     model: string;
     verdicts: Array<{
       sc: string;
-      verdict: "Passed" | "Failed" | "CannotTell";
+      verdict: "Passed" | "Failed" | "NotTested";
       confidence: number;
       reasoning: string;
       evidenceId?: string | null;

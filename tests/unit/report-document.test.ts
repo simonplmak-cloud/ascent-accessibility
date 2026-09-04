@@ -30,7 +30,7 @@ const report: ReportData = {
       passed: 30,
       failed: 5,
       notPresent: 10,
-      cannotTell: 5,
+      notTested: 5,
       coverage: 80,
       levelAttained: "AA",
       outcome: "does-not-conform",
@@ -39,13 +39,13 @@ const report: ReportData = {
       rows: [
         { num: "1.1.1", title: "Non-text Content", level: "A", result: "Failed", machineResult: "Failed" },
         { num: "1.4.3", title: "Contrast (Minimum)", level: "AA", result: "Passed", machineResult: "Passed" },
-        { num: "2.4.7", title: "Focus Visible", level: "AA", result: "CannotTell", machineResult: "Unresolved" },
+        { num: "2.4.7", title: "Focus Visible", level: "AA", result: "NotTested", machineResult: "Unresolved" },
       ],
     },
     ai: {
       model: "qwen-vl",
       verdicts: [
-        { sc: "2.4.7", verdict: "CannotTell", confidence: 0.5, reasoning: "Cannot tell from the screenshot." },
+        { sc: "2.4.7", verdict: "NotTested", confidence: 0.5, reasoning: "Not tested from the screenshot." },
       ],
       budget: { calls: 1, images: 1 },
     },

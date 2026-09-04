@@ -23,7 +23,7 @@ export function resolveVerdict(
     // regardless of confidence (single-source provenance, never "cannot tell").
     return found;
   }
-  // The model refused ("CannotTell"): lean toward the more likely outcome.
+  // The model returned "NotTested": lean toward the more likely outcome.
   const lean = found.confidence >= 0.5 ? "Passed" : "Failed";
   return {
     sc,
@@ -108,8 +108,8 @@ export interface TriageOutput {
 }
 
 // One model call per judgeable criterion, each with its own config-driven
-// prompt + settings. Non-judgeable/disabled criteria are needs-review with zero
-// calls; a model/parse error retries once, then fails safe to CannotTell.
+// prompt + settings. Non-judgeable/disabled criteria are not-tested with zero
+// calls; a model/parse error retries once, then fails safe to NotTested.
 export async function runTriage(input: TriageInput): Promise<TriageOutput> {
   const unresolved = input.unresolvedScs;
   if (unresolved.length === 0) {
@@ -123,14 +123,14 @@ export async function runTriage(input: TriageInput): Promise<TriageOutput> {
     const config = await (input.getConfig ?? getAiConfig)(sc);
 
     if (!config.enabled) {
-      reviews.push({ sc, verdict: "CannotTell", confidence: 0, reasoning: "config disabled" });
+      reviews.push({ sc, verdict: "NotTested", confidence: 0, reasoning: "config disabled" });
       continue;
     }
     // With browser tools available, criteria that a screenshot alone can't decide
     // (DOM order, focus/hover, error states, status messages) become judgeable.
     const judgeable = config.judgeable || input.tools !== undefined;
     if (!judgeable) {
-      reviews.push({ sc, verdict: "CannotTell", confidence: 0, reasoning: "not judgeable from available evidence" });
+      reviews.push({ sc, verdict: "NotTested", confidence: 0, reasoning: "not judgeable from available evidence" });
       continue;
     }
 
@@ -149,7 +149,7 @@ export async function runTriage(input: TriageInput): Promise<TriageOutput> {
     }
 
     if (raw === null) {
-      reviews.push({ sc, verdict: "CannotTell", confidence: 0, reasoning: "model or parse error" });
+      reviews.push({ sc, verdict: "NotTested", confidence: 0, reasoning: "model or parse error" });
       continue;
     }
     reviews.push(resolveVerdict(sc, raw, settings.confidenceThreshold));

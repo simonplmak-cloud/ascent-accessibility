@@ -2,7 +2,7 @@ import type { ConformanceOutcome } from "@/lib/scoring";
 
 export type ReviewStatus = "none" | "requested" | "in-review" | "reviewed";
 
-// A reviewer judgement resolves a "Cannot tell" SC to one of these.
+// A reviewer judgement resolves a "Not tested" SC to one of these.
 export type ReviewVerdict = "Passed" | "Failed" | "NotPresent";
 
 export interface ReviewClaim {
@@ -80,13 +80,13 @@ export function unresolvedScs(
   resolutions: ReadonlySet<string>,
 ): string[] {
   return rows
-    .filter((r) => r.result === "CannotTell" && !resolutions.has(r.num))
+    .filter((r) => r.result === "NotTested" && !resolutions.has(r.num))
     .map((r) => r.num);
 }
 
-function computeOutcome(passed: number, failed: number, cannotTell: number): ConformanceOutcome {
-  const scsApplicable = passed + failed + cannotTell;
-  if (cannotTell > 0) return "undetermined";
+function computeOutcome(passed: number, failed: number, notTested: number): ConformanceOutcome {
+  const scsApplicable = passed + failed + notTested;
+  if (notTested > 0) return "undetermined";
   if (scsApplicable === 0) return "undetermined";
   if (failed > 0) return "does-not-conform";
   return "conforms";
@@ -101,7 +101,7 @@ export function buildConformanceClaim(input: {
   signedAt: string;
 }): ConformanceClaim {
   const applied = input.rows.map((row) => {
-    if (row.result === "CannotTell" && input.resolutions.has(row.num)) {
+    if (row.result === "NotTested" && input.resolutions.has(row.num)) {
       return { ...row, result: input.resolutions.get(row.num)! };
     }
     return row;
@@ -109,12 +109,12 @@ export function buildConformanceClaim(input: {
 
   const passed = applied.filter((r) => r.result === "Passed").length;
   const failed = applied.filter((r) => r.result === "Failed").length;
-  const cannotTell = applied.filter((r) => r.result === "CannotTell").length;
+  const notTested = applied.filter((r) => r.result === "NotTested").length;
 
   return {
-    outcome: computeOutcome(passed, failed, cannotTell),
+    outcome: computeOutcome(passed, failed, notTested),
     scsMet: passed,
-    scsApplicable: passed + failed + cannotTell,
+    scsApplicable: passed + failed + notTested,
     reviewer: input.reviewer,
     organization: input.organization,
     asAt: input.asAt,

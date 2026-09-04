@@ -135,7 +135,7 @@ describe("evaluateStandard", () => {
     // 3.3.4 (error prevention, legal/financial/data) is manual-only + applicable (hasForms)
     // -> excluded from the AI prompt, ends CannotTell.
     expect(prompts.join("\n")).not.toContain("WCAG 3.3.4");
-    expect(out.conformance.rows.find((r) => r.num === "3.3.4")?.result).toBe("CannotTell");
+    expect(out.conformance.rows.find((r) => r.num === "3.3.4")?.result).toBe("NotTested");
   });
 
   it("never dispatches machine-testable (non-ai) SCs to AI", async () => {
@@ -157,6 +157,6 @@ describe("evaluateStandard", () => {
 
   it("skips AI when no vision model is provided (AC-6)", async () => {
     const out = await evaluateStandard(input, { aiScreenshot: Buffer.alloc(0) });
-    expect(out.conformance.rows.find((r) => r.num === "1.3.2")?.result).toBe("CannotTell");
+    expect(out.conformance.rows.find((r) => r.num === "1.3.2")?.result).toBe("NotTested");
   });
 });

@@ -5,7 +5,7 @@ interface SummaryStrings {
   summary: (url: string, pages: number, findings: number) => string;
   fails: (count: number, listed: string, more: string) => string;
   more: (count: number) => string;
-  cannotTell: (count: number) => string;
+  notTested: (count: number) => string;
   none: string;
   partial: string;
   conforms: string;
@@ -21,8 +21,8 @@ function en(): SummaryStrings {
     fails: (count, listed, more) =>
       ` It fails ${count} success ${count === 1 ? "criterion" : "criteria"} — ${listed}${more}.`,
     more: (count) => `, and ${count} more`,
-    cannotTell: (count) =>
-      ` No criteria failed, but ${count} cannot be determined and need human review.`,
+    notTested: (count) =>
+      ` No criteria failed, but ${count} were not AI-tested and need review.`,
     none: " No success criteria failed.",
     partial: " This is a partial result — human review is required for a full conformance determination.",
     conforms: " It conforms to the selected standard.",
@@ -38,7 +38,7 @@ function zhHans(): SummaryStrings {
       `摘要：已对 ${url} 评估了 ${pages} 个页面，共发现 ${findings} 项问题。`,
     fails: (count, listed, more) => ` 有 ${count} 项成功准则未通过 — ${listed}${more}。`,
     more: (count) => `，另有 ${count} 项`,
-    cannotTell: (count) => ` 没有准则未通过，但有 ${count} 项无法判定，需要人工审核。`,
+    notTested: (count) => ` 没有准则未通过，但有 ${count} 项未经过 AI 测试，需要审查。`,
     none: " 没有成功准则未通过。",
     partial: " 这是部分结果 — 需要人工审查才能完成完整的符合性判定。",
     conforms: " 符合所选标准。",
@@ -54,7 +54,7 @@ function zhHant(): SummaryStrings {
       `摘要：已對 ${url} 評估了 ${pages} 個頁面，共發現 ${findings} 項問題。`,
     fails: (count, listed, more) => ` 有 ${count} 項成功準則未通過 — ${listed}${more}。`,
     more: (count) => `，另有 ${count} 項`,
-    cannotTell: (count) => ` 沒有準則未通過，但有 ${count} 項無法判定，需要人工審核。`,
+    notTested: (count) => ` 沒有準則未通過，但有 ${count} 項未經過 AI 測試，需要審查。`,
     none: " 沒有成功準則未通過。",
     partial: " 這是部分結果 — 需要人工審查才能完成完整的符合性判定。",
     conforms: " 符合所選標準。",
@@ -82,8 +82,8 @@ export function buildReportSummary(result: AssessmentResult, locale?: string): s
         .join("; ");
       const more = fails.length > 3 ? s.more(fails.length - 3) : "";
       conformancePart = s.fails(fails.length, listed, more);
-    } else if (conformance.cannotTell > 0) {
-      conformancePart = s.cannotTell(conformance.cannotTell);
+    } else if (conformance.notTested > 0) {
+      conformancePart = s.notTested(conformance.notTested);
     } else {
       conformancePart = s.none;
     }

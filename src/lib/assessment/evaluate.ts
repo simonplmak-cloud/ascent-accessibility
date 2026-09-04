@@ -5,7 +5,6 @@ import type { WcagLevel } from "@/lib/standards/wcag-sc";
 import type { AiBudget, AiReview, VisionModel, VisionReviewTools } from "@/lib/ai-review/types";
 import { mediaScsFor, runAudioReview, type AudioModel } from "@/lib/ai-review/audio";
 import { applyAiVerdicts, runTriage, type GetConfig } from "@/lib/ai-review/triage";
-import { cannotTellReason } from "@/lib/standards/review-reason";
 import type { Finding } from "@/db/schema";
 
 export interface EvaluateInput {
@@ -111,10 +110,5 @@ export async function evaluateStandard(
   }
 
   const conformance = finalizeConformance(machine, resolved);
-  for (const row of conformance.rows) {
-    if (row.result === "CannotTell") {
-      row.reviewReason = cannotTellReason(row.num, aiVerdicts);
-    }
-  }
   return { conformance, findings, aiVerdicts, aiBudget };
 }

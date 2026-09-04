@@ -86,7 +86,7 @@ export function ReviewQueue() {
     const data = (await res.json()) as {
       comparison?: { conformance?: { rows?: ConformanceRow[] }; ai?: { verdicts?: AiVerdictInfo[] } };
     };
-    setRows((data.comparison?.conformance?.rows ?? []).filter((r) => r.result === "CannotTell"));
+    setRows((data.comparison?.conformance?.rows ?? []).filter((r) => r.result === "NotTested"));
     const bySc: Record<string, AiVerdictInfo> = {};
     for (const v of data.comparison?.ai?.verdicts ?? []) bySc[v.sc] = v;
     setAiVerdicts(bySc);
@@ -125,7 +125,7 @@ export function ReviewQueue() {
         </p>
       ) : rows.length === 0 ? (
         <p className="mt-3 font-sans text-sm text-terminal-muted">
-          {t("noCannotTell")}
+          {t("noNotTested")}
         </p>
       ) : (
         <>

@@ -23,21 +23,21 @@ describe("normalizeFinalVerdict (legacy → official vocabulary)", () => {
   it("passes through official values unchanged", () => {
     expect(normalizeFinalVerdict("Passed")).toBe("Passed");
     expect(normalizeFinalVerdict("Failed")).toBe("Failed");
-    expect(normalizeFinalVerdict("CannotTell")).toBe("CannotTell");
+    expect(normalizeFinalVerdict("NotTested")).toBe("NotTested");
     expect(normalizeFinalVerdict("NotPresent")).toBe("NotPresent");
-    expect(normalizeFinalVerdict("NotChecked")).toBe("CannotTell");
+    expect(normalizeFinalVerdict("NotChecked")).toBe("NotTested");
   });
 
   it("maps legacy verdicts to official vocabulary", () => {
     expect(normalizeFinalVerdict("compliant")).toBe("Passed");
     expect(normalizeFinalVerdict("violate")).toBe("Failed");
-    expect(normalizeFinalVerdict("need-human-checking")).toBe("CannotTell");
-    expect(normalizeFinalVerdict("needs-review")).toBe("CannotTell");
+    expect(normalizeFinalVerdict("need-human-checking")).toBe("NotTested");
+    expect(normalizeFinalVerdict("needs-review")).toBe("NotTested");
     expect(normalizeFinalVerdict("not-applicable")).toBe("NotPresent");
   });
 
   it("fails safe to CannotTell for unknown values", () => {
-    expect(normalizeFinalVerdict("garbage")).toBe("CannotTell");
+    expect(normalizeFinalVerdict("garbage")).toBe("NotTested");
   });
 });
 
@@ -92,8 +92,8 @@ describe("finalizeConformance (final verdict)", () => {
   it("leaves unresolved SCs as CannotTell", () => {
     const machine = computeConformance(scsForStandard("2.2", "A"), [], new Set(), new Set(), FEATURES);
     const result = finalizeConformance(machine, new Map());
-    expect(result.rows.find((r) => r.num === "2.1.1")?.result).toBe("CannotTell");
-    expect(result.cannotTell).toBeGreaterThan(0);
+    expect(result.rows.find((r) => r.num === "2.1.1")?.result).toBe("NotTested");
+    expect(result.notTested).toBeGreaterThan(0);
   });
 
   it("does not claim a level while SCs await human check", () => {

@@ -20,7 +20,7 @@ async function signIn(page: import("@playwright/test").Page) {
   await page.waitForURL(/\/assess/);
 }
 
-test("saves a key + model and AI review resolves Cannot tell (BYOK)", async ({ page }) => {
+test("saves a key + model and AI review resolves Not tested (BYOK)", async ({ page }) => {
   test.setTimeout(300_000);
   await signIn(page);
 

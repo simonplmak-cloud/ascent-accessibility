@@ -22,9 +22,6 @@ export default async function HumanReviewPage() {
 
   return (
     <PageShell width="4xl">
-      <p className="inline-block rounded border border-terminal-serious px-2 py-0.5 font-sans text-xs font-semibold uppercase tracking-wide text-terminal-serious">
-        {t("comingSoon")}
-      </p>
       <PageBreadcrumbs path="/human-review" title={t("heading")} />
       <PageHeading>{t("heading")}</PageHeading>
       <MutedText className="mt-4">{t("intro")}</MutedText>

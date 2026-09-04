@@ -53,7 +53,7 @@ describe("parseVerdicts", () => {
         { sc: "1.2.2", verdict: "needs-review", confidence: 0.5, reasoning: "" },
       ],
     });
-    expect(out?.map((v) => v.verdict)).toEqual(["Passed", "CannotTell"]);
+    expect(out?.map((v) => v.verdict)).toEqual(["Passed", "NotTested"]);
   });
 
   it("returns null for garbage", () => {

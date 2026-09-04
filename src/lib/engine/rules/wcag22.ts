@@ -2,7 +2,7 @@ import { defineRule, type Rule } from "../types";
 
 // WCAG 2.2 additions that previously had no machine rule. All three are
 // conservative/presence-based: they pass on a clear signal or absence of the
-// trigger, and escalate to "incomplete" (→ Cannot tell / AI / human) rather than
+// trigger, and escalate to "incomplete" (→ Not tested / AI / human) rather than
 // guessing. 2.4.11 and 3.3.8 are Non-Interference SCs (WCAG 2.2 §5.2.5).
 export const wcag22Rules: Rule[] = [
   defineRule({

@@ -8,17 +8,17 @@ import { Disclosure } from "@/components/ui/disclosure";
 
 // A10 provenance: how each criterion was resolved. Machine = the rule engine
 // decided it; AI = the AI-assisted review resolved it (not proof of conformance);
-// Needs human = only a person can judge it.
-function natureOf(row: ConformanceRow): "machine" | "needsHuman" | "ai" | "dash" {
+// Not tested = neither resolved it (no AI key).
+function natureOf(row: ConformanceRow): "machine" | "notTested" | "ai" | "dash" {
   if (row.machineResult === "Passed" || row.machineResult === "Failed") return "machine";
-  if (row.result === "CannotTell") return "needsHuman";
+  if (row.result === "NotTested") return "notTested";
   if (row.result === "Passed" || row.result === "Failed") return "ai";
   return "dash";
 }
 
 const NATURE_CLASS: Record<string, string> = {
   machine: "text-terminal-muted",
-  needsHuman: "text-terminal-serious",
+  notTested: "text-terminal-serious",
   ai: "text-terminal-serious",
   dash: "text-terminal-muted",
 };
@@ -29,7 +29,7 @@ function resultClass(result: string): string {
       return "text-terminal-pass";
     case "Failed":
       return "text-terminal-fail";
-    case "CannotTell":
+    case "NotTested":
       return "text-terminal-serious";
     default:
       return "text-terminal-muted";
@@ -53,7 +53,7 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
     let base: string;
     if (nature === "machine") base = t("machine");
     else if (nature === "ai") base = t("ai");
-    else if (nature === "needsHuman") base = t("needsHuman");
+    else if (nature === "notTested") base = t("notTested");
     else base = "—";
     if (confidence === "single-source") base += ` · ${t("confidenceSingleSource")}`;
     return base;
@@ -69,7 +69,7 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
           passed: conformance.passed,
           failed: conformance.failed,
           notPresent: conformance.notPresent,
-          cannotTell: conformance.cannotTell,
+          notTested: conformance.notTested,
           coverage: conformance.coverage,
           level: conformance.levelAttained,
         })}

@@ -14,7 +14,7 @@ import {
 const rows = [
   { num: "1.1.1", result: "Passed" },
   { num: "1.4.3", result: "Failed" },
-  { num: "2.4.4", result: "CannotTell" },
+  { num: "2.4.4", result: "NotTested" },
   { num: "1.2.1", result: "NotPresent" },
 ];
 
@@ -72,7 +72,7 @@ describe("buildConformanceClaim", () => {
     const claim = buildConformanceClaim({
       rows: [
         { num: "1.1.1", result: "Passed" },
-        { num: "2.4.4", result: "CannotTell" },
+        { num: "2.4.4", result: "NotTested" },
       ],
       resolutions: new Map<string, ReviewVerdict>([["2.4.4", "Passed"]]),
       ...claimMeta,

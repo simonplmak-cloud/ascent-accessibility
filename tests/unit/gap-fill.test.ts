@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { gapFillRules } from "@/lib/engine/rules/gap-fill";
 import { instructionsOf } from "@/lib/standards/nature";
-import { cannotTellReason } from "@/lib/report/report-methods";
 
 function check(id: string) {
   const rule = gapFillRules.find((r) => r.id === id);
@@ -67,32 +66,3 @@ describe("gap-fill rules", () => {
   });
 });
 
-describe("cannotTellReason", () => {
-  it("classifies manual-only SCs", () => {
-    expect(cannotTellReason("1.2.8", [])).toBe("manual-only");
-  });
-  it("classifies machine-testable SCs (incomplete rule) as engine-rule-pending", () => {
-    expect(cannotTellReason("2.4.5", [])).toBe("engine-rule-pending");
-  });
-  it("classifies tool-judgeable (ai-detectable) SCs as not-judgeable-from-screenshot", () => {
-    expect(cannotTellReason("1.4.5", [])).toBe("not-judgeable-from-screenshot");
-  });
-  it("classifies mixed machine+AI SCs (2.4.11) as engine-rule-pending", () => {
-    expect(cannotTellReason("2.4.11", [])).toBe("engine-rule-pending");
-  });
-  it("classifies gesture/state SCs as manual-only", () => {
-    expect(cannotTellReason("2.5.1", [])).toBe("manual-only");
-  });
-  it("uses the AI verdict reasoning when present", () => {
-    expect(
-      cannotTellReason("1.3.2", [
-        { sc: "1.3.2", verdict: "CannotTell", confidence: 0, reasoning: "not judgeable from available evidence" },
-      ]),
-    ).toBe("not-judgeable-from-screenshot");
-    expect(
-      cannotTellReason("1.3.3", [
-        { sc: "1.3.3", verdict: "CannotTell", confidence: 0.5, reasoning: "low confidence" },
-      ]),
-    ).toBe("ai-low-confidence");
-  });
-});

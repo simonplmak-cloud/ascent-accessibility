@@ -32,7 +32,7 @@ describe("runAudioReview", () => {
     const model: AudioModel = { review: async () => Promise.reject(new Error("boom")) };
     const out = await runAudioReview(model, ["1.2.2"], ["https://x.example/video.mp4"]);
     expect(out).toEqual([
-      { sc: "1.2.2", verdict: "CannotTell", confidence: 0, reasoning: "audio model error" },
+      { sc: "1.2.2", verdict: "NotTested", confidence: 0, reasoning: "audio model error" },
     ]);
   });
 });

@@ -226,7 +226,7 @@ describe("OpenAiVisionClient tool-calling loop", () => {
     });
     const result = await client.review({ image: Buffer.alloc(0), prompt: "p" });
     expect(fakeFetch).toHaveBeenCalledTimes(1);
-    expect(result[0]).toMatchObject({ sc: "1.3.3", verdict: "CannotTell" });
+    expect(result[0]).toMatchObject({ sc: "1.3.3", verdict: "NotTested" });
   });
 });
 
@@ -253,14 +253,14 @@ describe("runTriage tool-aware judgeability", () => {
       getConfig: async () => toolJudgedCfg("2.4.11", false),
     });
     expect(review).not.toHaveBeenCalled();
-    expect(out.reviews[0]).toMatchObject({ verdict: "CannotTell" });
+    expect(out.reviews[0]).toMatchObject({ verdict: "NotTested" });
     expect(out.budget.calls).toBe(0);
   });
 
   it("always emits Passed/Failed — a model 'CannotTell' leans toward the more likely outcome", async () => {
     const review = vi.fn(async (): Promise<AiReview[]> => [
-      { sc: "2.4.11", verdict: "CannotTell", confidence: 0.3, reasoning: "unclear" },
-      { sc: "2.4.12", verdict: "CannotTell", confidence: 0.7, reasoning: "likely ok" },
+      { sc: "2.4.11", verdict: "NotTested", confidence: 0.3, reasoning: "unclear" },
+      { sc: "2.4.12", verdict: "NotTested", confidence: 0.7, reasoning: "likely ok" },
       { sc: "1.3.3", verdict: "Passed", confidence: 0.4, reasoning: "looks fine" },
     ]);
     const out = await runTriage({
@@ -273,6 +273,6 @@ describe("runTriage tool-aware judgeability", () => {
     expect(bySc["2.4.11"]?.verdict).toBe("Failed"); // confidence < 0.5
     expect(bySc["2.4.12"]?.verdict).toBe("Passed"); // confidence >= 0.5
     expect(bySc["1.3.3"]?.verdict).toBe("Passed"); // low confidence but still a verdict
-    expect(out.reviews.some((r) => r.verdict === "CannotTell")).toBe(false);
+    expect(out.reviews.some((r) => r.verdict === "NotTested")).toBe(false);
   });
 });

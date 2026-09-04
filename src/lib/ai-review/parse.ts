@@ -11,7 +11,7 @@ function mapVerdict(raw: string): AiVerdict {
   const v = raw.trim().toLowerCase();
   if (v === "pass" || v === "passed") return "Passed";
   if (v === "fail" || v === "failed") return "Failed";
-  return "CannotTell";
+  return "NotTested";
 }
 
 // Strip a leading ```json fence and a trailing ``` fence only (anchored), so a

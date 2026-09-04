@@ -57,7 +57,7 @@ describe("labels", () => {
   it("localizes impact and verdict labels", () => {
     expect(impactLabel("critical", "zh-Hans")).toBe("严重");
     expect(impactLabel("minor", "zh-Hant")).toBe("輕微");
-    expect(verdictLabel("CannotTell", "zh-Hans")).toBe("无法判断");
+    expect(verdictLabel("NotTested", "zh-Hans")).toBe("未测试");
     expect(verdictLabel("Passed", "zh-Hant")).toBe("通過");
     expect(impactLabel("critical")).toBe("critical");
   });

@@ -45,7 +45,7 @@ describe("sc-coverage", () => {
     expect(isScApplicable("1.2.1", new Set(["1.2.1"]), EMPTY_FEATURES)).toBe("applicable");
   });
 
-  it("partial machine SC stays applicable on absence (Cannot tell, never NotPresent)", () => {
+  it("partial machine SC stays applicable on absence (Not tested, never NotPresent)", () => {
     expect(isScApplicable("1.1.1", new Set(), EMPTY_FEATURES)).toBe("applicable");
   });
 
