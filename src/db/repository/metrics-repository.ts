@@ -22,10 +22,20 @@ function map(raw: RawRecord): MetricsRecord {
 
 export const metricsRepository = {
   async upsert(record: Omit<MetricsRecord, "updatedAt">): Promise<void> {
-    await query(
-      `UPSERT ${METRICS_ID} CONTENT { storageBytes: $storageBytes, queueDepth: $queueDepth, failedScans24h: $failedScans24h, scans: $scans, failures: $failures, p50: $p50, p95: $p95, p99: $p99, updatedAt: time::now() }`,
-      { ...record },
-    );
+    // SCHEMAFULL `option<int>` rejects SQL NULL (it wants NONE), so omit the
+    // latency fields entirely when they are unset rather than sending null.
+    const fields = [
+      `storageBytes: ${record.storageBytes}`,
+      `queueDepth: ${record.queueDepth}`,
+      `failedScans24h: ${record.failedScans24h}`,
+      `scans: ${record.scans}`,
+      `failures: ${record.failures}`,
+    ];
+    if (record.p50 != null) fields.push(`p50: ${record.p50}`);
+    if (record.p95 != null) fields.push(`p95: ${record.p95}`);
+    if (record.p99 != null) fields.push(`p99: ${record.p99}`);
+    fields.push("updatedAt: time::now()");
+    await query(`UPSERT ${METRICS_ID} CONTENT { ${fields.join(", ")} }`);
   },
 
   async read(): Promise<MetricsRecord | undefined> {
