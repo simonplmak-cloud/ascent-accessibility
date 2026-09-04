@@ -177,6 +177,11 @@ export interface MetricsRecord {
   storageBytes: number;
   queueDepth: number;
   failedScans24h: number;
+  scans: number;
+  failures: number;
+  p50: number | null;
+  p95: number | null;
+  p99: number | null;
   updatedAt: string;
 }
 
@@ -277,6 +282,11 @@ DEFINE INDEX report_pdf_owner_idx ON report_pdf FIELDS ownerId;`,
 DEFINE FIELD storageBytes ON metrics TYPE int DEFAULT 0;
 DEFINE FIELD queueDepth ON metrics TYPE int DEFAULT 0;
 DEFINE FIELD failedScans24h ON metrics TYPE int DEFAULT 0;
+DEFINE FIELD scans ON metrics TYPE int DEFAULT 0;
+DEFINE FIELD failures ON metrics TYPE int DEFAULT 0;
+DEFINE FIELD p50 ON metrics TYPE option<int>;
+DEFINE FIELD p95 ON metrics TYPE option<int>;
+DEFINE FIELD p99 ON metrics TYPE option<int>;
 DEFINE FIELD updatedAt ON metrics TYPE datetime DEFAULT time::now();`,
 
   `DEFINE TABLE subscription SCHEMAFULL;

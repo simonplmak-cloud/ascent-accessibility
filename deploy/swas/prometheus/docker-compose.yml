@@ -1,0 +1,32 @@
+# Metrics backend for the wcag-score worker. Run on the worker box:
+#   cd /opt/wcag-score/deploy/swas/prometheus && docker compose up -d
+# Prometheus scrapes https://accessibility.ascent.partners/api/v1/metrics
+# (exported from SurrealDB by the Next.js API), Grafana graphs it.
+# Grafana is on :3001 (browserless already owns :3000); add the Prometheus
+# data source at http://prometheus:9090 in the Grafana UI.
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=changeme
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:

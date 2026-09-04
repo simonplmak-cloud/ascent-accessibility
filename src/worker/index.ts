@@ -145,13 +145,18 @@ async function runCleanupSweep(): Promise<void> {
 
   const totals = await computeStorageTotals();
   const totalBytes = totals.evidence + totals.assessment + totals.reportPdf;
+  const m = metrics.snapshot();
   await metricsRepository.upsert({
     storageBytes: totalBytes,
     queueDepth: await assessmentRepository.countQueued(),
     failedScans24h: await assessmentRepository.countFailed24h(),
+    scans: m.scans,
+    failures: m.failures,
+    p50: m.p50,
+    p95: m.p95,
+    p99: m.p99,
   });
 
-  const m = metrics.snapshot();
   logger.info({ scans: m.scans, failures: m.failures, p50: m.p50, p95: m.p95, p99: m.p99 }, "scan latency percentiles");
 
   if (CLEANUP_DRY_RUN) {

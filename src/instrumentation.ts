@@ -8,7 +8,7 @@ export async function register() {
     await Sentry.init({
       dsn: process.env.SENTRY_DSN,
       environment: process.env.NODE_ENV ?? "production",
-      tracesSampleRate: 0,
+      tracesSampleRate: 0.05,
     });
   }
 }

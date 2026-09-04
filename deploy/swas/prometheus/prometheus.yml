@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 60s
+  evaluation_interval: 60s
+
+scrape_configs:
+  - job_name: "wcag-score"
+    metrics_path: /api/v1/metrics
+    scheme: https
+    static_configs:
+      - targets: ["accessibility.ascent.partners"]

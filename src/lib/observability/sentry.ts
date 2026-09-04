@@ -9,7 +9,7 @@ export function initSentry(): void {
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV ?? "production",
     release: process.env.SENTRY_RELEASE,
-    tracesSampleRate: 0,
+    tracesSampleRate: 0.05,
     // Keep the redaction posture from pino: never send auth/secret material.
     beforeSend(event) {
       const req = event.request as { headers?: Record<string, unknown> } | undefined;
