@@ -19,6 +19,8 @@ const eslintConfig = [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
+      // The codebase is `any`-free; lock it in as a hard error.
+      "@typescript-eslint/no-explicit-any": "error",
     },
   },
   {

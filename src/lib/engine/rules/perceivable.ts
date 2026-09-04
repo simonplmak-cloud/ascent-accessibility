@@ -1,7 +1,7 @@
-import type { Rule } from "../types";
+import { defineRule, type Rule } from "../types";
 
 export const perceivableRules: Rule[] = [
-  {
+  defineRule({
     id: "image-alt",
     description: "Ensures <img> elements have alternate text or a decorative role",
     help: "Images must have alternate text",
@@ -20,8 +20,8 @@ export const perceivableRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "input-image-alt",
     description: "Ensures <input type=\"image\"> elements have alternate text",
     help: "Image buttons must have alternate text",
@@ -34,14 +34,14 @@ export const perceivableRules: Rule[] = [
       {
         id: "image-button-name",
         evaluate: (f) => {
-          if ((f.alt as string)?.trim()) return { result: "pass" };
-          if ((f.aria as string)?.trim()) return { result: "pass" };
+          if (f.alt?.trim()) return { result: "pass" };
+          if (f.aria?.trim()) return { result: "pass" };
           return { result: "fail", failureSummary: "input[type=image] has no text alternative" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "object-alt",
     description: "Ensures <object> elements have alternate text",
     help: "Object elements must have alternate text",
@@ -59,14 +59,14 @@ export const perceivableRules: Rule[] = [
         id: "object-text-alternative",
         evaluate: (f) => {
           if (f.text) return { result: "pass" };
-          if ((f.aria as string)?.trim()) return { result: "pass" };
-          if ((f.title as string)?.trim()) return { result: "pass" };
+          if (f.aria?.trim()) return { result: "pass" };
+          if (f.title?.trim()) return { result: "pass" };
           return { result: "fail", failureSummary: "object element has no text alternative" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "svg-img-alt",
     description: "Ensures <svg> elements with an img role have an accessible name",
     help: "SVG images must have an accessible name",
@@ -84,19 +84,18 @@ export const perceivableRules: Rule[] = [
       {
         id: "svg-img-name",
         evaluate: (f) => {
-          const role = f.role as string | null;
-          if (role !== "img" && role !== "graphics-document" && role !== "graphics-symbol") {
+          if (f.role !== "img" && f.role !== "graphics-document" && f.role !== "graphics-symbol") {
             return { result: "pass" };
           }
-          if ((f.aria as string)?.trim()) return { result: "pass" };
+          if (f.aria?.trim()) return { result: "pass" };
           if (f.labelledby) return { result: "pass" };
           if (f.title) return { result: "pass" };
           return { result: "fail", failureSummary: "svg with img role has no accessible name" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "video-caption",
     description: "Ensures <video> elements have captions",
     help: "Video elements must have captions",
@@ -114,8 +113,8 @@ export const perceivableRules: Rule[] = [
             : { result: "fail", failureSummary: "video element has no captions track" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "list",
     description: "Ensures that lists are structured correctly",
     help: "<ul> and <ol> must directly contain only <li> elements",
@@ -132,17 +131,16 @@ export const perceivableRules: Rule[] = [
       {
         id: "list-only-li-children",
         evaluate: (f) => {
-          const children = f.children as string[];
-          if (children.length === 0) return { result: "pass" };
-          const invalid = children.filter((t) => t !== "LI");
+          if (f.children.length === 0) return { result: "pass" };
+          const invalid = f.children.filter((t) => t !== "LI");
           return invalid.length > 0
             ? { result: "fail", failureSummary: "list contains non-li children" }
             : { result: "pass" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "listitem",
     description: "Ensures <li> elements are used semantically",
     help: "<li> elements must be contained in a <ul> or <ol>",
@@ -158,16 +156,16 @@ export const perceivableRules: Rule[] = [
       {
         id: "listitem-in-list",
         evaluate: (f) => {
-          const tag = f.parentTag as string | null;
-          if (tag === "ul" || tag === "ol") return { result: "pass" };
-          const role = f.parentRole as string | null;
-          if (role === "list" || role === "listbox" || role === "menu") return { result: "pass" };
+          if (f.parentTag === "ul" || f.parentTag === "ol") return { result: "pass" };
+          if (f.parentRole === "list" || f.parentRole === "listbox" || f.parentRole === "menu") {
+            return { result: "pass" };
+          }
           return { result: "fail", failureSummary: "li element is not inside a list" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "dlitem",
     description: "Ensures <dt> and <dd> elements are contained by a <dl>",
     help: "<dt> and <dd> must be inside a <dl>",
@@ -185,8 +183,8 @@ export const perceivableRules: Rule[] = [
             : { result: "fail", failureSummary: "dt/dd element is not inside a dl" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "definition-list",
     description: "Ensures <dl> elements are structured correctly",
     help: "<dl> must contain only <dt> and <dd> groups",
@@ -203,17 +201,16 @@ export const perceivableRules: Rule[] = [
       {
         id: "dl-valid-children",
         evaluate: (f) => {
-          const children = f.children as string[];
-          if (children.length === 0) return { result: "pass" };
+          if (f.children.length === 0) return { result: "pass" };
           const valid = ["DT", "DD", "DIV"];
-          return children.some((t) => !valid.includes(t))
+          return f.children.some((t) => !valid.includes(t))
             ? { result: "fail", failureSummary: "dl contains invalid children" }
             : { result: "pass" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "region",
     description: "Ensures all page content is contained by landmarks",
     help: "All page content should be contained by landmarks",
@@ -235,8 +232,8 @@ export const perceivableRules: Rule[] = [
             : { result: "fail", failureSummary: "no landmark regions found" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "landmark-unique",
     description: "Ensures landmarks are unique",
     help: "Repeated landmarks must have unique labels",
@@ -269,8 +266,8 @@ export const perceivableRules: Rule[] = [
             : { result: "pass" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "heading-order",
     description: "Ensures the order of headings is semantically correct",
     help: "Heading levels should only increase by one",
@@ -288,7 +285,7 @@ export const perceivableRules: Rule[] = [
         id: "heading-order-no-skip",
         evaluate: (f) => {
           let prev = 0;
-          for (const level of f.levels as number[]) {
+          for (const level of f.levels) {
             if (level - prev > 1) {
               return { result: "fail", failureSummary: `heading order skips from h${prev} to h${level}` };
             }
@@ -298,8 +295,8 @@ export const perceivableRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "empty-heading",
     description: "Ensures headings have discernible text",
     help: "Headings must not be empty",
@@ -315,8 +312,8 @@ export const perceivableRules: Rule[] = [
           f.text ? { result: "pass" } : { result: "fail", failureSummary: "heading element is empty" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "meta-viewport",
     description: "Ensures <meta name=\"viewport\"> does not disable text scaling and zooming",
     help: "Zooming and scaling must not be disabled",
@@ -329,11 +326,10 @@ export const perceivableRules: Rule[] = [
       {
         id: "zoom-not-disabled",
         evaluate: (f) => {
-          const content = f.content as string;
-          if (/user-scalable\s*=\s*no/i.test(content)) {
+          if (/user-scalable\s*=\s*no/i.test(f.content)) {
             return { result: "fail", failureSummary: "user-scalable=no disables zoom" };
           }
-          const max = /maximum-scale\s*=\s*([\d.]+)/i.exec(content);
+          const max = /maximum-scale\s*=\s*([\d.]+)/i.exec(f.content);
           if (max && parseFloat(max[1]!) < 2) {
             return { result: "fail", failureSummary: "maximum-scale less than 2 disables zoom" };
           }
@@ -341,5 +337,5 @@ export const perceivableRules: Rule[] = [
         },
       },
     ],
-  },
+  }),
 ];

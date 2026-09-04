@@ -1,19 +1,7 @@
-import type { Rule } from "../types";
-
-const AUTOCOMPLETE_VALUES = [
-  "name", "honorific-prefix", "given-name", "additional-name", "family-name", "honorific-suffix",
-  "nickname", "username", "new-password", "current-password", "one-time-code",
-  "organization-title", "organization", "street-address", "address-line1", "address-line2",
-  "address-line3", "address-level4", "address-level3", "address-level2", "address-level1",
-  "country", "country-name", "postal-code", "cc-name", "cc-given-name", "cc-additional-name",
-  "cc-family-name", "cc-number", "cc-exp", "cc-exp-month", "cc-exp-year", "cc-csc", "cc-type",
-  "transaction-currency", "transaction-amount", "language", "bday", "bday-day", "bday-month",
-  "bday-year", "sex", "url", "photo", "tel", "tel-country-code", "tel-national", "tel-area-code",
-  "tel-local", "tel-extension", "email", "impp",
-];
+import { defineRule, type Rule } from "../types";
 
 export const additionalRules: Rule[] = [
-  {
+  defineRule({
     id: "no-autoplay-audio",
     description: "Ensures auto-playing media has a control or lasts under 3 seconds",
     help: "Auto-playing audio must not play for more than 3 seconds without a control",
@@ -35,8 +23,8 @@ export const additionalRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "orientation",
     description: "Ensures content does not restrict its view to a single orientation",
     help: "Content must work in both portrait and landscape orientation",
@@ -77,8 +65,8 @@ export const additionalRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "autocomplete-valid",
     description: "Ensures autocomplete attribute values are valid",
     help: "Input purpose must use a valid autocomplete value",
@@ -91,20 +79,31 @@ export const additionalRules: Rule[] = [
       {
         id: "autocomplete-valid",
         evaluate: (f) => {
-          const v = f.value as string;
-          if (v === "" || v === "on" || v === "off") return { result: "pass" };
-          const tokens = v.split(/\s+/).map((t) => (t.startsWith("section-") ? "section" : t));
+          // Inlined (not a module closure) so this check stays self-contained.
+          const autocompleteValues = [
+            "name", "honorific-prefix", "given-name", "additional-name", "family-name", "honorific-suffix",
+            "nickname", "username", "new-password", "current-password", "one-time-code",
+            "organization-title", "organization", "street-address", "address-line1", "address-line2",
+            "address-line3", "address-level4", "address-level3", "address-level2", "address-level1",
+            "country", "country-name", "postal-code", "cc-name", "cc-given-name", "cc-additional-name",
+            "cc-family-name", "cc-number", "cc-exp", "cc-exp-month", "cc-exp-year", "cc-csc", "cc-type",
+            "transaction-currency", "transaction-amount", "language", "bday", "bday-day", "bday-month",
+            "bday-year", "sex", "url", "photo", "tel", "tel-country-code", "tel-national", "tel-area-code",
+            "tel-local", "tel-extension", "email", "impp",
+          ];
+          if (f.value === "" || f.value === "on" || f.value === "off") return { result: "pass" };
+          const tokens = f.value.split(/\s+/).map((t) => (t.startsWith("section-") ? "section" : t));
           for (const t of tokens) {
-            if (!AUTOCOMPLETE_VALUES.includes(t)) {
-              return { result: "fail", failureSummary: `invalid autocomplete value: "${v}"` };
+            if (!autocompleteValues.includes(t)) {
+              return { result: "fail", failureSummary: `invalid autocomplete value: "${f.value}"` };
             }
           }
           return { result: "pass" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "text-spacing",
     description: "Ensures text-spacing overrides are not prevented with !important",
     help: "Line/letter/word spacing overrides must not be blocked",
@@ -145,8 +144,8 @@ export const additionalRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "lang-of-parts",
     description: "Ensures foreign-language passages carry a lang attribute",
     help: "Passages in another language must be marked with lang",
@@ -161,14 +160,11 @@ export const additionalRules: Rule[] = [
     checks: [
       {
         id: "part-lang",
-        evaluate: (f) =>
-          (f.lang as string) === (f.rootLang as string)
-            ? { result: "pass" }
-            : { result: "pass" },
+        evaluate: () => ({ result: "pass" }),
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "pause-stop-hide",
     description: "Ensures moving, blinking, or auto-updating content can be paused",
     help: "Moving content must be pausable",
@@ -183,8 +179,8 @@ export const additionalRules: Rule[] = [
         evaluate: () => ({ result: "fail", failureSummary: "marquee/blink element must not be used" }),
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "media-transcript",
     description: "Ensures audio/video-only media has a linked transcript",
     help: "Audio/video-only media must have a transcript",
@@ -207,8 +203,8 @@ export const additionalRules: Rule[] = [
             : { result: "incomplete", failureSummary: "no linked transcript detected" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "label-in-name",
     description: "Ensures the accessible name contains the visible label text",
     help: "The accessible name must contain the visible label",
@@ -228,16 +224,14 @@ export const additionalRules: Rule[] = [
       {
         id: "label-in-name",
         evaluate: (f) => {
-          const visible = f.visible as string;
-          const accessible = f.accessible as string;
-          if (!visible || !accessible) return { result: "pass" };
-          if (accessible.toLowerCase().includes(visible.toLowerCase())) return { result: "pass" };
-          return { result: "fail", failureSummary: `accessible name "${accessible}" does not contain visible label "${visible}"` };
+          if (!f.visible || !f.accessible) return { result: "pass" };
+          if (f.accessible.toLowerCase().includes(f.visible.toLowerCase())) return { result: "pass" };
+          return { result: "fail", failureSummary: `accessible name "${f.accessible}" does not contain visible label "${f.visible}"` };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "use-of-color",
     description: "Ensures information is not conveyed by color alone",
     help: "Color must not be the only means of conveying information",
@@ -255,10 +249,10 @@ export const additionalRules: Rule[] = [
       {
         id: "no-color-only-instructions",
         evaluate: (f) =>
-          (f.hits as string[]).length > 0
-            ? { result: "incomplete", failureSummary: `instruction references color (${(f.hits as string[]).join(", ")}) — verify it is not the only cue` }
+          f.hits.length > 0
+            ? { result: "incomplete", failureSummary: `instruction references color (${f.hits.join(", ")}) — verify it is not the only cue` }
             : { result: "pass" },
       },
     ],
-  },
+  }),
 ];

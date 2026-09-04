@@ -1,7 +1,7 @@
-import type { Rule } from "../types";
+import { defineRule, type Rule } from "../types";
 
 export const operableRules: Rule[] = [
-  {
+  defineRule({
     id: "document-title",
     description: "Ensures each HTML document contains a non-empty <title> element",
     help: "Documents must have a title",
@@ -19,8 +19,8 @@ export const operableRules: Rule[] = [
             : { result: "fail", failureSummary: "document has no non-empty title" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "link-name",
     description: "Ensures links have discernible text",
     help: "Links must have an accessible name",
@@ -41,17 +41,17 @@ export const operableRules: Rule[] = [
       {
         id: "link-name",
         evaluate: (f) => {
-          if ((f.aria as string)?.trim()) return { result: "pass" };
+          if (f.aria?.trim()) return { result: "pass" };
           if (f.labelledbyText) return { result: "pass" };
           if (f.text) return { result: "pass" };
-          if ((f.title as string)?.trim()) return { result: "pass" };
-          if ((f.imgAlt as string)?.trim()) return { result: "pass" };
+          if (f.title?.trim()) return { result: "pass" };
+          if (f.imgAlt?.trim()) return { result: "pass" };
           return { result: "fail", failureSummary: "link has no discernible text" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "skip-link",
     description: "Ensures the best-practice mechanism for bypassing blocks is available",
     help: "Page should provide a skip link to main content",
@@ -72,8 +72,8 @@ export const operableRules: Rule[] = [
             : { result: "fail", failureSummary: "no skip link or main landmark to bypass repeated blocks" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "tabindex",
     description: "Ensures tabindex attribute values are not greater than 0",
     help: "Elements should not have tabindex greater than zero",
@@ -86,13 +86,13 @@ export const operableRules: Rule[] = [
       {
         id: "tabindex-not-positive",
         evaluate: (f) =>
-          (f.tabindex as number) > 0
+          f.tabindex > 0
             ? { result: "fail", failureSummary: `tabindex=${f.tabindex} disrupts natural focus order` }
             : { result: "pass" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "focus-visible",
     description: "Ensures keyboard focus is visibly indicated",
     help: "Keyboard focus must be visibly indicated",
@@ -122,8 +122,6 @@ export const operableRules: Rule[] = [
             const outlineWidth = s.outlineWidth || "";
             const boxShadow = s.boxShadow || "";
             const border = s.border || "";
-            // A visible indicator on ANY focus rule means the site does style
-            // focus — so an outline suppression elsewhere isn't a blanket fail.
             if (
               (outlineStyle !== "" && outlineStyle !== "none" && outlineStyle !== "hidden" &&
                 outlineWidth !== "0" && outlineWidth !== "0px") ||
@@ -136,11 +134,7 @@ export const operableRules: Rule[] = [
             if (/:focus-visible/.test(sel)) hasFocusVisibleAlt = true;
             if (!/:focus(?![-\w])/.test(sel)) continue;
 
-            // [tabindex="-1"] targets are focused programmatically (skip-link
-            // destinations, JS-managed containers) — a suppressed outline here
-            // is intentional and does not indicate a missing focus indicator.
             if (/\[tabindex\s*=\s*["']?-1["']?\]/i.test(sel)) continue;
-            // Skip links reveal themselves on focus, which is its own indicator.
             if (/skip/i.test(sel)) continue;
 
             const outline = s.outline || "";
@@ -177,5 +171,5 @@ export const operableRules: Rule[] = [
         },
       },
     ],
-  },
+  }),
 ];

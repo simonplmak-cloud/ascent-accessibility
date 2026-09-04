@@ -480,6 +480,12 @@ async function scanAndConsolidate(
                 const scan = await scanner.scan(url, standard.tags);
                 log("info", `engine: ${scan.violations.length} violation(s) on ${url}`);
 
+                // A rule whose extract/check threw must be visible, not silently
+                // reported as "pass"/"incomplete" — surface each error in the log.
+                for (const err of scan.errors ?? []) {
+                  log("warn", `engine error: ${err.ruleId} (${err.phase}): ${err.message}`);
+                }
+
                 try {
                   title = await scanner.pageTitle();
                 } catch {

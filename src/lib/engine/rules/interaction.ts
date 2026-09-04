@@ -1,9 +1,9 @@
-import type { Rule } from "../types";
+import { defineRule, type Rule } from "../types";
 
 // Phase 3 — interaction/behavioral rules that are statically detectable from the
 // DOM (keyboard operability, pointer cancellation, dragging alternatives).
 export const interactionRules: Rule[] = [
-  {
+  defineRule({
     id: "click-events-have-key-events",
     description: "Ensures elements with click handlers are keyboard operable",
     help: "Clickable elements must also be keyboard operable",
@@ -20,16 +20,15 @@ export const interactionRules: Rule[] = [
       {
         id: "keyboard-operable",
         evaluate: (f) => {
-          const tag = f.tag as string;
-          if (["button", "input", "select", "textarea", "summary"].includes(tag)) return { result: "pass" };
-          if (tag === "a" && f.href) return { result: "pass" };
+          if (["button", "input", "select", "textarea", "summary"].includes(f.tag)) return { result: "pass" };
+          if (f.tag === "a" && f.href) return { result: "pass" };
           if (f.tabindex !== null) return { result: "pass" };
-          return { result: "fail", failureSummary: `clickable <${tag}> is not keyboard focusable (no tabindex)` };
+          return { result: "fail", failureSummary: `clickable <${f.tag}> is not keyboard focusable (no tabindex)` };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "pointer-cancellation",
     description: "Ensures actions happen on pointer-up, not pointer-down",
     help: "Functions must be activated on pointer-up or be cancellable",
@@ -54,8 +53,8 @@ export const interactionRules: Rule[] = [
             : { result: "fail", failureSummary: "down-event handler without a corresponding up/click handler" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "dragging-movements",
     description: "Ensures drag actions have a single-pointer alternative",
     help: "Dragging actions must have a single-pointer alternative",
@@ -80,5 +79,5 @@ export const interactionRules: Rule[] = [
             : { result: "fail", failureSummary: "draggable element without a single-pointer alternative" },
       },
     ],
-  },
+  }),
 ];

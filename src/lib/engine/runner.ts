@@ -43,5 +43,10 @@ export async function runEngine(
     inapplicable: (result.inapplicable ?? []).map(mapRuleSummary),
     features: result.features,
     mediaUrls: result.mediaUrls ?? [],
+    errors: (result.errors ?? []).map((e) => ({
+      ruleId: e.ruleId,
+      phase: e.phase === "check" ? "check" : "extract",
+      message: e.message,
+    })),
   };
 }

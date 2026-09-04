@@ -1,20 +1,7 @@
-import type { Rule } from "../types";
-
-const VALID_ROLES = [
-  "alert", "alertdialog", "application", "article", "banner", "button", "cell",
-  "checkbox", "columnheader", "combobox", "complementary", "contentinfo", "definition",
-  "dialog", "directory", "document", "feed", "figure", "form", "grid", "gridcell",
-  "group", "heading", "img", "link", "list", "listbox", "listitem", "log", "main",
-  "marquee", "math", "menu", "menubar", "menuitem", "menuitemcheckbox", "menuitemradio",
-  "navigation", "none", "note", "option", "presentation", "progressbar", "radio",
-  "radiogroup", "region", "row", "rowgroup", "rowheader", "scrollbar", "search",
-  "searchbox", "separator", "slider", "spinbutton", "status", "switch", "tab", "table",
-  "tablist", "tabpanel", "term", "textbox", "timer", "toolbar", "tooltip", "tree",
-  "treegrid", "treeitem",
-];
+import { defineRule, type Rule } from "../types";
 
 export const robustRules: Rule[] = [
-  {
+  defineRule({
     id: "button-name",
     description: "Ensures buttons have discernible text",
     help: "Buttons must have an accessible name",
@@ -32,16 +19,16 @@ export const robustRules: Rule[] = [
       {
         id: "button-name",
         evaluate: (f) => {
-          if ((f.aria as string)?.trim()) return { result: "pass" };
+          if (f.aria?.trim()) return { result: "pass" };
           if (f.labelledby) return { result: "pass" };
           if (f.text) return { result: "pass" };
-          if ((f.title as string)?.trim()) return { result: "pass" };
+          if (f.title?.trim()) return { result: "pass" };
           return { result: "fail", failureSummary: "button has no accessible name" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "input-button-name",
     description: "Ensures input buttons have discernible text",
     help: "Input buttons must have an accessible name",
@@ -58,15 +45,15 @@ export const robustRules: Rule[] = [
       {
         id: "input-button-name",
         evaluate: (f) => {
-          if ((f.value as string)?.trim()) return { result: "pass" };
-          if ((f.aria as string)?.trim()) return { result: "pass" };
-          if ((f.title as string)?.trim()) return { result: "pass" };
+          if (f.value?.trim()) return { result: "pass" };
+          if (f.aria?.trim()) return { result: "pass" };
+          if (f.title?.trim()) return { result: "pass" };
           return { result: "fail", failureSummary: "input button has no accessible name" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "select-name",
     description: "Ensures select elements have an accessible name",
     help: "Select elements must have an accessible name",
@@ -86,14 +73,14 @@ export const robustRules: Rule[] = [
         evaluate: (f) => {
           if (f.hasFor) return { result: "pass" };
           if (f.inLabel) return { result: "pass" };
-          if ((f.aria as string)?.trim()) return { result: "pass" };
-          if ((f.title as string)?.trim()) return { result: "pass" };
+          if (f.aria?.trim()) return { result: "pass" };
+          if (f.title?.trim()) return { result: "pass" };
           return { result: "fail", failureSummary: "select element has no accessible name" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "frame-title",
     description: "Ensures <iframe> and <frame> elements have a title attribute",
     help: "Frames must have a title",
@@ -106,13 +93,13 @@ export const robustRules: Rule[] = [
       {
         id: "frame-title",
         evaluate: (f) =>
-          (f.title as string)?.trim()
+          f.title?.trim()
             ? { result: "pass" }
             : { result: "fail", failureSummary: "frame element has no title" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "aria-roles",
     description: "Ensures all elements with a role attribute use a valid value",
     help: "ARIA roles used must conform to valid values",
@@ -125,8 +112,22 @@ export const robustRules: Rule[] = [
       {
         id: "valid-roles",
         evaluate: (f) => {
-          for (const role of f.roles as string[]) {
-            if (VALID_ROLES.indexOf(role) === -1) {
+          // Inlined (not a module closure) so this check stays self-contained
+          // when `buildEngineSource` serializes it into the in-page engine.
+          const validRoles = [
+            "alert", "alertdialog", "application", "article", "banner", "button", "cell",
+            "checkbox", "columnheader", "combobox", "complementary", "contentinfo", "definition",
+            "dialog", "directory", "document", "feed", "figure", "form", "grid", "gridcell",
+            "group", "heading", "img", "link", "list", "listbox", "listitem", "log", "main",
+            "marquee", "math", "menu", "menubar", "menuitem", "menuitemcheckbox", "menuitemradio",
+            "navigation", "none", "note", "option", "presentation", "progressbar", "radio",
+            "radiogroup", "region", "row", "rowgroup", "rowheader", "scrollbar", "search",
+            "searchbox", "separator", "slider", "spinbutton", "status", "switch", "tab", "table",
+            "tablist", "tabpanel", "term", "textbox", "timer", "toolbar", "tooltip", "tree",
+            "treegrid", "treeitem",
+          ];
+          for (const role of f.roles) {
+            if (!validRoles.includes(role)) {
               return { result: "fail", failureSummary: `invalid ARIA role: "${role}"` };
             }
           }
@@ -134,8 +135,8 @@ export const robustRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "aria-valid-attr-value",
     description: "Ensures all ARIA attributes have valid values",
     help: "ARIA attributes must have valid values",
@@ -171,7 +172,7 @@ export const robustRules: Rule[] = [
             "aria-busy": ["true", "false"],
             "aria-live": ["off", "polite", "assertive"],
           };
-          for (const [attr, value] of Object.entries(f.attrs as Record<string, string>)) {
+          for (const [attr, value] of Object.entries(f.attrs)) {
             if (valid[attr] && valid[attr]!.indexOf(value) === -1) {
               return { result: "fail", failureSummary: `invalid value "${value}" for ${attr}` };
             }
@@ -180,8 +181,8 @@ export const robustRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "aria-required-attr",
     description: "Ensures elements with ARIA roles have all required attributes",
     help: "ARIA roles must have all required attributes",
@@ -213,11 +214,10 @@ export const robustRules: Rule[] = [
             spinbutton: ["aria-valuenow"],
             switch: ["aria-checked"],
           };
-          const reqs = required[f.role as string];
+          const reqs = required[f.role];
           if (!reqs) return { result: "pass" };
-          const attrs = f.attrs as string[];
           for (const a of reqs) {
-            if (!attrs.includes(a)) {
+            if (!f.attrs.includes(a)) {
               return { result: "fail", failureSummary: `role "${f.role}" is missing required attribute ${a}` };
             }
           }
@@ -225,8 +225,8 @@ export const robustRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "aria-hidden-focus",
     description: "Ensures aria-hidden elements do not contain focusable elements",
     help: "ARIA-hidden elements must not contain focusable elements",
@@ -248,8 +248,8 @@ export const robustRules: Rule[] = [
             : { result: "pass" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "duplicate-id",
     description: "Ensures every id attribute value is unique",
     help: "ID attribute values must be unique",
@@ -280,5 +280,5 @@ export const robustRules: Rule[] = [
             : { result: "pass" },
       },
     ],
-  },
+  }),
 ];

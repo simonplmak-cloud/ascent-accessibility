@@ -1,4 +1,6 @@
-import type { Rule } from "../types";
+import { defineRule, type Rule } from "../types";
+
+type Rgba = [number, number, number, number];
 
 // Deterministic clean-room rules for machine-testable SCs that were previously
 // marked `ruleId: "gap"` in nature.ts. Two kinds:
@@ -8,7 +10,7 @@ import type { Rule } from "../types";
 //     speculative failure. Interaction/state SCs stay deferred to the agentic
 //     AI review.
 export const gapFillRules: Rule[] = [
-  {
+  defineRule({
     id: "contrast-enhanced",
     description: "Ensures the contrast ratio meets WCAG 2 AAA thresholds",
     help: "Text must have enhanced color contrast (7:1, 4.5:1 large)",
@@ -18,14 +20,14 @@ export const gapFillRules: Rule[] = [
     matcher:
       "p, h1, h2, h3, h4, h5, h6, li, a, button, label, td, th, figcaption, blockquote, dt, dd, input[type='text'], input[type='search'], textarea",
     extract: (el) => {
-      const parse = (c: string): [number, number, number, number] | null => {
+      const parse = (c: string): Rgba | null => {
         const m = /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)/i.exec(c);
         if (!m) return null;
         return [parseFloat(m[1]!), parseFloat(m[2]!), parseFloat(m[3]!), m[4] !== undefined ? parseFloat(m[4]) : 1];
       };
       const text = (el.textContent || "").trim();
-      let fg: [number, number, number, number] | null = null;
-      let bg: [number, number, number, number] | null = null;
+      let fg: Rgba | null = null;
+      let bg: Rgba | null = null;
       let fontSize = 0;
       let fontWeight = 400;
       if (text) {
@@ -50,22 +52,18 @@ export const gapFillRules: Rule[] = [
         id: "contrast-enhanced-threshold",
         evaluate: (f) => {
           if (!f.text) return { result: "pass" };
-          const fg = f.fg as [number, number, number, number] | null;
-          const bg = f.bg as [number, number, number, number] | null;
-          if (!fg || !bg) return { result: "incomplete", failureSummary: "contrast not computable" };
+          if (!f.fg || !f.bg) return { result: "incomplete", failureSummary: "contrast not computable" };
           const lum = (r: number, g: number, b: number) => {
-            const f2 = (v: number) => {
+            const lf = (v: number) => {
               const s = v / 255;
               return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
             };
-            return 0.2126 * f2(r) + 0.7152 * f2(g) + 0.0722 * f2(b);
+            return 0.2126 * lf(r) + 0.7152 * lf(g) + 0.0722 * lf(b);
           };
-          const l1 = lum(fg[0], fg[1], fg[2]);
-          const l2 = lum(bg[0], bg[1], bg[2]);
+          const l1 = lum(f.fg[0], f.fg[1], f.fg[2]);
+          const l2 = lum(f.bg[0], f.bg[1], f.bg[2]);
           const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
-          const size = f.fontSize as number;
-          const weight = f.fontWeight as number;
-          const isLarge = size >= 24 || (size >= 18.66 && weight >= 700);
+          const isLarge = f.fontSize >= 24 || (f.fontSize >= 18.66 && f.fontWeight >= 700);
           const threshold = isLarge ? 4.5 : 7;
           if (ratio < threshold) {
             return { result: "fail", failureSummary: `contrast ratio ${ratio.toFixed(2)} is below ${threshold}:1` };
@@ -74,8 +72,8 @@ export const gapFillRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "target-size-enhanced",
     description: "Ensures interactive targets meet the 44x44 CSS pixel minimum (AAA)",
     help: "Interactive targets must be at least 44x44 CSS pixels",
@@ -101,17 +99,15 @@ export const gapFillRules: Rule[] = [
       {
         id: "target-size-enhanced-minimum",
         evaluate: (f) => {
-          const w = f.width as number;
-          const h = f.height as number;
-          if (w === 0 || h === 0) return { result: "pass" };
+          if (f.width === 0 || f.height === 0) return { result: "pass" };
           if (f.inline) return { result: "pass" };
-          if (w >= 44 && h >= 44) return { result: "pass" };
-          return { result: "fail", failureSummary: `target is ${Math.round(w)}x${Math.round(h)}px (below 44x44)` };
+          if (f.width >= 44 && f.height >= 44) return { result: "pass" };
+          return { result: "fail", failureSummary: `target is ${Math.round(f.width)}x${Math.round(f.height)}px (below 44x44)` };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "multiple-ways",
     description: "Ensures the page is reachable by more than one navigation method",
     help: "Pages must be reachable in more than one way",
@@ -136,8 +132,8 @@ export const gapFillRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "location",
     description: "Ensures the page's location within the site is identifiable",
     help: "The user's location in the site must be identifiable",
@@ -158,8 +154,8 @@ export const gapFillRules: Rule[] = [
             : { result: "incomplete", failureSummary: "no breadcrumb or aria-current location marker found" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "section-headings",
     description: "Ensures content sections are organised with headings",
     help: "Sections of content must have headings",
@@ -180,13 +176,13 @@ export const gapFillRules: Rule[] = [
       {
         id: "sections-have-headings",
         evaluate: (f) =>
-          (f.sectionCount as number) === 0 || (f.unlabelledCount as number) === 0
+          f.sectionCount === 0 || f.unlabelledCount === 0
             ? { result: "pass" }
             : { result: "incomplete", failureSummary: `${f.unlabelledCount} section(s) have no heading` },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "help",
     description: "Ensures context-sensitive help is available",
     help: "Context-sensitive help must be available",
@@ -207,8 +203,8 @@ export const gapFillRules: Rule[] = [
             : { result: "incomplete", failureSummary: "no help/contact link or aria-describedby found" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "redundant-entry",
     description: "Ensures form fields use autocomplete to avoid redundant re-entry",
     help: "Repeated information must not be re-entered unnecessarily",
@@ -231,14 +227,14 @@ export const gapFillRules: Rule[] = [
       {
         id: "autocomplete-present",
         evaluate: (f) => {
-          if ((f.textInputCount as number) === 0) return { result: "pass" };
-          if ((f.autocompleteCount as number) > 0) return { result: "pass" };
+          if (f.textInputCount === 0) return { result: "pass" };
+          if (f.autocompleteCount > 0) return { result: "pass" };
           return { result: "incomplete", failureSummary: "form text inputs lack autocomplete attributes" };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "no-timing",
     description: "Ensures no time limit is imposed (AAA)",
     help: "Timing must not be essential to the content",
@@ -258,5 +254,5 @@ export const gapFillRules: Rule[] = [
             : { result: "pass" },
       },
     ],
-  },
+  }),
 ];

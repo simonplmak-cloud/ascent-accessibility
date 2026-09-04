@@ -34,6 +34,15 @@ export interface ScanResult {
   inapplicable: RuleSummary[];
   features: PageFeatures;
   mediaUrls: string[];
+  errors?: ScanError[];
+}
+
+// A rule whose extract/check threw in-page. Surfaced (not silently swallowed) so
+// an engine bug is visible and countable instead of reporting "pass"/"incomplete".
+export interface ScanError {
+  ruleId: string;
+  phase: "extract" | "check";
+  message: string;
 }
 
 export class ScanFailedError extends Error {
@@ -73,6 +82,13 @@ export interface RawScanResult {
   incomplete?: RawRule[];
   inapplicable?: RawRule[];
   mediaUrls?: string[];
+  errors?: RawScanError[];
+}
+
+export interface RawScanError {
+  ruleId: string;
+  phase: string;
+  message: string;
 }
 
 export interface ScreenshotOptions {

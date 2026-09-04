@@ -1,7 +1,9 @@
-import type { Rule } from "../types";
+import { defineRule, type Rule } from "../types";
+
+type Rgba = [number, number, number, number];
 
 export const renderingRules: Rule[] = [
-  {
+  defineRule({
     id: "color-contrast",
     description: "Ensures the contrast between foreground and background colors meets WCAG 2 AA thresholds",
     help: "Text must have sufficient color contrast",
@@ -11,14 +13,14 @@ export const renderingRules: Rule[] = [
     matcher:
       "p, h1, h2, h3, h4, h5, h6, li, a, button, label, td, th, figcaption, blockquote, dt, dd, input[type='text'], input[type='search'], textarea",
     extract: (el) => {
-      const parse = (c: string): [number, number, number, number] | null => {
+      const parse = (c: string): Rgba | null => {
         const m = /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)/i.exec(c);
         if (!m) return null;
         return [parseFloat(m[1]!), parseFloat(m[2]!), parseFloat(m[3]!), m[4] !== undefined ? parseFloat(m[4]) : 1];
       };
       const text = (el.textContent || "").trim();
-      let fg: [number, number, number, number] | null = null;
-      let bg: [number, number, number, number] | null = null;
+      let fg: Rgba | null = null;
+      let bg: Rgba | null = null;
       let fontSize = 0;
       let fontWeight = 400;
       if (text) {
@@ -43,23 +45,19 @@ export const renderingRules: Rule[] = [
         id: "contrast-minimum",
         evaluate: (f) => {
           if (!f.text) return { result: "pass" };
-          const fg = f.fg as [number, number, number, number] | null;
-          const bg = f.bg as [number, number, number, number] | null;
-          if (!fg) return { result: "incomplete", failureSummary: "foreground color not computable" };
-          if (!bg) return { result: "incomplete", failureSummary: "background color not computable" };
+          if (!f.fg) return { result: "incomplete", failureSummary: "foreground color not computable" };
+          if (!f.bg) return { result: "incomplete", failureSummary: "background color not computable" };
           const lum = (r: number, g: number, b: number) => {
-            const f = (v: number) => {
+            const lf = (v: number) => {
               const s = v / 255;
               return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
             };
-            return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+            return 0.2126 * lf(r) + 0.7152 * lf(g) + 0.0722 * lf(b);
           };
-          const l1 = lum(fg[0], fg[1], fg[2]);
-          const l2 = lum(bg[0], bg[1], bg[2]);
+          const l1 = lum(f.fg[0], f.fg[1], f.fg[2]);
+          const l2 = lum(f.bg[0], f.bg[1], f.bg[2]);
           const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
-          const size = f.fontSize as number;
-          const weight = f.fontWeight as number;
-          const isLarge = size >= 24 || (size >= 18.66 && weight >= 700);
+          const isLarge = f.fontSize >= 24 || (f.fontSize >= 18.66 && f.fontWeight >= 700);
           const threshold = isLarge ? 3 : 4.5;
           if (ratio < threshold) {
             return { result: "fail", failureSummary: `contrast ratio ${ratio.toFixed(2)} is below ${threshold}:1` };
@@ -68,8 +66,8 @@ export const renderingRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "target-size",
     description: "Ensures interactive targets meet the 24x24 CSS pixel minimum",
     help: "Interactive targets must be at least 24x24 CSS pixels",
@@ -79,8 +77,6 @@ export const renderingRules: Rule[] = [
     matcher: "button, [role='button'], a[href], input:not([type='hidden']), select, textarea",
     extract: (el) => {
       const rect = el.getBoundingClientRect();
-      // WCAG 2.5.8 exempts targets in a sentence whose size is constrained by
-      // the line-height of surrounding text (inline text links).
       let inline = false;
       if (el.tagName === "A") {
         const parent = el.parentElement;
@@ -97,17 +93,15 @@ export const renderingRules: Rule[] = [
       {
         id: "target-size-minimum",
         evaluate: (f) => {
-          const w = f.width as number;
-          const h = f.height as number;
-          if (w === 0 || h === 0) return { result: "pass" };
+          if (f.width === 0 || f.height === 0) return { result: "pass" };
           if (f.inline) return { result: "pass" };
-          if (w >= 24 && h >= 24) return { result: "pass" };
-          return { result: "fail", failureSummary: `target is ${Math.round(w)}x${Math.round(h)}px (below 24x24)` };
+          if (f.width >= 24 && f.height >= 24) return { result: "pass" };
+          return { result: "fail", failureSummary: `target is ${Math.round(f.width)}x${Math.round(f.height)}px (below 24x24)` };
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "meta-refresh",
     description: "Ensures <meta http-equiv=refresh> does not auto-redirect or refresh too quickly",
     help: "Timed refresh must not be used",
@@ -120,8 +114,7 @@ export const renderingRules: Rule[] = [
       {
         id: "refresh-timing",
         evaluate: (f) => {
-          const content = f.content as string;
-          const parts = content.split(";");
+          const parts = f.content.split(";");
           const delay = parseFloat(parts[0]?.trim() || "0");
           const hasUrl = parts.some((p) => /url\s*=/i.test(p));
           if (hasUrl) return { result: "fail", failureSummary: "meta refresh redirects to another page" };
@@ -132,8 +125,8 @@ export const renderingRules: Rule[] = [
         },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "non-text-contrast",
     description: "Ensures UI component boundaries meet the 3:1 contrast minimum",
     help: "UI component borders and indicators must have 3:1 contrast",
@@ -143,7 +136,7 @@ export const renderingRules: Rule[] = [
     matcher: "input:not([type='hidden']), select, textarea, button",
     extract: (el) => {
       const cs = getComputedStyle(el);
-      const parse = (c: string): [number, number, number, number] | null => {
+      const parse = (c: string): Rgba | null => {
         const m = /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)/i.exec(c);
         if (!m) return null;
         return [parseFloat(m[1]!), parseFloat(m[2]!), parseFloat(m[3]!), m[4] !== undefined ? parseFloat(m[4]) : 1];
@@ -158,22 +151,19 @@ export const renderingRules: Rule[] = [
       {
         id: "boundary-contrast",
         evaluate: (f) => {
-          const borderStyle = f.borderStyle as string;
-          if (borderStyle === "none" || borderStyle === "hidden") return { result: "pass" };
-          if ((f.width as number) <= 0) return { result: "pass" };
-          const border = f.border as [number, number, number, number] | null;
-          const bg = f.bg as [number, number, number, number] | null;
-          if (!border || !bg) return { result: "incomplete", failureSummary: "border or background color not computable" };
-          if (bg[3] === 0) return { result: "incomplete", failureSummary: "transparent background — contrast undecidable" };
+          if (f.borderStyle === "none" || f.borderStyle === "hidden") return { result: "pass" };
+          if (f.width <= 0) return { result: "pass" };
+          if (!f.border || !f.bg) return { result: "incomplete", failureSummary: "border or background color not computable" };
+          if (f.bg[3] === 0) return { result: "incomplete", failureSummary: "transparent background — contrast undecidable" };
           const lum = (r: number, g: number, b: number) => {
-            const f2 = (v: number) => {
+            const lf = (v: number) => {
               const s = v / 255;
               return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
             };
-            return 0.2126 * f2(r) + 0.7152 * f2(g) + 0.0722 * f2(b);
+            return 0.2126 * lf(r) + 0.7152 * lf(g) + 0.0722 * lf(b);
           };
-          const l1 = lum(border[0], border[1], border[2]);
-          const l2 = lum(bg[0], bg[1], bg[2]);
+          const l1 = lum(f.border[0], f.border[1], f.border[2]);
+          const l2 = lum(f.bg[0], f.bg[1], f.bg[2]);
           const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
           if (ratio < 3) {
             return { result: "fail", failureSummary: `component boundary contrast ${ratio.toFixed(2)} is below 3:1` };
@@ -182,5 +172,5 @@ export const renderingRules: Rule[] = [
         },
       },
     ],
-  },
+  }),
 ];

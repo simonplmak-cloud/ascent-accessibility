@@ -10,6 +10,13 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
+      // Regression floor — fails CI if coverage drops below these.
+      thresholds: {
+        statements: 60,
+        branches: 45,
+        functions: 55,
+        lines: 60,
+      },
     },
   },
   resolve: {

@@ -1,11 +1,11 @@
-import type { Rule } from "../types";
+import { defineRule, type Rule } from "../types";
 
 // WCAG 2.2 additions that previously had no machine rule. All three are
 // conservative/presence-based: they pass on a clear signal or absence of the
 // trigger, and escalate to "incomplete" (→ Cannot tell / AI / human) rather than
 // guessing. 2.4.11 and 3.3.8 are Non-Interference SCs (WCAG 2.2 §5.2.5).
 export const wcag22Rules: Rule[] = [
-  {
+  defineRule({
     id: "focus-not-obscured",
     description: "Ensures keyboard focus is not entirely hidden by sticky or fixed overlays",
     help: "When a component receives keyboard focus it must not be entirely hidden by author-created content",
@@ -33,13 +33,13 @@ export const wcag22Rules: Rule[] = [
       {
         id: "no-obscuring-overlay",
         evaluate: (f) =>
-          (f.obscuring as number) === 0
+          f.obscuring === 0
             ? { result: "pass" }
             : { result: "incomplete", failureSummary: `${f.obscuring} fixed/sticky overlay(s) may obscure focus` },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "consistent-help",
     description: "Ensures a help mechanism is present on the page",
     help: "Help mechanisms must be provided in a consistent location across a set of pages",
@@ -61,8 +61,8 @@ export const wcag22Rules: Rule[] = [
             : { result: "incomplete", failureSummary: "no help/contact/support link found" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "accessible-authentication",
     description: "Ensures authentication does not rely on a cognitive function test alone",
     help: "Authentication must not require a cognitive function test without an alternative mechanism",
@@ -84,5 +84,5 @@ export const wcag22Rules: Rule[] = [
             : { result: "pass" },
       },
     ],
-  },
+  }),
 ];

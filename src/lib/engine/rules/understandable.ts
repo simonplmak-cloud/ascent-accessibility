@@ -1,7 +1,7 @@
-import type { Rule } from "../types";
+import { defineRule, type Rule } from "../types";
 
 export const understandableRules: Rule[] = [
-  {
+  defineRule({
     id: "html-has-lang",
     description: "Ensures every HTML document has a lang attribute",
     help: "<html> element must have a lang attribute",
@@ -14,13 +14,13 @@ export const understandableRules: Rule[] = [
       {
         id: "lang-present",
         evaluate: (f) =>
-          (f.lang as string)?.trim()
+          f.lang?.trim()
             ? { result: "pass" }
             : { result: "fail", failureSummary: "html element has no lang attribute" },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "html-lang-valid",
     description: "Ensures the lang attribute of the <html> element has a valid value",
     help: "<html> element must have a valid lang value",
@@ -33,13 +33,13 @@ export const understandableRules: Rule[] = [
       {
         id: "lang-valid",
         evaluate: (f) =>
-          /^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$/.test(f.lang as string)
+          /^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$/.test(f.lang)
             ? { result: "pass" }
             : { result: "fail", failureSummary: `invalid lang value: "${f.lang}"` },
       },
     ],
-  },
-  {
+  }),
+  defineRule({
     id: "label",
     description: "Ensures every form element has a label",
     help: "Form elements must have labels",
@@ -62,12 +62,12 @@ export const understandableRules: Rule[] = [
         evaluate: (f) => {
           if (f.hasFor) return { result: "pass" };
           if (f.inLabel) return { result: "pass" };
-          if ((f.aria as string)?.trim()) return { result: "pass" };
+          if (f.aria?.trim()) return { result: "pass" };
           if (f.labelledby) return { result: "pass" };
-          if ((f.title as string)?.trim()) return { result: "pass" };
+          if (f.title?.trim()) return { result: "pass" };
           return { result: "fail", failureSummary: "form element has no label" };
         },
       },
     ],
-  },
+  }),
 ];
