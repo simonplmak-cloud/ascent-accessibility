@@ -9,6 +9,7 @@ import { DEFAULT_AUDIO_MODEL, DEFAULT_VISION_MODEL, getProvider } from "@/lib/ai
 import { resolveOwnerAi } from "@/server/byok";
 import { logger } from "@/lib/observability/logger";
 import { createMetrics } from "@/lib/observability/metrics";
+import { initSentry, captureError } from "@/lib/observability/sentry";
 import { optimizeEvidenceImage } from "@/lib/evidence/optimize";
 import { renderAndStoreReportPdf } from "@/lib/export/render-report-pdf";
 import { runCleanup, computeStorageTotals } from "@/lib/retention/cleanup";
@@ -99,7 +100,7 @@ async function processQueued() {
             const modelReq = {
               providerId: owner.providerId,
               apiKey: owner.apiKey,
-              baseUrl: owner.baseUrl ?? undefined,
+              ...(owner.baseUrl != null ? { baseUrl: owner.baseUrl } : {}),
             };
             return {
               provider: owner.providerId,
@@ -117,11 +118,13 @@ async function processQueued() {
           await renderAndStoreReportPdf(assessment.id);
         } catch (error) {
           logger.warn({ err: error, assessmentId: assessment.id }, "pdf render failed — export falls back to on-demand");
+          captureError(error, { assessmentId: assessment.id, phase: "pdf" });
         }
         logger.info({ assessmentId: assessment.id }, "assessment completed");
       } catch (error) {
         failed = true;
         logger.error({ err: error, assessmentId: assessment.id }, "assessment failed");
+        captureError(error, { assessmentId: assessment.id, phase: "assessment" });
       } finally {
         metrics.recordScan(Date.now() - startedAt, failed);
       }
@@ -148,6 +151,9 @@ async function runCleanupSweep(): Promise<void> {
     failedScans24h: await assessmentRepository.countFailed24h(),
   });
 
+  const m = metrics.snapshot();
+  logger.info({ scans: m.scans, failures: m.failures, p50: m.p50, p95: m.p95, p99: m.p99 }, "scan latency percentiles");
+
   if (CLEANUP_DRY_RUN) {
     logger.info({ result, storageBytes: totalBytes }, "cleanup sweep (dry-run)");
   } else {
@@ -165,6 +171,7 @@ async function main() {
     "assessment worker started",
   );
   void warmBrowserPool();
+  initSentry();
 
   let lastCleanup = 0;
   for (;;) {
@@ -178,6 +185,7 @@ async function main() {
       }
     } catch (error) {
       logger.error({ err: error }, "worker poll iteration failed");
+      captureError(error, { phase: "poll" });
     }
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }
@@ -185,5 +193,6 @@ async function main() {
 
 main().catch((error) => {
   logger.error({ err: error }, "worker crashed");
+  captureError(error, { phase: "startup" });
   process.exit(1);
 });

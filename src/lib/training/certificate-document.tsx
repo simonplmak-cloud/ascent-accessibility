@@ -101,5 +101,7 @@ export function CertificateDocument({
 }
 
 export async function renderCertificatePdf(credential: Credential, locale?: string): Promise<Buffer> {
-  return renderToBuffer(<CertificateDocument credential={credential} locale={locale} />);
+  return renderToBuffer(
+    <CertificateDocument credential={credential} {...(locale !== undefined ? { locale } : {})} />,
+  );
 }

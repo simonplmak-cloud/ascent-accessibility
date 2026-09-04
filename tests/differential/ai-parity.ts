@@ -158,7 +158,7 @@ export async function runAiParityEval(opts: {
       model: opts.model,
       image: img.image,
       unresolvedScs: img.labels.map((l) => l.sc),
-      getConfig: opts.getConfig,
+      ...(opts.getConfig !== undefined ? { getConfig: opts.getConfig } : {}),
     });
     const bySc = new Map<string, AiReview>();
     for (const r of triage.reviews) bySc.set(r.sc, r);

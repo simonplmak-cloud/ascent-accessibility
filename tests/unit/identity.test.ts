@@ -47,7 +47,7 @@ describe("linkOrCreateOAuth", () => {
   it("normalizes the email (trim + lowercase) before the lookup", async () => {
     const calls: Array<{ statement: string; bindings?: Record<string, unknown> }> = [];
     queryMock.mockImplementation(async (statement: string, bindings?: Record<string, unknown>) => {
-      calls.push({ statement, bindings });
+      calls.push({ statement, ...(bindings !== undefined ? { bindings } : {}) });
       if (statement.includes("user_oauth_link WHERE")) return [];
       if (statement.includes("user_email WHERE email")) return [{ user: "user:2", verified: true }];
       return [];

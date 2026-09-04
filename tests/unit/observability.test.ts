@@ -3,7 +3,7 @@ import { createMetrics } from "@/lib/observability/metrics";
 import { logger, withCorrelationId } from "@/lib/observability/logger";
 
 describe("createMetrics (AC-15)", () => {
-  it("tracks scan counts, failures, and total duration", () => {
+  it("tracks scan counts, failures, total duration, and latency percentiles", () => {
     const metrics = createMetrics();
     metrics.recordScan(120, false);
     metrics.recordScan(300, true);
@@ -12,6 +12,9 @@ describe("createMetrics (AC-15)", () => {
       scans: 3,
       failures: 1,
       totalDurationMs: 500,
+      p50: 120,
+      p95: 300,
+      p99: 300,
     });
   });
 
@@ -20,6 +23,9 @@ describe("createMetrics (AC-15)", () => {
       scans: 0,
       failures: 0,
       totalDurationMs: 0,
+      p50: null,
+      p95: null,
+      p99: null,
     });
   });
 });

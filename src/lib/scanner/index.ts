@@ -133,7 +133,7 @@ function mapNode(node: RawNode): ScanNode {
 }
 
 export function mapRuleSummary(rule: RawRule): RuleSummary {
-  return { id: rule.id, tags: rule.tags ?? [], wcagSc: rule.wcagSc, nodes: (rule.nodes ?? []).map(mapNode) };
+  return { id: rule.id, tags: rule.tags ?? [], wcagSc: rule.wcagSc ?? [], nodes: (rule.nodes ?? []).map(mapNode) };
 }
 
 export function mapViolations(raw: RawScanResult): ScanViolation[] {
@@ -144,7 +144,7 @@ export function mapViolations(raw: RawScanResult): ScanViolation[] {
     help: violation.help ?? "",
     helpUrl: violation.helpUrl ?? "",
     tags: violation.tags ?? [],
-    wcagSc: violation.wcagSc,
+    wcagSc: violation.wcagSc ?? [],
     nodes: (violation.nodes ?? []).map(mapNode),
     nodeCount: violation.nodes?.length ?? 0,
   }));

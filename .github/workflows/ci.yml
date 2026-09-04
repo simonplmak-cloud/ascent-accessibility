@@ -32,3 +32,13 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Dependency audit (critical only)
+        run: pnpm audit --audit-level=critical
+
+      - name: Secret scan (common patterns)
+        run: |
+          if git grep -nE "(AKIA[0-9A-Z]{16}|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|sk_live_[0-9a-zA-Z]{16,})" -- . ':!pnpm-lock.yaml'; then
+            echo "::error::secret-like pattern detected in tracked files" && exit 1
+          fi
+          echo "no secret-like patterns found"
