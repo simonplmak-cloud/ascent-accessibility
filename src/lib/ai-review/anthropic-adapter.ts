@@ -6,7 +6,7 @@ export interface AnthropicOptions {
   apiKey: string;
   baseUrl: string;
   model: string;
-  fetchFn?: typeof fetch;
+  fetchFn?: typeof fetch | undefined;
 }
 
 // Anthropic Messages API (vision). No audio input, so no AudioModel here.

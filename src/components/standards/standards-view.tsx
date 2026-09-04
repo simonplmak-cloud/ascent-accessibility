@@ -13,7 +13,7 @@ export interface StandardSc {
   level: string;
   specUrl: string;
   understandingUrl: string;
-  helps?: string;
+  helps?: string | undefined;
 }
 
 export interface GuidelineGroup {
@@ -121,7 +121,7 @@ export function StandardsView({
   defaultId,
 }: {
   standards: StandardTree[];
-  defaultId?: string;
+  defaultId?: string | undefined;
 }) {
   const t = useTranslations("standards");
   const locale = useLocale();

@@ -8,7 +8,7 @@ export async function AiReviewNote({
   providerLabel,
 }: {
   hasAiKey: boolean;
-  providerLabel?: string;
+  providerLabel?: string | undefined;
 }) {
   const t = await getTranslations("assessPage");
   return (

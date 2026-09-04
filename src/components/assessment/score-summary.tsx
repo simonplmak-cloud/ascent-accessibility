@@ -9,7 +9,7 @@ export function ScoreSummary({
   conformance,
   findings,
 }: {
-  conformance?: Conformance;
+  conformance?: Conformance | undefined;
   findings: Finding[];
 }) {
   const t = useTranslations("report");

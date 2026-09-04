@@ -14,7 +14,7 @@ export type ToolImpl = (args: Record<string, unknown>) => unknown;
 // In-page implementations. Serialized by Playwright's page.evaluate.
 export const AI_TOOL_IMPL: Record<string, ToolImpl> = {
   get_a11y_tree: () => {
-    const out: { role: string; name: string; level?: number }[] = [];
+    const out: { role: string; name: string; level?: number | undefined }[] = [];
     for (const el of Array.from(document.querySelectorAll<HTMLElement>("*"))) {
       const tag = el.tagName.toLowerCase();
       const implicit =

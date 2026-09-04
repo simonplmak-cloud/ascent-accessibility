@@ -5,7 +5,7 @@ export interface GoogleIdentity {
   sub: string;
   email: string;
   emailVerified: boolean;
-  name?: string;
+  name?: string | undefined;
 }
 
 const GOOGLE_JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs";

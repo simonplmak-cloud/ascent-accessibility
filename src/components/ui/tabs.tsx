@@ -16,7 +16,7 @@ export function Tabs({
   children,
 }: {
   tabs: Tab[];
-  defaultId?: string;
+  defaultId?: string | undefined;
   label: string;
   children: (activeId: string) => ReactNode;
 }) {

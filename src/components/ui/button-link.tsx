@@ -1,6 +1,16 @@
 import Link from "next/link";
 import type { AnchorHTMLAttributes } from "react";
 
+// exactOptionalPropertyTypes: React's AnchorHTMLAttributes optional handlers are
+// `T` (not `T | undefined`), while rest-spreading produces `T | undefined`.
+// next/link's LinkProps rejects that, so we cast to a non-nullable view — the
+// runtime spread is correct (React omits undefined handlers).
+type SpreadProps = {
+  [K in keyof AnchorHTMLAttributes<HTMLAnchorElement>]: NonNullable<
+    AnchorHTMLAttributes<HTMLAnchorElement>[K]
+  >;
+};
+
 const styles = {
   primary:
     "rounded bg-terminal-fg font-sans text-sm font-medium text-terminal-bg hover:bg-terminal-serious",
@@ -28,7 +38,14 @@ export function ButtonLink({
   size?: keyof typeof sizes;
 }) {
   return (
-    <Link href={href} className={`${styles[variant]} ${sizes[size]} ${className}`} {...props}>
+    <Link
+      href={href}
+      className={`${styles[variant]} ${sizes[size]} ${className}`}
+      // React's AnchorHTMLAttributes optional handlers are `T`, not `T | undefined`;
+      // rest-spreading them into next/link under exactOptionalPropertyTypes is a
+      // known type friction (runtime is correct — undefined handlers are ignored).
+      {...(props as unknown as Omit<SpreadProps, "href">)}
+    >
       {children}
     </Link>
   );

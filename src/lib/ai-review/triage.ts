@@ -84,12 +84,12 @@ export interface TriageInput {
   model: VisionModel;
   image: Buffer;
   unresolvedScs: string[];
-  incompleteContext?: string[];
-  threshold?: number;
-  getConfig?: GetConfig;
-  locale?: string;
-  pageLanguages?: string[];
-  tools?: VisionReviewTools;
+  incompleteContext?: string[] | undefined;
+  threshold?: number | undefined;
+  getConfig?: GetConfig | undefined;
+  locale?: string | undefined;
+  pageLanguages?: string[] | undefined;
+  tools?: VisionReviewTools | undefined;
 }
 
 export interface TriageOutput {

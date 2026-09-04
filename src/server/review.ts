@@ -14,8 +14,8 @@ interface ConformanceRowInput {
 }
 
 export interface ResolutionInput {
-  verdict?: string;
-  note?: string;
+  verdict?: string | undefined;
+  note?: string | undefined;
 }
 
 export type ResolveResult =

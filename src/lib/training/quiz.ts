@@ -7,7 +7,7 @@ export interface QuestionResult {
   correct: boolean;
   correctIndex: number;
   explanation: string;
-  sc?: string;
+  sc?: string | undefined;
 }
 
 export interface CheckResult {

@@ -10,14 +10,14 @@ export interface ScAiConfig {
   whatToLookFor: string[];
   passRequires: string[];
   failRequires: string[];
-  examples?: { pass?: string; fail?: string };
+  examples?: { pass?: string | undefined; fail?: string | undefined } | undefined;
   ruleId: string;
   description: string;
   recommendation: string;
   help: string;
   source: string;
   notes: string;
-  settings?: AiSettings;
+  settings?: AiSettings | undefined;
   enabled: boolean;
 }
 

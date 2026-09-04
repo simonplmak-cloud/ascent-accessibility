@@ -44,7 +44,7 @@ export interface OAuthIdentity {
   provider: string; // "github" | "microsoft" | ...
   subject: string; // provider-specific user id
   email: string;
-  name?: string;
+  name?: string | undefined;
   verified: boolean;
 }
 

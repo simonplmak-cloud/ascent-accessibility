@@ -22,8 +22,8 @@ export function ReviewMethods({
   conformance,
   ai,
 }: {
-  conformance?: Conformance;
-  ai?: ComparisonData["ai"];
+  conformance?: Conformance | undefined;
+  ai?: ComparisonData["ai"] | undefined;
 }) {
   const t = useTranslations("report");
   const locale = useLocale();

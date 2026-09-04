@@ -8,7 +8,7 @@ export interface GeminiOptions {
   apiKey: string;
   baseUrl: string;
   model: string;
-  fetchFn?: typeof fetch;
+  fetchFn?: typeof fetch | undefined;
 }
 
 async function generateContent(

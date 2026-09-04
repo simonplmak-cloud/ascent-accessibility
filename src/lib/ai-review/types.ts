@@ -25,8 +25,8 @@ export interface VisionModel {
   review(input: {
     image: Buffer;
     prompt: string;
-    system?: string;
-    settings?: AiSettings;
-    tools?: VisionReviewTools;
+    system?: string | undefined;
+    settings?: AiSettings | undefined;
+    tools?: VisionReviewTools | undefined;
   }): Promise<AiReview[]>;
 }

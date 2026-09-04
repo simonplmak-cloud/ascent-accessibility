@@ -37,9 +37,9 @@ export interface AssessmentRecord {
 }
 
 export interface ComparisonData {
-  audit?: SiteAuditReport;
+  audit?: SiteAuditReport | undefined;
   conformance: ConformanceResult;
-  ai?: { provider: string; model: string; verdicts: AiReview[]; budget: AiBudget };
+  ai?: { provider: string; model: string; verdicts: AiReview[]; budget: AiBudget } | undefined;
 }
 
 export interface AssessmentRepositoryPort {

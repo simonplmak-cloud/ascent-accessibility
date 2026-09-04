@@ -9,9 +9,9 @@ export interface SuggestFixFindingInput {
   ruleId: string;
   description: string;
   recommendation: string;
-  sc?: string;
-  html?: string;
-  target?: string;
+  sc?: string | undefined;
+  html?: string | undefined;
+  target?: string | undefined;
 }
 
 // A8: supervised AI fix suggestion. The button asks for a suggestion; the result is

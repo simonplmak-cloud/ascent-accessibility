@@ -104,7 +104,7 @@ export interface AssessmentResult {
   pagesScanned: number;
   log: LogEntry[];
   findings: Finding[];
-  comparison?: ComparisonData;
+  comparison?: ComparisonData | undefined;
 }
 
 export interface StandardOption {

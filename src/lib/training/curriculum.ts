@@ -36,9 +36,9 @@ export interface Lesson {
   id: string;
   title: string;
   type: "concept" | "sc-reference";
-  body?: string;
-  scs?: string[];
-  references?: LessonReference[];
+  body?: string | undefined;
+  scs?: string[] | undefined;
+  references?: LessonReference[] | undefined;
 }
 
 export interface Module {

@@ -65,7 +65,7 @@ export interface OAuthIdentity {
   provider: string; // "google" | "github" | "microsoft"
   subject: string; // provider-stable subject (sub, numeric id, tid+oid)
   email: string;
-  name?: string;
+  name?: string | undefined;
   verified: boolean; // true when the provider confirmed email ownership
 }
 

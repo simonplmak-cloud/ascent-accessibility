@@ -6,18 +6,18 @@ export interface SiteAuditItem {
 }
 
 export interface SiteSignals {
-  accessibility?: number;
-  performance?: number;
-  seo?: number;
-  bestPractices?: number;
-  pwa?: number;
+  accessibility: number | undefined;
+  performance: number | undefined;
+  seo: number | undefined;
+  bestPractices: number | undefined;
+  pwa: number | undefined;
 }
 
 export interface SiteAuditReport {
   score: number;
   failedAudits: Array<{ id: string; weight: number }>;
   signals: SiteSignals;
-  auditVersion?: string;
+  auditVersion?: string | undefined;
 }
 
 interface AuditResponse {

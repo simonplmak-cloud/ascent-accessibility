@@ -138,7 +138,7 @@ export function KeyboardProvider({ children }: { children: ReactNode }) {
         id: d.id,
         label: t(d.labelKey),
         keywords: d.keywords,
-        shortcut: d.shortcut,
+        ...(d.shortcut !== undefined ? { shortcut: d.shortcut } : {}),
         group: d.group,
         run: d.run,
       })),

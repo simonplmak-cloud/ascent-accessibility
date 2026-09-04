@@ -9,7 +9,7 @@ export interface OpenAiClientOptions {
   apiKey: string;
   baseUrl: string;
   model: string;
-  fetchFn?: typeof fetch;
+  fetchFn?: typeof fetch | undefined;
 }
 
 interface ToolCall {

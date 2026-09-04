@@ -1,6 +1,6 @@
 import { assessmentRepository, evidenceRepository } from "@/db/repository";
 import type { Assessment, ScannedPage } from "@/db/schema";
-import type { ReportData } from "./types";
+import type { ReportData, ReportComparison } from "./types";
 
 function parseJson<T>(raw: string | null | undefined, fallback: T): T {
   if (!raw) return fallback;
@@ -26,7 +26,7 @@ export async function loadReportData(id: string): Promise<LoadedReport> {
   if (!assessment) throw new Error("NOT_FOUND");
 
   const findings = await assessmentRepository.findFindings(id);
-  const comparison = await assessmentRepository.findComparison(id);
+  const comparison = await assessmentRepository.findComparison<ReportComparison>(id);
   const log = await assessmentRepository.readLog(id);
   const pages = parseJson<ScannedPage[]>(assessment.pages, []);
   const sitemapUrls = parseJson<string[]>(assessment.sitemapUrls, []);

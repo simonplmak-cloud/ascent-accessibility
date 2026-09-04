@@ -15,9 +15,9 @@ export interface SuggestFixFinding {
   ruleId: string;
   description: string;
   recommendation: string;
-  sc?: string;
-  html?: string;
-  target?: string;
+  sc?: string | undefined;
+  html?: string | undefined;
+  target?: string | undefined;
 }
 
 const SYSTEM = [

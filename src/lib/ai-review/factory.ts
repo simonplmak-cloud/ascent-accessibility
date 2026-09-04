@@ -10,7 +10,7 @@ export interface ModelRequest {
   apiKey: string;
   baseUrl?: string;
   model: string;
-  fetchFn?: typeof fetch;
+  fetchFn?: typeof fetch | undefined;
 }
 
 function resolveProvider(req: ModelRequest): { provider: AiProvider; baseUrl: string } {

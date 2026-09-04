@@ -33,10 +33,10 @@ export interface ReportData {
   reviewStatus?: string | null;
   snapshotAt?: string | null;
   generatedAt?: string;
-  locale?: string;
+  locale?: string | undefined;
   detectedLanguages?: string[];
   findings: ReportFinding[];
-  comparison?: ReportComparison;
+  comparison?: ReportComparison | undefined;
   log?: LogEntry[];
   pages?: ScannedPage[];
   sitemapUrls?: string[];

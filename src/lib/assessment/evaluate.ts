@@ -24,16 +24,16 @@ export interface EvaluateInput {
 }
 
 export interface EvaluateDeps {
-  visionModel?: VisionModel;
-  audioModel?: AudioModel;
-  aiScreenshot?: Buffer | null;
-  incompleteContext?: string[];
-  mediaUrls?: string[];
-  threshold?: number;
-  getConfig?: GetConfig;
-  locale?: string;
-  pageLanguages?: string[];
-  tools?: VisionReviewTools;
+  visionModel?: VisionModel | undefined;
+  audioModel?: AudioModel | undefined;
+  aiScreenshot?: Buffer | null | undefined;
+  incompleteContext?: string[] | undefined;
+  mediaUrls?: string[] | undefined;
+  threshold?: number | undefined;
+  getConfig?: GetConfig | undefined;
+  locale?: string | undefined;
+  pageLanguages?: string[] | undefined;
+  tools?: VisionReviewTools | undefined;
 }
 
 export interface EvaluateOutput {
