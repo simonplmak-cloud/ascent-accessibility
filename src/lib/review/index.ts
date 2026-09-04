@@ -9,6 +9,8 @@ export interface ReviewClaim {
   reviewerId: string;
   reviewerName: string;
   organization: string;
+  email?: string;
+  evaluationMethods?: string[];
   claimedAt: string;
 }
 

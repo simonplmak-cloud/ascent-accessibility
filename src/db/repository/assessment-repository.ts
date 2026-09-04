@@ -326,7 +326,14 @@ export const assessmentRepository = {
 
   async claimReview(
     id: string,
-    claim: { reviewerId: string; reviewerName: string; organization: string; claimedAt: string },
+    claim: {
+      reviewerId: string;
+      reviewerName: string;
+      organization: string;
+      email?: string;
+      evaluationMethods?: string[];
+      claimedAt: string;
+    },
   ): Promise<boolean> {
     const rows = await query<Record<string, unknown>>(
       "UPDATE assessment SET reviewStatus = 'in-review', reviewClaim = $claim, updatedAt = time::now() WHERE id = type::record($id) AND (reviewStatus = 'requested' OR reviewStatus IS NONE) RETURN AFTER",

@@ -18,20 +18,33 @@ export async function POST(
   const user = await getSessionUser();
   const body = (await req.json().catch(() => ({}))) as {
     organization?: unknown;
+    evaluationMethods?: unknown;
   };
   const organization = typeof body.organization === "string" ? body.organization : "";
+  const evaluationMethods = Array.isArray(body.evaluationMethods)
+    ? body.evaluationMethods.filter((m): m is string => typeof m === "string")
+    : [];
   const claimedAt = new Date().toISOString();
 
   const ok = await assessmentRepository.claimReview(id, {
     reviewerId: user?.id ?? "",
     reviewerName: user?.name ?? user?.email ?? "",
     organization,
+    email: user?.email ?? "",
+    evaluationMethods,
     claimedAt,
   });
   if (!ok) {
     return NextResponse.json({ code: "ALREADY_CLAIMED" }, { status: 409 });
   }
   return NextResponse.json({
-    reviewClaim: { reviewerId: user?.id, reviewerName: user?.name, organization, claimedAt },
+    reviewClaim: {
+      reviewerId: user?.id,
+      reviewerName: user?.name,
+      organization,
+      email: user?.email,
+      evaluationMethods,
+      claimedAt,
+    },
   });
 }

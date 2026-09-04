@@ -16,7 +16,7 @@ import { getManualTest } from "@/lib/standards/sc-manual-tests";
 import { principleName, scTitle } from "@/lib/standards/wcag-sc";
 import { impactLabel, outcomeLabel, verdictLabel } from "@/lib/site/labels";
 import { buildReportSummary } from "@/lib/report/report-summary";
-import { vpatLevelOf, testedByOf, type VpatLevel, type TestedBy } from "./acr";
+import { vpatLevelOf, testedByOf, vpatLabelKey, acrRemarks, acrIdentity, type TestedBy } from "./acr";
 import type { ReportStrings } from "./i18n";
 import {
   affectedSuccessCriteria,
@@ -30,14 +30,6 @@ import {
   type SeverityCounts,
 } from "./report-data";
 import type { ReportData } from "./types";
-
-const VPAT_LABEL_KEY: Record<VpatLevel, string> = {
-  supports: "supports",
-  "does-not-support": "doesNotSupport",
-  "not-applicable": "notApplicable",
-  "needs-human-review": "needsHumanReview",
-  "not-evaluated": "notEvaluated",
-};
 
 const TESTED_BY_KEY: Record<TestedBy, string> = {
   machine: "machine",
@@ -200,6 +192,15 @@ export function AccessibilityReportDocument({
   const aiRes = aiResults(comparison?.ai?.verdicts ?? []);
   const human = humanReviewPending(methodRows);
 
+  const reviewed = report.reviewStatus === "reviewed";
+  const reviewResults = report.reviewResults ?? {};
+  const claim = report.conformanceClaim;
+  const identity = acrIdentity(report.reviewClaim, reviewed);
+  const productName = hostOf(report.url);
+  const auditVersion = comparison?.audit?.auditVersion;
+  const resolvedHuman = human.rows.filter((r) => reviewResults[r.num]);
+
+
   const pages = report.pages ?? [];
   const sitemapUrls = report.sitemapUrls ?? [];
   const findingsByPage = new Map<string, typeof report.findings>();
@@ -219,6 +220,9 @@ export function AccessibilityReportDocument({
     { href: "#findings", label: t("sectionFindings") },
     { href: "#recommendations", label: t("sectionRecommendations") },
     ...(comparison ? [{ href: "#comparison", label: t("sectionComparison") }] : []),
+    ...(reviewed ? [{ href: "#review", label: t("conformanceClaimHeading") }] : []),
+    { href: "#glossary", label: t("glossaryHeading") },
+    { href: "#limitations", label: t("limitationsHeading") },
     { href: "#log", label: t("scanLog") },
     ...(conformance?.rows?.length ? [{ href: "#acr", label: tAcr("title") }] : []),
   ];
@@ -285,6 +289,10 @@ export function AccessibilityReportDocument({
               minor: counts.minor,
             })}
           </Text>
+          <Text style={[styles.muted, { marginTop: 4 }]}>
+            {t("validAsAt", { date: generatedDate(report.snapshotAt ?? report.generatedAt) })} ·{" "}
+            {reviewed ? t("retestReviewed", { date: generatedDate(report.reviewedAt ?? claim?.signedAt) }) : t("retestPending")}
+          </Text>
           {top.length ? (
             <View style={{ marginTop: 8 }}>
               <Text style={styles.h3}>{t("topIssuesHeading")}</Text>
@@ -302,12 +310,19 @@ export function AccessibilityReportDocument({
         <View id="methodology" style={styles.section}>
           <Text style={styles.h2}>{t("sectionMethodology")}</Text>
           <Text>{t("engineLine")}</Text>
+          {auditVersion ? (
+            <Text style={{ marginTop: 4 }}>{t("engineVersionLine", { version: auditVersion })}</Text>
+          ) : null}
           <Text style={{ marginTop: 4 }}>{t("renderedLine")}</Text>
+          <Text style={{ marginTop: 4 }}>{t("environmentLine")}</Text>
+          <Text style={{ marginTop: 4 }}>{t("noAssistiveTechLine")}</Text>
           <Text style={{ marginTop: 4 }}>{t("findingsChainLine")}</Text>
           <Text style={{ marginTop: 4 }}>{t("reproducibleLine")}</Text>
           <Text style={{ marginTop: 4 }}>
             {t("preliminaryNote")}
           </Text>
+          <Text style={styles.h3}>{t("samplingHeading")}</Text>
+          <Text>{t("samplingBody")}</Text>
         </View>
 
         <View id="conformance" style={styles.section}>
@@ -324,6 +339,7 @@ export function AccessibilityReportDocument({
                   level: conformance.levelAttained,
                 })}
               </Text>
+              <Text style={[styles.muted, { marginTop: 4 }]}>{t("conformanceNotScore")}</Text>
               <View style={{ marginTop: 8 }}>
                 <ConformanceBar c={conformance} />
               </View>
@@ -463,9 +479,62 @@ export function AccessibilityReportDocument({
           </View>
         ) : null}
 
+        {reviewed ? (
+          <View id="review" style={styles.section}>
+            <Text style={styles.h2}>{t("conformanceClaimHeading")}</Text>
+            {claim ? (
+              <View>
+                <Text>
+                  {t("conformanceClaimOutcome", {
+                    outcome: outcomeLabel(claim.outcome, locale),
+                    met: claim.scsMet,
+                    applicable: claim.scsApplicable,
+                  })}
+                </Text>
+                <Row label={t("reviewerLabel")}>{[claim.reviewer, claim.organization].filter(Boolean).join(" — ")}</Row>
+                <Row label={t("asAtLabel")}>{generatedDate(claim.asAt)}</Row>
+                <Row label={t("signedAtLabel")}>{generatedDate(claim.signedAt)}</Row>
+              </View>
+            ) : null}
+            {resolvedHuman.length > 0 ? (
+              <View style={{ marginTop: 10 }}>
+                <Text style={styles.h3}>{t("reviewedResultsHeading")}</Text>
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>{t("thSc")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.6 }]}>{t("thTitle")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>{t("reviewedVerdict")}</Text>
+                  <Text style={[styles.tableCell, styles.tableHead, { flex: 1.8 }]}>{t("reviewedNote")}</Text>
+                </View>
+                {resolvedHuman.map((row) => {
+                  const r = reviewResults[row.num];
+                  return (
+                    <View key={row.num} style={styles.tableRow}>
+                      <Text style={[styles.tableCell, { flex: 0.8 }]}>{row.num}</Text>
+                      <Text style={[styles.tableCell, { flex: 1.6 }]}>{scTitle(row.num, locale)}</Text>
+                      <Text style={[styles.tableCell, { flex: 1 }]}>{verdictLabel(r?.verdict ?? "Passed", locale)}</Text>
+                      <Text style={[styles.tableCell, { flex: 1.8 }]}>
+                        {r?.note ? `${r.note} · ${r.reviewedBy}` : (r?.reviewedBy ?? "")}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
         <View id="severity" style={styles.section}>
           <Text style={styles.h2}>{t("sectionSeverity")}</Text>
           <SeverityBars counts={counts} locale={locale} />
+          <Text style={styles.h3}>{t("severityLegendHeading")}</Text>
+          {SEVERITY_ORDER.map((sev) => (
+            <Text key={sev} style={{ marginTop: 2 }}>
+              <Text style={{ color: severityColor(sev), fontWeight: 700 }}>{impactLabel(sev, locale)}</Text>
+              {" — "}
+              {t(`severity_${sev}`)}
+            </Text>
+          ))}
+          <Text style={[styles.muted, { marginTop: 4 }]}>{t("severityPrioritizationNote")}</Text>
         </View>
 
         <View id="pages" style={styles.section}>
@@ -584,6 +653,19 @@ export function AccessibilityReportDocument({
           </View>
         ) : null}
 
+        <View id="glossary" style={styles.section}>
+          <Text style={styles.h2}>{t("glossaryHeading")}</Text>
+          <Text>{t("glossaryPassed")}</Text>
+          <Text>{t("glossaryFailed")}</Text>
+          <Text>{t("glossaryCannotTell")}</Text>
+          <Text>{t("glossaryNotPresent")}</Text>
+        </View>
+
+        <View id="limitations" style={styles.section}>
+          <Text style={styles.h2}>{t("limitationsHeading")}</Text>
+          <Text>{t("limitationsBody")}</Text>
+        </View>
+
         {report.log && report.log.length > 0 ? (
           <View id="log" style={styles.section}>
             <Text style={styles.h2}>{t("scanLog")}</Text>
@@ -599,12 +681,26 @@ export function AccessibilityReportDocument({
         {conformance?.rows?.length ? (
           <View id="acr" style={styles.section}>
             <Text style={styles.h2}>{tAcr("title")}</Text>
-            <Text style={{ color: "#8a3b00", fontWeight: 700 }}>{tAcr("draft")}</Text>
+            {reviewed && claim ? (
+              <Text style={{ color: "#1a7f37", fontWeight: 700 }}>
+                {tAcr("signedBanner", { evaluator: [claim.reviewer, claim.organization].filter(Boolean).join(" — ") })}
+              </Text>
+            ) : (
+              <Text style={{ color: "#8a3b00", fontWeight: 700 }}>{tAcr("draft")}</Text>
+            )}
 
             <Text style={styles.h3}>{tAcr("summaryHeading")}</Text>
             <Row label={tAcr("productUrl")}>{report.url}</Row>
+            <Row label={tAcr("productName")}>{productName}</Row>
+            <Row label={tAcr("productVersion")}>{tAcr("websiteVersion", { date: generatedDate(report.snapshotAt ?? report.generatedAt) })}</Row>
             <Row label={tAcr("standard")}>{report.standard}</Row>
             <Row label={tAcr("reportDate")}>{generatedDate(report.generatedAt)}</Row>
+            <Row label={tAcr("evaluator")}>
+              {identity.reviewerName
+                ? [identity.reviewerName, identity.organization].filter(Boolean).join(" — ")
+                : tAcr("automatedEvaluator")}
+            </Row>
+            <Row label={tAcr("contact")}>{identity.email || BRANDING.email}</Row>
             <Row label={tAcr("coverage")}>
               {tAcr("coverageBody", {
                 resolved: conformance.passed + conformance.failed,
@@ -612,26 +708,55 @@ export function AccessibilityReportDocument({
                 cannotTell: conformance.cannotTell,
               })}
             </Row>
-            <Row label={tAcr("evaluationMethod")}>{tAcr("evaluationMethodBody")}</Row>
+            <Row label={tAcr("evaluationMethod")}>
+              {(report.reviewClaim?.evaluationMethods ?? [
+                tAcr("evaluationMethodBody"),
+                tAcr("noAssistiveTech"),
+              ]).join(" · ")}
+            </Row>
+            {report.partial ? (
+              <Row label={tAcr("notes")}>{tAcr("crawlLimitNote")}</Row>
+            ) : null}
+
+            {reviewed && claim ? (
+              <View style={{ marginTop: 10 }}>
+                <Text style={styles.h3}>{tAcr("conformanceClaim")}</Text>
+                <Row label={tAcr("reviewer")}>{[claim.reviewer, claim.organization].filter(Boolean).join(" — ")}</Row>
+                <Row label={tAcr("signedAt")}>{generatedDate(claim.signedAt)}</Row>
+                <Row label={tAcr("asAt")}>{generatedDate(claim.asAt)}</Row>
+              </View>
+            ) : null}
 
             <Text style={styles.h3}>{tAcr("resultsHeading")}</Text>
             <Text style={styles.muted}>{tAcr("conformanceNote")}</Text>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, styles.tableHead, { flex: 0.8 }]}>{tAcr("thSc")}</Text>
-              <Text style={[styles.tableCell, styles.tableHead, { flex: 1.8 }]}>{tAcr("thCriterion")}</Text>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 1.6 }]}>{tAcr("thCriterion")}</Text>
               <Text style={[styles.tableCell, styles.tableHead, { flex: 0.6 }]}>{tAcr("thLevel")}</Text>
-              <Text style={[styles.tableCell, styles.tableHead, { flex: 1.2 }]}>{tAcr("thConformance")}</Text>
-              <Text style={[styles.tableCell, styles.tableHead, { flex: 1 }]}>{tAcr("thTestedBy")}</Text>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 1.1 }]}>{tAcr("thConformance")}</Text>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 1.8 }]}>{tAcr("thRemarks")}</Text>
+              <Text style={[styles.tableCell, styles.tableHead, { flex: 0.9 }]}>{tAcr("thTestedBy")}</Text>
             </View>
-            {conformance.rows.map((row) => (
-              <View key={row.num} style={styles.tableRow}>
-                <Text style={[styles.tableCell, { flex: 0.8 }]}>{row.num}</Text>
-                <Text style={[styles.tableCell, { flex: 1.8 }]}>{scTitle(row.num, locale)}</Text>
-                <Text style={[styles.tableCell, { flex: 0.6 }]}>{row.level}</Text>
-                <Text style={[styles.tableCell, { flex: 1.2 }]}>{tAcr(VPAT_LABEL_KEY[vpatLevelOf(row)])}</Text>
-                <Text style={[styles.tableCell, { flex: 1 }]}>{tAcr(TESTED_BY_KEY[testedByOf(row)])}</Text>
-              </View>
-            ))}
+            {conformance.rows.map((row) => {
+              const reviewResult = reviewResults[row.num];
+              const remarks = acrRemarks({
+                num: row.num,
+                result: row.result,
+                findings: report.findings,
+                reviewResult,
+                t: tAcr,
+              });
+              return (
+                <View key={row.num} style={styles.tableRow}>
+                  <Text style={[styles.tableCell, { flex: 0.8 }]}>{row.num}</Text>
+                  <Text style={[styles.tableCell, { flex: 1.6 }]}>{scTitle(row.num, locale)}</Text>
+                  <Text style={[styles.tableCell, { flex: 0.6 }]}>{row.level}</Text>
+                  <Text style={[styles.tableCell, { flex: 1.1 }]}>{tAcr(vpatLabelKey(vpatLevelOf(row, reviewResult)))}</Text>
+                  <Text style={[styles.tableCell, { flex: 1.8 }]}>{remarks}</Text>
+                  <Text style={[styles.tableCell, { flex: 0.9 }]}>{tAcr(TESTED_BY_KEY[testedByOf(row)])}</Text>
+                </View>
+              );
+            })}
             <Text style={[styles.muted, { marginTop: 4 }]}>{tAcr("generatedBy")}</Text>
           </View>
         ) : null}
@@ -656,6 +781,14 @@ export function AccessibilityReportDocument({
       </Page>
     </Document>
   );
+}
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
 }
 
 function groupConformanceRows(
@@ -724,14 +857,29 @@ function FindingBlock({
           {t("detectedBy")} {[...new Set(finding.sources.map((s) => s.tool))].map((x) => x.toUpperCase()).join(", ")}
         </Text>
       ) : null}
+      {finding.confidence ? (
+        <Text style={[styles.muted, { marginTop: 2 }]}>
+          {t("confidenceLabel")}:{" "}
+          {finding.confidence === "confirmed" ? t("confidenceConfirmed") : t("confidenceSingleSource")}
+        </Text>
+      ) : null}
       {instances.map((instance, i) => {
         const img = instance.evidenceId ? report.evidenceImages?.[instance.evidenceId] : undefined;
         return (
           <View key={i} style={{ marginTop: 4 }}>
             {instance.target ? <Text style={styles.codeBlock}>{instance.target}</Text> : null}
             {instance.html ? <Text style={styles.codeBlock}>{instance.html}</Text> : null}
+            {sc ? (
+              <Text style={{ marginTop: 2 }}>
+                <Text style={{ fontWeight: 700 }}>{t("expected")}: </Text>
+                {scTitle(sc, locale)} {t("expectedSatisfied")}
+              </Text>
+            ) : null}
             {instance.failureSummary ? (
-              <Text style={{ marginTop: 2, color: "#8a3b00" }}>{instance.failureSummary}</Text>
+              <Text style={{ marginTop: 2, color: "#8a3b00" }}>
+                <Text style={{ fontWeight: 700 }}>{t("observed")}: </Text>
+                {instance.failureSummary}
+              </Text>
             ) : null}
             {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt prop */}
             {img ? <Image src={img.dataUri} style={styles.evidenceImage} /> : null}
@@ -745,6 +893,18 @@ function FindingBlock({
         <Text style={{ color: "#8a3b00" }}>{t("fixLabel")} </Text>
         {finding.recommendation}
       </Text>
+      {finding.help || finding.helpUrl ? (
+        <Text style={[styles.muted, { marginTop: 2 }]}>
+          {t("learnLabel")}:{" "}
+          {finding.helpUrl ? (
+            <Link src={finding.helpUrl} style={{ color: "#0969da" }}>
+              {finding.help || finding.helpUrl}
+            </Link>
+          ) : (
+            finding.help
+          )}
+        </Text>
+      ) : null}
     </View>
   );
 }

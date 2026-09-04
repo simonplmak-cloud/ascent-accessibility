@@ -59,4 +59,33 @@ describe("renderReportDocument (review-method sections)", () => {
     expect(buf.length).toBeGreaterThan(0);
     expect(buf.subarray(0, 5).toString()).toBe("%PDF-");
   }, 30000);
+
+  it("renders a reviewed report (conformance claim + resolved results) without error", async () => {
+    const strings = await loadReportStrings("en");
+    const reviewed: ReportData = {
+      ...report,
+      reviewStatus: "reviewed",
+      reviewClaim: {
+        reviewerName: "Jane Reviewer",
+        organization: "Acme Auditors",
+        email: "jane@acme.test",
+        evaluationMethods: ["NVDA + Chrome", "Keyboard only"],
+      },
+      reviewResults: {
+        "2.4.7": { verdict: "Passed", note: "Verified focus ring with NVDA.", reviewedBy: "jane@acme.test", reviewedAt: "2026-09-04T10:00:00Z" },
+      },
+      conformanceClaim: {
+        outcome: "does-not-conform",
+        scsMet: 30,
+        scsApplicable: 40,
+        reviewer: "Jane Reviewer",
+        organization: "Acme Auditors",
+        asAt: "2026-09-04T09:00:00Z",
+        signedAt: "2026-09-04T10:00:00Z",
+      },
+    };
+    const buf = await renderReportDocument(reviewed, null, strings);
+    expect(buf.length).toBeGreaterThan(0);
+    expect(buf.subarray(0, 5).toString()).toBe("%PDF-");
+  }, 30000);
 });

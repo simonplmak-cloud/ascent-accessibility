@@ -17,6 +17,35 @@ export type ReportFinding = Finding;
 export type ReportComparison = ComparisonData;
 export type ReportConformance = Conformance;
 
+// A reviewer's claim of an assessment (captured when they pick up the review).
+export interface ReportReviewClaim {
+  reviewerId?: string;
+  reviewerName?: string;
+  organization?: string;
+  email?: string;
+  evaluationMethods?: string[];
+  claimedAt?: string;
+}
+
+// A single resolved success criterion from human review.
+export interface ReportReviewResult {
+  verdict: "Passed" | "Failed" | "NotPresent";
+  note?: string;
+  reviewedBy: string;
+  reviewedAt: string;
+}
+
+// The signed conformance claim produced when a review is submitted.
+export interface ReportConformanceClaim {
+  outcome: "conforms" | "does-not-conform" | "undetermined";
+  scsMet: number;
+  scsApplicable: number;
+  reviewer: string;
+  organization: string;
+  asAt: string;
+  signedAt: string;
+}
+
 export interface ReportData {
   id?: string;
   url: string;
@@ -31,6 +60,10 @@ export interface ReportData {
   score?: number | null;
   passBand?: string | null;
   reviewStatus?: string | null;
+  reviewClaim?: ReportReviewClaim | null;
+  reviewResults?: Record<string, ReportReviewResult>;
+  conformanceClaim?: ReportConformanceClaim | null;
+  reviewedAt?: string | null;
   snapshotAt?: string | null;
   generatedAt?: string;
   locale?: string | undefined;
