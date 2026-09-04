@@ -58,6 +58,7 @@ describe("buildReportSummary", () => {
   it("summarises findings, pages, failed criteria, and the outcome", () => {
     const s = buildReportSummary(
       result({
+        reviewStatus: "reviewed",
         findings: [finding("a"), finding("b")],
         comparison: {
           ...result().comparison!,
@@ -73,15 +74,16 @@ describe("buildReportSummary", () => {
   });
 
   it("uses singular and notes no failures when clean", () => {
-    const s = buildReportSummary(result({ findings: [finding("a")] }));
+    const s = buildReportSummary(result({ reviewStatus: "reviewed", findings: [finding("a")] }));
     expect(s).toContain("with 1 finding");
     expect(s).toContain("No success criteria failed");
     expect(s).toContain("It conforms to the selected standard.");
   });
 
-  it("reports undetermined when criteria await human review", () => {
+  it("reports undetermined when reviewed criteria still await human review", () => {
     const s = buildReportSummary(
       result({
+        reviewStatus: "reviewed",
         comparison: {
           ...result().comparison!,
           conformance: {
@@ -96,5 +98,22 @@ describe("buildReportSummary", () => {
     );
     expect(s).toContain("3 cannot be determined and need human review");
     expect(s).toContain("Conformance has not yet been determined.");
+  });
+
+  it("reports a partial result for an unreviewed (automated/AI-only) assessment", () => {
+    const s = buildReportSummary(
+      result({
+        comparison: {
+          ...result().comparison!,
+          conformance: {
+            ...conformance([{ num: "1.4.3", title: "Contrast (Minimum)" }]),
+            cannotTell: 3,
+            outcome: "undetermined",
+          },
+        },
+      }),
+    );
+    expect(s).toContain("This is a partial result");
+    expect(s).not.toContain("It does not conform to the selected standard.");
   });
 });

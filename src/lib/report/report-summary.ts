@@ -7,6 +7,7 @@ interface SummaryStrings {
   more: (count: number) => string;
   cannotTell: (count: number) => string;
   none: string;
+  partial: string;
   conforms: string;
   doesNotConform: string;
   undetermined: string;
@@ -23,6 +24,7 @@ function en(): SummaryStrings {
     cannotTell: (count) =>
       ` No criteria failed, but ${count} cannot be determined and need human review.`,
     none: " No success criteria failed.",
+    partial: " This is a partial result — human review is required for a full conformance determination.",
     conforms: " It conforms to the selected standard.",
     doesNotConform: " It does not conform to the selected standard.",
     undetermined: " Conformance has not yet been determined.",
@@ -38,6 +40,7 @@ function zhHans(): SummaryStrings {
     more: (count) => `，另有 ${count} 项`,
     cannotTell: (count) => ` 没有准则未通过，但有 ${count} 项无法判定，需要人工审核。`,
     none: " 没有成功准则未通过。",
+    partial: " 这是部分结果 — 需要人工审查才能完成完整的符合性判定。",
     conforms: " 符合所选标准。",
     doesNotConform: " 不符合所选标准。",
     undetermined: " 合规性尚未判定。",
@@ -53,6 +56,7 @@ function zhHant(): SummaryStrings {
     more: (count) => `，另有 ${count} 項`,
     cannotTell: (count) => ` 沒有準則未通過，但有 ${count} 項無法判定，需要人工審核。`,
     none: " 沒有成功準則未通過。",
+    partial: " 這是部分結果 — 需要人工審查才能完成完整的符合性判定。",
     conforms: " 符合所選標準。",
     doesNotConform: " 不符合所選標準。",
     undetermined: " 合規性尚未判定。",
@@ -86,8 +90,10 @@ export function buildReportSummary(result: AssessmentResult, locale?: string): s
   }
 
   const outcome = conformance?.outcome;
-  const outcomePart =
-    outcome === "conforms"
+  const reviewed = result.reviewStatus === "reviewed";
+  const outcomePart = !reviewed
+    ? s.partial
+    : outcome === "conforms"
       ? s.conforms
       : outcome === "does-not-conform"
         ? s.doesNotConform

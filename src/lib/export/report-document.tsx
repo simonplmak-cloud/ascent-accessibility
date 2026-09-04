@@ -197,6 +197,10 @@ export function AccessibilityReportDocument({
   const claim = report.conformanceClaim;
   const identity = acrIdentity(report.reviewClaim, reviewed);
   const productName = hostOf(report.url);
+  // The top-line result: an unreviewed (automated/AI-only) report is always a
+  // "partial result", never a full conformance outcome — consistent on-screen.
+  const reportOutcome = reviewed ? outcomeLabel(report.outcome, locale) : t("partialResult");
+  const reportOutcomeColor = reviewed ? bandColor : outcomeColor("undetermined");
   const auditVersion = comparison?.audit?.auditVersion;
   const resolvedHuman = human.rows.filter((r) => reviewResults[r.num]);
 
@@ -251,8 +255,8 @@ export function AccessibilityReportDocument({
             )}
             <Row label={t("coverGenerated")}>{generatedDate(report.generatedAt)}</Row>
           </View>
-          <Text style={[styles.verdict, { color: bandColor }]}>
-            {outcomeLabel(report.outcome, locale)} — {t("scsMeet", { met: report.scsMet, applicable: report.scsApplicable })}
+          <Text style={[styles.verdict, { color: reportOutcomeColor }]}>
+            {reportOutcome} — {t("scsMeet", { met: report.scsMet, applicable: report.scsApplicable })}
           </Text>
           <Text style={{ marginTop: 8, fontSize: 9, fontWeight: 700, color: "#8a3b00" }}>{tBeta("badge")}</Text>
           <Text style={styles.disclaimer}>{t("coverDisclaimer")}</Text>
@@ -278,7 +282,7 @@ export function AccessibilityReportDocument({
           <Text style={styles.h2}>{t("sectionExecSummary")}</Text>
           <Text>{summaryText}</Text>
           <Text style={{ marginTop: 4 }}>
-            {t("summaryResult")}: <Text style={{ color: bandColor, fontWeight: 700 }}>{outcomeLabel(report.outcome, locale)}</Text> — {t("scsMeet", { met: report.scsMet, applicable: report.scsApplicable })}, {t("pagesScannedLine", { count: report.pagesScanned })}.
+            {t("summaryResult")}: <Text style={{ color: reportOutcomeColor, fontWeight: 700 }}>{reportOutcome}</Text> — {t("scsMeet", { met: report.scsMet, applicable: report.scsApplicable })}, {t("pagesScannedLine", { count: report.pagesScanned })}.
           </Text>
           <Text style={{ marginTop: 4 }}>
             {t("summaryFindingCounts", {

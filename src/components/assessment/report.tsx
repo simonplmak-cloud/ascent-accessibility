@@ -110,6 +110,7 @@ export function Report({ result }: { result: AssessmentResult }) {
         <ScoreSummary
           conformance={result.comparison?.conformance}
           findings={result.findings}
+          reviewStatus={result.reviewStatus}
         />
       </div>
 
