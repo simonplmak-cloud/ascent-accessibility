@@ -12,10 +12,10 @@ function aiDetectableScs(): string[] {
 }
 
 describe("DEFAULT_AI_CONFIGS", () => {
-  it("has exactly one entry per ai-detectable SC (AC-1)", () => {
+  it("covers every ai-detectable SC (and the agentic formerly-manual SCs) (AC-1)", () => {
     const expected = aiDetectableScs().sort();
     const actual = Object.keys(DEFAULT_AI_CONFIGS).sort();
-    expect(actual).toEqual(expected);
+    for (const sc of expected) expect(actual).toContain(sc);
   });
 
   it("every config carries identity + prompt + output + provenance (AC-2, AC-16)", () => {

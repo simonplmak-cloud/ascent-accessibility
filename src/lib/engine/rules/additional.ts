@@ -8,19 +8,20 @@ export const additionalRules: Rule[] = [
     impact: "serious",
     tags: ["wcag2a", "wcag142"],
     wcagSc: ["1.4.2"],
-    matcher: "audio[autoplay], video[autoplay]",
-    extract: (el) => ({
-      muted: el.hasAttribute("muted"),
-      hasControls: el.hasAttribute("controls"),
-    }),
+    // Negative criterion resolved on absence: no autoplay media → pass.
+    matcher: null,
+    extract: () => {
+      const els = Array.from(document.querySelectorAll<HTMLMediaElement>("audio[autoplay], video[autoplay]"));
+      const problematic = els.some((el) => !el.hasAttribute("muted") && !el.hasAttribute("controls"));
+      return { count: els.length, problematic };
+    },
     checks: [
       {
         id: "autoplay-control",
-        evaluate: (f) => {
-          if (f.muted) return { result: "pass" };
-          if (f.hasControls) return { result: "pass" };
-          return { result: "fail", failureSummary: "auto-playing media has no control and is not muted" };
-        },
+        evaluate: (f) =>
+          f.problematic
+            ? { result: "fail", failureSummary: "auto-playing media has no control and is not muted" }
+            : { result: "pass" },
       },
     ],
   }),
@@ -171,12 +172,58 @@ export const additionalRules: Rule[] = [
     impact: "serious",
     tags: ["wcag2a", "wcag222"],
     wcagSc: ["2.2.2"],
-    matcher: "marquee, blink",
-    extract: () => ({}),
+    // Negative criterion resolved on absence: no marquee/blink → pass. CSS-animated
+    // auto-moving content needs a pause-mechanism check that the agentic review
+    // covers; this rule only asserts the deterministic (deprecated-element) case.
+    matcher: null,
+    extract: () => ({
+      deprecated: document.querySelectorAll("marquee, blink").length,
+    }),
     checks: [
       {
         id: "no-marquee-blink",
-        evaluate: () => ({ result: "fail", failureSummary: "marquee/blink element must not be used" }),
+        evaluate: (f) =>
+          f.deprecated > 0
+            ? { result: "fail", failureSummary: "marquee/blink element must not be used" }
+            : { result: "pass" },
+      },
+    ],
+  }),
+  defineRule({
+    id: "no-flashing",
+    description: "Ensures content does not flash more than three times per second",
+    help: "Content must not flash more than three times per second",
+    impact: "serious",
+    tags: ["wcag2a", "wcag231", "wcag2aaa", "wcag232"],
+    wcagSc: ["2.3.1", "2.3.2"],
+    // Best-effort flash detection: deprecated blink + rapid CSS keyframe animation.
+    // Video flash (the genuine 2.3.1 concern) is not DOM-detectable — the agentic
+    // review covers it; this rule resolves the deterministic no-flash case.
+    matcher: null,
+    extract: () => {
+      const blink = document.querySelectorAll("blink").length;
+      let rapid = 0;
+      try {
+        for (const el of Array.from(document.querySelectorAll<HTMLElement>("*"))) {
+          const cs = getComputedStyle(el);
+          if (!cs.animationName || cs.animationName === "none") continue;
+          const duration = parseFloat(cs.animationDuration) || 0;
+          const iterations = cs.animationIterationCount;
+          // Rapid toggling (< ~0.4s/cycle) can exceed 3 flashes/second.
+          if (duration > 0 && duration < 0.4 && iterations === "infinite") rapid += 1;
+        }
+      } catch {
+        /* computed style unavailable */
+      }
+      return { blink, rapid };
+    },
+    checks: [
+      {
+        id: "no-rapid-flash",
+        evaluate: (f) =>
+          f.blink > 0 || f.rapid > 0
+            ? { result: "fail", failureSummary: "content flashes more than three times per second" }
+            : { result: "pass" },
       },
     ],
   }),
