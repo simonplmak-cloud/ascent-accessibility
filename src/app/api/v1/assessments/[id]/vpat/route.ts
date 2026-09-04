@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildAcrHtml, acrIdentity } from "@/lib/export/acr";
 import { loadReportData } from "@/lib/export/load-report";
+import { assessmentRepository } from "@/db/repository";
 import { assessmentIdSchema } from "@/server/validation";
 import { BRANDING } from "@/lib/site/branding";
 import { logger } from "@/lib/observability/logger";
@@ -19,11 +20,15 @@ export async function GET(
   }
 
   try {
-    const { assessment, report } = await loadReportData(id);
+    const assessment = await assessmentRepository.findById(id);
+    if (!assessment) {
+      return NextResponse.json({ code: "NOT_FOUND" }, { status: 404 });
+    }
     if (assessment.status !== "completed") {
       return NextResponse.json({ code: "CONFLICT", status: assessment.status }, { status: 409 });
     }
 
+    const { report } = await loadReportData(id);
     const conformance = report.comparison?.conformance;
     if (!conformance?.rows?.length) {
       return NextResponse.json(
