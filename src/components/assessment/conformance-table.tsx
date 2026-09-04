@@ -49,11 +49,14 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
     grouped.set(principle, list);
   }
 
-  function natureLabel(nature: string): string {
-    if (nature === "machine") return t("machine");
-    if (nature === "ai") return t("ai");
-    if (nature === "needsHuman") return t("needsHuman");
-    return "—";
+  function natureLabel(nature: string, confidence: ConformanceRow["confidence"]): string {
+    let base: string;
+    if (nature === "machine") base = t("machine");
+    else if (nature === "ai") base = t("ai");
+    else if (nature === "needsHuman") base = t("needsHuman");
+    else base = "—";
+    if (confidence === "single-source") base += ` · ${t("confidenceSingleSource")}`;
+    return base;
   }
 
   return (
@@ -109,7 +112,7 @@ export function ConformanceTable({ conformance }: { conformance: Conformance }) 
                         <span className={resultClass(row.result)}>{verdictLabel(row.result, locale)}</span>
                       </td>
                       <td className="px-3 py-2">
-                        <span className={NATURE_CLASS[nature]}>{natureLabel(nature)}</span>
+                        <span className={NATURE_CLASS[nature]}>{natureLabel(nature, row.confidence)}</span>
                       </td>
                     </tr>
                   );

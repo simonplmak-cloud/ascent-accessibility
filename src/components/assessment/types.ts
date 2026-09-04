@@ -44,6 +44,7 @@ export interface ConformanceRow {
   result: "Passed" | "Failed" | "CannotTell" | "NotPresent";
   machineResult?: "Passed" | "Failed" | "Unresolved" | "NotPresent";
   reviewReason?: CannotTellReason;
+  confidence?: "confirmed" | "single-source" | undefined;
 }
 
 export interface Conformance {

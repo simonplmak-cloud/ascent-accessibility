@@ -24,6 +24,7 @@ import { resolveDetectedLanguages } from "@/lib/standards/language-detect";
 import { verifyTokenFor, VERIFY_META_NAME } from "@/lib/site/bot-identity";
 import type { Finding, LogEntry, LogLevel, NewEvidence, ScannedPage } from "@/db/schema";
 import { logger } from "@/lib/observability/logger";
+import { analyzeCrossPage, extractPageStructure, type PageStructure } from "@/lib/assessment/cross-page";
 
 export interface AssessmentRecord {
   id: string;
@@ -452,6 +453,7 @@ async function scanAndConsolidate(
   let firstScanner: PageScanner | null = null;
   const incompleteContext: string[] = [];
   const mediaUrls: string[] = [];
+  const pageStructures: PageStructure[] = [];
   const detectedLanguages = new Set<string>();
   const seenMedia = new Set<string>();
   const snapshotAt = new Date().toISOString();
@@ -576,6 +578,16 @@ async function scanAndConsolidate(
                     mediaUrls.push(m);
                   }
                 }
+                try {
+                  const structure = (await scanner.evaluate(
+                    extractPageStructure as unknown as (arg: unknown) => unknown,
+                  )) as PageStructure;
+                  if (structure && typeof structure === "object" && structure.url) {
+                    pageStructures.push(structure);
+                  }
+                } catch {
+                  /* structure extraction optional */
+                }
 
                 const pageFindings = violationsToFindings(url, scan.violations);
                 await captureAndAttachEvidence(
@@ -668,6 +680,12 @@ async function scanAndConsolidate(
   await Promise.all(workers);
 
   const findings = consolidateFindings(engineFindings);
+
+  // Cross-page pass: resolve presence/consistency SCs from the collected
+  // per-page structures (deterministic — before the AI review runs).
+  const cross = analyzeCrossPage(pageStructures);
+  for (const sc of cross.passes) passedScs.add(sc);
+  findings.push(...cross.findings);
 
   return {
     findings,

@@ -373,7 +373,7 @@ export function AccessibilityReportDocument({
                               <Text style={[styles.tableCell, { flex: 1.8 }]}>{scTitle(row.num, locale)}</Text>
                               <Text style={[styles.tableCell, { flex: 0.5 }]}>{row.level}</Text>
                               <Text style={[styles.tableCell, { flex: 1 }]}>{verdictLabel(row.result, locale)}</Text>
-                              <Text style={[styles.tableCell, { flex: 1 }]}>{testedByLabel(tested, t)}</Text>
+                              <Text style={[styles.tableCell, { flex: 1 }]}>{testedByLabel(tested, row.confidence, t)}</Text>
                             </View>
                           );
                         })}
@@ -757,7 +757,10 @@ export function AccessibilityReportDocument({
                   <Text style={[styles.tableCell, { flex: 0.6 }]}>{row.level}</Text>
                   <Text style={[styles.tableCell, { flex: 1.1 }]}>{tAcr(vpatLabelKey(vpatLevelOf(row, reviewResult)))}</Text>
                   <Text style={[styles.tableCell, { flex: 1.8 }]}>{remarks}</Text>
-                  <Text style={[styles.tableCell, { flex: 0.9 }]}>{tAcr(TESTED_BY_KEY[testedByOf(row)])}</Text>
+                  <Text style={[styles.tableCell, { flex: 0.9 }]}>
+                    {tAcr(TESTED_BY_KEY[testedByOf(row)])}
+                    {row.confidence === "single-source" ? ` · ${t("confidenceSingleSource")}` : ""}
+                  </Text>
                 </View>
               );
             })}
@@ -808,11 +811,18 @@ function groupConformanceRows(
   return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }));
 }
 
-function testedByLabel(tested: TestedBy, t: ReportStrings["t"]): string {
-  if (tested === "machine") return t("machine");
-  if (tested === "ai") return t("ai");
-  if (tested === "human") return t("needsHuman");
-  return "—";
+function testedByLabel(
+  tested: TestedBy,
+  confidence: string | undefined,
+  t: ReportStrings["t"],
+): string {
+  let base: string;
+  if (tested === "machine") base = t("machine");
+  else if (tested === "ai") base = t("ai");
+  else if (tested === "human") base = t("needsHuman");
+  else base = "—";
+  if (confidence === "single-source") base += ` · ${t("confidenceSingleSource")}`;
+  return base;
 }
 
 function cannotTellReasonLabel(reason: string, t: ReportStrings["t"]): string {

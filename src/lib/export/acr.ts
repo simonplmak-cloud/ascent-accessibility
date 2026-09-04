@@ -216,7 +216,7 @@ export function buildAcrHtml(input: AcrInput): string {
   <td>${esc(row.level)}</td>
   <td>${esc(VPAT_EN[vpatLevelOf(row, reviewResult)])}</td>
   <td>${esc(remarks)}</td>
-  <td>${esc(TESTED_EN[testedByOf(row)])}</td>
+  <td>${esc(TESTED_EN[testedByOf(row)])}${row.confidence === "single-source" ? " (single source)" : ""}</td>
 </tr>`;
     })
     .join("\n");

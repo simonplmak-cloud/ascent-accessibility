@@ -90,6 +90,23 @@ describe("finalizeConformance (outcome + SC counts)", () => {
     expect(result.scsApplicable).toBe(0);
     expect(result.outcome).toBe("undetermined");
   });
+
+  it("stamps provenance: machine rows confirmed, AI-resolved rows single-source", () => {
+    const result = finalizeConformance(
+      machine([
+        { num: "1.1.1", result: "Passed" },
+        { num: "1.4.3", result: "Failed" },
+        { num: "2.4.4", result: "Unresolved" },
+        { num: "2.4.7", result: "Unresolved" },
+      ]),
+      new Map([["2.4.4", "Passed"]]),
+    );
+    const byNum = Object.fromEntries(result.rows.map((r) => [r.num, r]));
+    expect(byNum["1.1.1"]?.confidence).toBe("confirmed");
+    expect(byNum["1.4.3"]?.confidence).toBe("confirmed");
+    expect(byNum["2.4.4"]?.confidence).toBe("single-source");
+    expect(byNum["2.4.7"]?.confidence).toBeUndefined();
+  });
 });
 
 describe("computeConformance + finalizeConformance integration", () => {

@@ -1,11 +1,6 @@
-import {
-  computeConformance,
-  finalizeConformance,
-  type ConformanceResult,
-} from "@/lib/scoring";
+import { computeConformance, finalizeConformance, type ConformanceResult } from "@/lib/scoring";
 import type { PageFeatures } from "@/lib/standards/sc-applicability";
 import { scsForStandard } from "@/lib/standards/version";
-import { naturesOf } from "@/lib/standards/nature";
 import type { WcagLevel } from "@/lib/standards/wcag-sc";
 import type { AiBudget, AiReview, VisionModel, VisionReviewTools } from "@/lib/ai-review/types";
 import { mediaScsFor, runAudioReview, type AudioModel } from "@/lib/ai-review/audio";
@@ -43,11 +38,6 @@ export interface EvaluateOutput {
   aiBudget: AiBudget;
 }
 
-function isManualOnly(sc: string): boolean {
-  const natures = naturesOf(sc);
-  return natures.size === 1 && natures.has("manual-only");
-}
-
 export async function evaluateStandard(
   input: EvaluateInput,
   deps: EvaluateDeps,
@@ -62,10 +52,11 @@ export async function evaluateStandard(
   let machine = computeConformance(scs, findings, passedScs, input.matchedScs, input.features);
 
   if (deps.visionModel && deps.aiScreenshot) {
+    // Agentic backstop: every SC the machine left unresolved is eligible — the
+    // model gathers interaction evidence (DOM/keyboard/focus) via the browser
+    // tools and always asserts a verdict. No SC is reserved "manual-only".
     const eligible = machine.rows
       .filter((row) => row.result === "Unresolved")
-      .filter((row) => !isManualOnly(row.num))
-      .filter((row) => naturesOf(row.num).has("ai-detectable"))
       .map((row) => row.num);
 
     if (eligible.length > 0) {

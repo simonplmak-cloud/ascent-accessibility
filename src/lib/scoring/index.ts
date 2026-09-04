@@ -15,6 +15,9 @@ export type MachineVerdict = "Passed" | "Failed" | "Unresolved" | "NotPresent";
 // conformance-evaluation vocabulary.
 export type FinalVerdict = "Passed" | "Failed" | "CannotTell" | "NotPresent";
 
+// Provenance confidence for a resolved verdict.
+export type VerdictConfidence = "confirmed" | "single-source";
+
 export const FINAL_VERDICT_LABELS: Record<FinalVerdict, string> = {
   Passed: "Passed",
   Failed: "Failed",
@@ -94,6 +97,9 @@ export interface ScConformanceRow {
   result: FinalVerdict;
   machineResult: MachineVerdict;
   reviewReason?: CannotTellReason;
+  // Provenance: machine-decided rows are "confirmed" (deterministic); AI-resolved
+  // rows are "single-source" (one model's judgment, not independently confirmed).
+  confidence?: VerdictConfidence | undefined;
 }
 
 export interface ConformanceResult {
@@ -157,12 +163,27 @@ export function finalizeConformance(
 ): ConformanceResult {
   const rows: ScConformanceRow[] = machine.rows.map((row) => {
     let result: FinalVerdict;
+    let confidence: VerdictConfidence | undefined;
     if (row.result === "Unresolved") {
-      result = resolved.get(row.num) ?? "CannotTell";
+      const resolvedVerdict = resolved.get(row.num);
+      if (resolvedVerdict) {
+        result = resolvedVerdict;
+        confidence = "single-source";
+      } else {
+        result = "CannotTell";
+      }
     } else {
       result = row.result;
+      confidence = "confirmed";
     }
-    return { num: row.num, title: row.title, level: row.level, result, machineResult: row.result };
+    return {
+      num: row.num,
+      title: row.title,
+      level: row.level,
+      result,
+      machineResult: row.result,
+      ...(confidence ? { confidence } : {}),
+    };
   });
 
   const passed = rows.filter((r) => r.result === "Passed").length;
